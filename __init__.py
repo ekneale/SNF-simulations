@@ -2,32 +2,32 @@ import numpy as np
 
 
 def load_data():
-    Sr90 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Sr90_an.txt",skip_header=1)[:,[7,10]]
+    Sr90 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Sr90_an.txt",skip_header=1)[:,[7,10,11]]
 
     Y90 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Y90_an.txt",skip_header=1)
     end =int(np.where(Y90[:,7] == 2278.5)[0])
-    Y90 = Y90[:end,[7,10]]
+    Y90 = Y90[:end,[7,10,11]]
 
-    Pu241 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Pu241_an.txt",skip_header=1)[:,[7,10]]
-    Cs137 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Cs137_an.txt",skip_header=1)[:,[7,10]]
-    Am242 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Am242_an.txt",skip_header=1)[:,[7,10]]
-    Cm249 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Cm249_an.txt",skip_header=1)[:,[7,10]]
-    Cs135 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Cs135_an.txt",skip_header=1)[:,[7,10]]
-    I129 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/I129_an.txt",skip_header=1)[:,[7,10]]
-    Np239 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Np239_an.txt",skip_header=1)[:,[7,10]]
+    Pu241 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Pu241_an.txt",skip_header=1)[:,[7,10,11]]
+    Cs137 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Cs137_an.txt",skip_header=1)[:,[7,10,11]]
+    Am242 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Am242_an.txt",skip_header=1)[:,[7,10,11]]
+    Cm249 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Cm249_an.txt",skip_header=1)[:,[7,10,11]]
+    Cs135 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Cs135_an.txt",skip_header=1)[:,[7,10,11]]
+    I129 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/I129_an.txt",skip_header=1)[:,[7,10,11]]
+    Np239 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Np239_an.txt",skip_header=1)[:,[7,10,11]]
 
     Tc99 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Tc99_an.txt",skip_header=1)
     end0 = int(np.where(Tc99[:,7] == 297.5)[0])
-    Tc99 = Tc99[:end0,[7,10]]
+    Tc99 = Tc99[:end0,[7,10,11]]
 
-    Zr93 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Zr93_an.txt",skip_header=1)[:,[7,10]]
+    Zr93 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Zr93_an.txt",skip_header=1)[:,[7,10,11]]
 
-    Ce144 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Ce144_an.txt",skip_header=1)[:,[7,10]]
-    Kr88 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Kr88_an.txt",skip_header=1)[:,[7,10]]
-    Pr144 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Pr144_an.txt",skip_header=1)[:,[7,10]]
-    Rb88 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Rb88_an.txt",skip_header=1)[:,[7,10]]
-    Rh106 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Rh106_an.txt",skip_header=1)[:,[7,10]]
-    Ru106 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Ru106_an.txt",skip_header=1)[:,[7,10]]
+    Ce144 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Ce144_an.txt",skip_header=1)[:,[7,10,11]]
+    Kr88 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Kr88_an.txt",skip_header=1)[:,[7,10,11]]
+    Pr144 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Pr144_an.txt",skip_header=1)[:,[7,10,11]]
+    Rb88 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Rb88_an.txt",skip_header=1)[:,[7,10,11]]
+    Rh106 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Rh106_an.txt",skip_header=1)[:,[7,10,11]]
+    Ru106 = np.genfromtxt("/home/zuzanna/SURE/snf_sims/plot_spectra/data/Ru106_an.txt",skip_header=1)[:,[7,10,11]]
 
 
 
