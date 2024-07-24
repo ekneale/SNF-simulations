@@ -68,9 +68,9 @@ def TotSpec(removal_time =0,total_m =1000, max_E=5301, Sr90_prop=0, Y90_prop=0, 
 
         extra_Rh106 = AddDecays(t = removal_time, BR=1, parent_prop0=Ru106_prop, parent_half_life=half_life_yrs[16], daughter_half_life=half_life_yrs[15], total_mass=total_m)
         spectra.Add(load_equal_scaled(Rh106, 3541, "additional Rh106" + str(removal_time), isotopes[15], extra_Rh106, mr[15], half_life_yrs[15], 0 ))
-   
-    total_spec = add_spec.add_spec(spectra)
-    total_spec.GetXaxis().SetRangeUser(0,max_E)
+  
+    total_spec = add_spec.add_byStack(spectra)
+    #total_spec.GetXaxis().SetRangeUser(0,max_E)
 
 
     return total_spec
