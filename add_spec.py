@@ -2,19 +2,6 @@ import ROOT
 
 import numpy as np
 
-def extend_spec(NewMax, NewBins, og_spec):
-    extended = ROOT.TH1D("extended" +str(NewMax), "", NewBins, 0, NewMax)
-
-    for i in range(og_spec.GetNbinsX()):
-        bin_center = og_spec.GetBinCenter(i)
-        content = og_spec.GetBinContent(i)
-        error = og_spec.GetBinError(i)
-        new_bin = og_spec.FindBin(bin_center)
-        extended.SetBinContent(new_bin, content)
-        extended.SetBinError(new_bin, error)
-
-    return extended
-
 def add_byStack(spectra):
     maxima = []
     for i in range(len(spectra)):
