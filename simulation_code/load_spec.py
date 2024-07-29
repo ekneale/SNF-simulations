@@ -16,7 +16,7 @@ def load_spec(Energy,dN,errors,isotope):
 	h.SetStats(0)
 
 	h.GetXaxis().SetTitle("Energy [keV]")
-	h.GetYaxis().SetTitle("dN/dE")
+	h.GetYaxis().SetTitle("#frac{dN}{dE}")
 
 	c.Update()
 
@@ -81,7 +81,7 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 	hnew.SetStats(0)
 
 	hnew.GetXaxis().SetTitle("Energy [keV]")
-	hnew.GetYaxis().SetTitle("dN/dE")
+	hnew.GetYaxis().SetTitle("#frac{dN}{dE}")
 	
 	c.Update()
 	
