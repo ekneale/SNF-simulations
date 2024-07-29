@@ -13,6 +13,6 @@ def add_casks(casks):
 
     cask_sum.SetTitle("Resultant Spectrum of Several Dry Casks")
     cask_sum.GetXaxis.SetTitle("Energy [keV]")
-    cask_sum.GetYaxis.SetTitle("Relative Flux [s #^{-1}]")
+    cask_sum.GetYaxis.SetTitle("Relative Flux [s ^{-1}]")
     
     return cask_sum
