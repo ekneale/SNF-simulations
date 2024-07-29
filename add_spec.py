@@ -2,7 +2,7 @@ import ROOT
 
 import numpy as np
 
-def add_spec(spectra):
+def add_byMerge(spectra):
 
     maxima = []
     for i in range(len(spectra)):
@@ -18,7 +18,7 @@ def add_spec(spectra):
     hsum.Merge(spectra)
     hsum.SetTitle("Total Spectrum")
     hsum.GetXaxis().SetTitle("Energy [keV]")
-    hsum.GetYaxis().SetTitle("Relative Flux [s$^{-1}$]")
+    hsum.GetYaxis().SetTitle("Relative Flux [keV^{-1}s^{-1}]")
  
     return hsum
 
