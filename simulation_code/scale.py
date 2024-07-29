@@ -15,6 +15,6 @@ def scale(spectrum, m, mr, half_life_yrs, removal_time):
 
     spectrum.SetTitle("Scaled Spectrum")
     spectrum.GetXaxis().SetTitle("Energy [keV]")
-    spectrum. GetYaxis().SetTitle("Relative Flux [s$^{-1}$]")
+    spectrum. GetYaxis().SetTitle("Relative Flux [s#^{-1}]")
 
     return spectrum
