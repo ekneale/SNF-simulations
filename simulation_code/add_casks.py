@@ -11,7 +11,7 @@ def add_casks(casks):
 
     c= ROOT.TCanvas
 
-    cask_sum.SetTitle("Resultant Spectrum of Several Dry Casks")
+    cask_sum.SetTitle("Resultant Spectrum of", len(casks), "Dry Casks")
     cask_sum.GetXaxis.SetTitle("Energy [keV]")
     cask_sum.GetYaxis.SetTitle("Relative Flux [s ^{-1}]")
     
