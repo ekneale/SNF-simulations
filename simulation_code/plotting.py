@@ -33,14 +33,14 @@ def plot_single_cask(removal_times=[], Sizewell = False, HartlePool=False):
             spectra[i].Draw("hist same")
 
     if HartlePool == True:
-        initial = define_proportions.TotSpec(cask_name="main",Kr88_prop=2.243e-8,Rb88_prop=2.3878e-9, Sr90_prop=4.2915e-4,Y90_prop=1.1011e-1, Zr93_prop=5.5053e-4, Tc99_prop=6.1165e-4,Ru106_prop=6.1422e-5, Rh106_prop=5.8187e-11, I129_prop=1.2094e-4,Cs135_prop=3.8357e-4,Cs137_prop=8.6122e-4,Pr144_prop=7.3156e-9,Ce144_prop=1.7313e-4, Np239_prop=2.7864e-5,Pu241_prop=5.3082e-4,Am242_prop=3.8686e-8,Cm249_prop=3.1726e-18)
+        initial = define_proportions.TotSpec(cask_name="main",Kr88_prop=2.243e-8,Rb88_prop=2.3878e-9, Sr90_prop=4.2915e-4,Y90_prop=1.1011e-1, Zr93_prop=5.5053e-4, Tc99_prop=6.1165e-4,Ru106_prop=6.1422e-5, Rh106_prop=5.8187e-11, I129_prop=1.2094e-4,Cs135_prop=3.8357e-4,Cs137_prop=8.6122e-4,Pr144_prop=7.3156e-9,Ce144_prop=1.7313e-4, Np239_prop=2.7864e-5,Pu241_prop=5.3082e-4,Am242_prop=3.8686e-8)
 
         initial.SetLineColor(ROOT.kBlue)
 
         spectra = ROOT.TList()
 
         for i in range(len(removal_times)):
-            spectra.append( define_proportions.TotSpec(cask_name="main",removal_time=removal_times[i],Kr88_prop=2.243e-8,Rb88_prop=2.3878e-9, Sr90_prop=4.2915e-4,Y90_prop=1.1011e-1, Zr93_prop=5.5053e-4, Tc99_prop=6.1165e-4,Ru106_prop=6.1422e-5, Rh106_prop=5.8187e-11, I129_prop=1.2094e-4,Cs135_prop=3.8357e-4,Cs137_prop=8.6122e-4,Pr144_prop=7.3156e-9,Ce144_prop=1.7313e-4, Np239_prop=2.7864e-5,Pu241_prop=5.3082e-4,Am242_prop=3.8686e-8,Cm249_prop=3.1726e-18))
+            spectra.append( define_proportions.TotSpec(cask_name="main",removal_time=removal_times[i],Kr88_prop=2.243e-8,Rb88_prop=2.3878e-9, Sr90_prop=4.2915e-4,Y90_prop=1.1011e-1, Zr93_prop=5.5053e-4, Tc99_prop=6.1165e-4,Ru106_prop=6.1422e-5, Rh106_prop=5.8187e-11, I129_prop=1.2094e-4,Cs135_prop=3.8357e-4,Cs137_prop=8.6122e-4,Pr144_prop=7.3156e-9,Ce144_prop=1.7313e-4, Np239_prop=2.7864e-5,Pu241_prop=5.3082e-4,Am242_prop=3.8686e-8))
 
         legend.AddEntry(initial, "Initial Spectrum after removal from core")
 
