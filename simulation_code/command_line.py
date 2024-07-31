@@ -1,5 +1,8 @@
 import plotting
 
-plotting.plot_single_cask([0.01,5,10], HartlePool = True)
+plotting.plot_single_cask([0.5,1,5,10,20], HartlePool = True)
 
-plotting.plot_multiple_casks()
+spec = plotting.plot_multiple_casks(HartlePool=True)
+
+plotting.plot(spec)
+
