@@ -1,5 +1,5 @@
 # SNF-simulations
-SNF_simulations simulates antineutrino emissions from dry casks of spent nuclear fuel by plotting a total energy spectrum dependent on the mass proportions of isotopes found in the SNF and cooling time.
+SNF_simulations simulates antineutrino emissions from dry casks of spent nuclear fuel by plotting a total energy spectrum dependent on the masses and cooling times of contributing isotopes commonly found in SNF.
 
 ## Installation
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install SNF_simulations.
@@ -11,12 +11,7 @@ pip install SNF_simulations
 ## Usage
 ```python
 import snf_simulations
+```
+Currently the package plots the antineutrino spectra of SNF originating from the Sizewell and Hartlepool reactors, both for one dry cask of SNF as well 15 dry casks of fuel with varying cooling times.
 
-# returns antineutrino energy spectrum data for 16 isotpoes contained in antineutrino_spec_data directory
-snf_simulations.load_data.load_data()
-
-# returns antineutrino energy spectrum plotted as a histogram for a selected isotope
-snf_simulations.load_spec.load_spec(E,dN,errors, "isotope")
-
-#returns antineutrino energy spectrum plotted as a histogram with equal bin widths of 1 keV for a selected isotope
-snf_simulations.load_spec.load_equal("name","isotope", E, dN, error, max_E, min_E=-0)
+plotting.py combines most of the functions contained in the package. One output is the spectrum of one dry cask for either the Hartlepool or Sizewell reactor, depending on which is set to True, and how this spectrum varies over time. The other output is the total spectrum of the sum of 15 dry casks of SNF from either reactor. By running command_line.py these plots are created. The input proportions of isotopes can b=be varied in plotting.py, as well as removal times and number of dry casks contained at the storage facility. Isotopes can be added to the data directory, antineutrino_spec_data, and then also added into define_proportions.py. 
