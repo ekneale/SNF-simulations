@@ -5,6 +5,7 @@ import numpy as np
 def load_spec(Energy,dN,errors,isotope):
 	c = ROOT.TCanvas()
 
+	#the energies are the bin edges and the bin centres are between these, however these graphs have unequal bin widths
 	h = ROOT.TH1D(isotope, isotope, len(Energy)-1, np.array(Energy))
 		
 	for i in range(len(Energy)):
@@ -16,7 +17,7 @@ def load_spec(Energy,dN,errors,isotope):
 	h.SetStats(0)
 
 	h.GetXaxis().SetTitle("Energy [keV]")
-	h.GetYaxis().SetTitle("#frac{dN}{dE}")
+	h.GetYaxis().SetTitle("dN/dE")
 
 	c.Update()
 
@@ -27,15 +28,17 @@ def load_spec(Energy,dN,errors,isotope):
 
 
 def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
-	c = ROOT.TCanvas()
-
 	h = ROOT.TH1D("h","", len(E)-1, np.array(E))
+	
+	#loading in original spectra
 
 	for i in range(len(E)):
 		h.Fill(E[i],dN[i])
 
 	for i in range(len(E)-1):
 		h.SetBinError(i, error[i])
+
+	#creating new bin edges and new bin centres to ensure equal bin widths so that the histograms can later be added together
 
 	new_edges = np.linspace(min_E, max_E, max_E +1)
 
@@ -51,9 +54,12 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 	for i in range(len(new_centres)):
 		hnew.Fill(new_centres[i], new_content[i])
 	
+	#calculation of new errors for interpolated graph
+
 	new_errors = []
 
-	#for first error where i=0, i don't know if this is fully correct
+	#seperate calculation of error on first interpolated point as iteration has to start from 1
+
 	point1 = [h.GetBinCenter(0), h.GetBinError(0)]
 	point2 = [h.GetBinCenter(1), h.GetBinError(1)]
 	d0 = point2[0] - point1[1]
@@ -63,7 +69,8 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 	first_err = np.sqrt(((d01/d0)*(point1[1])**2) + ((d02/d0)*(point2[1]**2)))
 	new_errors.append(first_err)
 
-	#rest of points
+	#calcualtion of rest of interpolated errors
+
 	for i in range(1,len(new_centres)):
 		comparison1 =[h.GetBinCenter(i-1), h.GetBinError(i-1)]
 		comparison2 =[h.GetBinCenter(i+1), h.GetBinError(i+1)]
@@ -81,15 +88,13 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 	hnew.SetStats(0)
 
 	hnew.GetXaxis().SetTitle("Energy [keV]")
-	hnew.GetYaxis().SetTitle("#frac{dN}{dE}")
+	hnew.GetYaxis().SetTitle("#frac{dN}{dE} [keV^{-1}]" )
 	
-	c.Update()
-	
+	hnew.GetXaxis().SetLabelSize(0.05)
+	hnew.GetYaxis().SetLabelSize(0.05)
+
+	hnew.GetXaxis().SetTitleSize(0.047)
+	hnew.GetYaxis().SetTitleSize(0.047)
+
 
 	return hnew
-		
-
-
-
-
-
