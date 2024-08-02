@@ -9,10 +9,4 @@ def add_casks(casks):
     cask_sum.Merge(casks)
     cask_sum.SetTitle("Total spectrum for all casks")
 
-    c= ROOT.TCanvas
-
-    cask_sum.SetTitle("Resultant Spectrum of", len(casks), "Dry Casks")
-    cask_sum.GetXaxis.SetTitle("Energy [keV]")
-    cask_sum.GetYaxis.SetTitle("Relative Flux [s ^{-1}]")
-    
     return cask_sum
