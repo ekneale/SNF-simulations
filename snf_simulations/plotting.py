@@ -1,6 +1,5 @@
 import ROOT
-import define_proportions
-import add_casks
+from snf_simulations import define_proportions, add_casks
 
 
 def plot_single_cask(removal_times=[], Sizewell = False, HartlePool=False):
@@ -9,6 +8,8 @@ def plot_single_cask(removal_times=[], Sizewell = False, HartlePool=False):
     c.SetLogy()
 
     legend = ROOT.TLegend(0.5, 0.7, 0.9, 0.9)
+
+    #plotting a spectrum of antineutrino energies for the Sizewell PWR with varying cooling times
 
     if Sizewell == True:
         initial = define_proportions.TotSpec(cask_name="main",Kr88_prop=1.427e-10, Rb88_prop=1.6645e-11, Sr90_prop=5.356e-4,Y90_prop=1.3922e-7, Zr93_prop=1.7681e-6,Tc99_prop=7.9742e-4, Ru106_prop=1.7496e-4, Rh106_prop=1.6389e-10, I129_prop=1.7535e-4, Cs135_prop=3.1282e-4, Cs137_prop=1.212e-3, Ce144_prop=4.0111e-4, Pr144_prop=1.6896e-8, Np239_prop=7.5852e-5, Pu241_prop=1.316e-3,Am242_prop=3.554e-8 )
@@ -33,6 +34,8 @@ def plot_single_cask(removal_times=[], Sizewell = False, HartlePool=False):
         for i in range(len(spectra)):
             spectra[i].Draw("hist same")
 
+    #plotting a spectrum of antineutrino energies for the Hartlepool AGR with varying cooling times
+
     if HartlePool == True:
         initial = define_proportions.TotSpec(cask_name="main",Kr88_prop=6.4374e-11, Rb88_prop=7.5089e-11, Sr90_prop=4.2912e-4, Y90_prop=1.0953e-7, Zr93_prop=5.5068e-4, Tc99_prop=6.12e-4, Ru106_prop=6.1306e-5, Rh106_prop=5.7428e-11, I129_prop=1.2097e-4, Cs135_prop=3.8379e-4, Cs137_prop=8.6117e-4,Ce144_prop=1.7271e-4, Pr144_prop=7.2749e-9, Np239_prop=2.0904e-5, Pu241_prop=5.3075e-4, Am242_prop=1.3708e-8)
 
@@ -56,7 +59,7 @@ def plot_single_cask(removal_times=[], Sizewell = False, HartlePool=False):
         for i in range(len(spectra)):
             spectra[i].Draw("hist same")
 
-    #input proportions are for 1 metric ton
+    #input proportions are for 1 metric ton of SNF
     initial.SetTitle("")
     initial.GetXaxis().SetTitle("Energy [keV]")
     initial.GetXaxis().SetLabelSize(0.05)
@@ -76,6 +79,9 @@ def plot_single_cask(removal_times=[], Sizewell = False, HartlePool=False):
 
 
 def plot_multiple_casks(Sizewell = False, HartlePool = False):
+
+    #plotting approximately 15 dry casks of fuel with different removal times from the Sizewell reactor
+
     if Sizewell == True:
         removal_times = [0.5,4,10,15,20,1,12,2.5,18,8,0.01, 10.5, 11, 3,7]
 
@@ -87,6 +93,8 @@ def plot_multiple_casks(Sizewell = False, HartlePool = False):
         total = add_casks.add_casks(casks)
 
         return total
+
+    #plotting approximately 15 dry casks of fuel with different removal times from the Hartlepool reactor
 
     if HartlePool == True:
         removal_times = [0.5, 10, 17, 9, 0.01, 11, 15, 20, 12, 17.5, 13,2,1, 6, 19]
@@ -100,6 +108,8 @@ def plot_multiple_casks(Sizewell = False, HartlePool = False):
 
         return total
     
+
+#just using the plot_multiple_casks results in a graphics error due to the amount spectra being added so plot has to be saved separately and then plotted
 
 def plot(spectrum):
     c = ROOT.TCanvas("c","Total Spectrum", 1200,600)
@@ -119,4 +129,5 @@ def plot(spectrum):
     input("exit")
 
     c.SaveAs("HartlepoolCasks.pdf")
+
 
