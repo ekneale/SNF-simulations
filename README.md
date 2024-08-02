@@ -1,5 +1,5 @@
 # SNF-simulations
-This package simulates antineutrino emissiond from dry casks of spent nuclear fuel (SNF). This is done by plotting a total energy spectrum dependent on the masses and cooling times of isotopes commonly found in SNF and a calculation of the expected flux of antineutrinos at the detector.
+This package simulates antineutrino emissions from dry casks of spent nuclear fuel (SNF). This is done by plotting a total energy spectrum dependent on the masses and cooling times of isotopes commonly found in SNF and a calculation of the expected flux of antineutrinos at the detector.
 
 ## Installation
 To use, clone the repository then use the package manager [pip](https://pip.pypa.io/en/stable/) to install SNF_simulations.
