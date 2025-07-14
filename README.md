@@ -5,7 +5,7 @@ This package simulates antineutrino emissions from dry casks of spent nuclear fu
 To use, clone the repository then use the package manager [pip](https://pip.pypa.io/en/stable/) to install SNF_simulations.
 
 ```bash
-pip install SNF_simulations
+pip install -i https://test.pypi.org/simple/ snf-simulations
 ```
 
 ## Usage
