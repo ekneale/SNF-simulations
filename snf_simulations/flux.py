@@ -3,7 +3,6 @@ from snf_simulations import sample
 import ROOT
 
 
-
 def flux_calc(total_spec,distance_m,):
 
     total_flux_above_threshold = total_spec.Integral(1801, 6000) #total flux per second above threshold
@@ -27,3 +26,27 @@ def flux_calc(total_spec,distance_m,):
 
 
     return flux
+
+def write_spec(total_spec, Hartlepool = False, Sizewell = False):
+    if Hartlepool == True:
+        reactor = "Hartlepool"
+    if Sizewell == True:
+        reactor = "Sizewell"
+
+    energy = [] # open array for energy
+    flux = []
+    n_bins = total_spec.GetNbinsX() #total no of bins 
+    #iterating through bins assigning the centre as the energy and content as the flux 
+    for i in range(1, n_bins +1):
+        energy1 = total_spec.GetBinCenter(i)
+        flux1 = total_spec.GetBinContent(i)
+        energy.append(energy1)
+        flux.append(flux1)
+        #saving energy and flux data as a csv file 
+# change name fir what reactor and cooling time have been chosen 
+    with open(f"{reactor}_multiple_20.csv", mode= 'w', newline='') as file:
+        
+        file.write("\"energy\": "+str(energy)+",\n")
+        file.write("\"(flux)\": "+str(flux)+",\n")
+        print("Energy and Flux saved to csv")
+    
