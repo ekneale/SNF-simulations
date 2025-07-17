@@ -71,9 +71,9 @@ def plot_single_cask(removal_times=[], Sizewell = False, HartlePool=False):
     c.Update()
     legend.Draw()
     input("exit")
-    c.SaveAs(f"{reactor}_Spectra.pdf")
+    c.SaveAs(f"{reactor}_Spectra_0.5.C") #change no for cooling time
 
-    return (spectra.At(4))  #needs .At() as its a Tlist not a python array
+    return (spectra.At(0))  #needs .At() as its a Tlist not a python array
 
 
 
@@ -83,12 +83,14 @@ def plot_multiple_casks_sizewell(removal_times):
     #plotting 10 dry casks x 10tonnes  x 4 cooling times for Sizewell PWR
     removal_times = [0.5,5,10,20]
     casks = ROOT.TList()
-
+    
     for i in range(len(removal_times)):
         casks.Add(define_proportions.TotSpec(cask_name="Sizewell",total_m = 100000, removal_time=removal_times[i],Kr88_prop=1.427e-10, Rb88_prop=1.6645e-11, Sr90_prop=5.356e-4,Y90_prop=1.3922e-7, Zr93_prop=1.7681e-6,Tc99_prop=7.9742e-4, Ru106_prop=1.7496e-4, Rh106_prop=1.6389e-10, I129_prop=1.7535e-4, Cs135_prop=3.1282e-4, Cs137_prop=1.212e-3, Ce144_prop=4.0111e-4, Pr144_prop=1.6896e-8, Np239_prop=7.5852e-5, Pu241_prop=1.316e-3,Am242_prop=3.554e-8))
 
     total_sizewell = add_casks.add_casks(casks)
-    
+
+    #c.SaveAs("Sizewell_MultipleCasks.C")
+
     return total_sizewell 
  
 def plot_multiple_casks_hartlepool(removal_times):
@@ -100,6 +102,8 @@ def plot_multiple_casks_hartlepool(removal_times):
             casks.Add(define_proportions.TotSpec(cask_name="Hartlepool",total_m = 100000,removal_time=removal_times[i],Kr88_prop=6.4374e-11, Rb88_prop=7.5089e-11, Sr90_prop=4.2912e-4, Y90_prop=1.0953e-7, Zr93_prop=5.5068e-4, Tc99_prop=6.12e-4, Ru106_prop=6.1306e-5, Rh106_prop=5.7428e-11, I129_prop=1.2097e-4, Cs135_prop=3.8379e-4, Cs137_prop=8.6117e-4,Ce144_prop=1.7271e-4, Pr144_prop=7.2749e-9, Np239_prop=2.0904e-5, Pu241_prop=5.3075e-4, Am242_prop=1.3708e-8))
 
         total_hartlepool = add_casks.add_casks(casks)
+
+        #c.SaveAs("Hartlepool_MultipleCasks.C")
 
         return total_hartlepool 
  
@@ -130,7 +134,7 @@ def plot(spectrum,Hartlepool = False, Sizewell = False):
 
     c.Update()
     input("exit")
-    c.SaveAs(f"{reactor}_casks.pdf")
+    c.SaveAs(f"{reactor}_casks.C")
 
  
 
@@ -231,11 +235,11 @@ def multiple_fluxes(Sizewell = False, Hartlepool = False):
  
 #plotting separately to avoid graphics errors
 
-def plot_multiple(multiple, Hartlepool = False, Sizewell = False):
-    if Hartlepool == True:
-         reactor = "Hartlepool"
-    if Sizewell == True:
-         reactor == "Sizewell"
+def plot_multiple(multiple):
+   # if Hartlepool == True:
+    #     reactor = "Hartlepool"
+    #if Sizewell == True:
+    #     reactor == "Sizewell"
 
     c = ROOT.TCanvas("c","Total Spectrum", 1200,600)
     c.SetLogy()
@@ -268,15 +272,15 @@ def plot_multiple(multiple, Hartlepool = False, Sizewell = False):
     c.Update()
     input("exit")
 
-    c.SaveAs(f"{reactor}_MultipleCasks.pdf")
+    c.SaveAs("Sizewell_MultipleCasks.pdf")
 
  
 
-def plot_sample(totSpec, Hartlepool = False, Sizewell = False):
-    if Hartlepool == True:
-         reactor = "Hartlepool"
-    if Sizewell == True:
-         reactor == "Sizewell"
+def plot_sample(totSpec):
+   # if Hartlepool == True:
+    #     reactor = "Hartlepool"
+   # if Sizewell == True:
+    #     reactor == "Sizewell"
          
     h = ROOT.TH1D("sample", "", 6000,0,6000)
     sampled = sample.sample(totSpec, N=1000000)
@@ -299,4 +303,4 @@ def plot_sample(totSpec, Hartlepool = False, Sizewell = False):
 
     c.Update()
     input("exit")
-    c.SaveAs(f"{reactor}Sampled.pdf")
+    c.SaveAs("Sizewell_Sampled.pdf")

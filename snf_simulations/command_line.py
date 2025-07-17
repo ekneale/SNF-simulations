@@ -1,4 +1,8 @@
 from snf_simulations import plotting, flux
+#from ROOT import TFile
+
+#creating root file in order to export to simulation
+#hfile = TFile("Sizewell_Spectra.root", "RECREATE")
 
 #plotting the spectrum for a single dry cask of fuel for either Hartlepool or Sizewell, depending which is set to True/False
 spec_single = plotting.plot_single_cask([0.5,1,5,10,20], Sizewell= True) 
@@ -31,3 +35,4 @@ for i in range(len(lots_of_graphs)):
 
 plotting.plot_sample(spec_multiple_sizewell)
 
+#hfile.Write()
