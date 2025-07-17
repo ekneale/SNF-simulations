@@ -85,11 +85,11 @@ def plot_multiple_casks_sizewell(removal_times):
     casks = ROOT.TList()
 
     for i in range(len(removal_times)):
-        casks.append(define_proportions.TotSpec(cask_name="Sizewell",total_m = 100000, removal_time=removal_times[i],Kr88_prop=1.427e-10, Rb88_prop=1.6645e-11, Sr90_prop=5.356e-4,Y90_prop=1.3922e-7, Zr93_prop=1.7681e-6,Tc99_prop=7.9742e-4, Ru106_prop=1.7496e-4, Rh106_prop=1.6389e-10, I129_prop=1.7535e-4, Cs135_prop=3.1282e-4, Cs137_prop=1.212e-3, Ce144_prop=4.0111e-4, Pr144_prop=1.6896e-8, Np239_prop=7.5852e-5, Pu241_prop=1.316e-3,Am242_prop=3.554e-8))
+        casks.Add(define_proportions.TotSpec(cask_name="Sizewell",total_m = 100000, removal_time=removal_times[i],Kr88_prop=1.427e-10, Rb88_prop=1.6645e-11, Sr90_prop=5.356e-4,Y90_prop=1.3922e-7, Zr93_prop=1.7681e-6,Tc99_prop=7.9742e-4, Ru106_prop=1.7496e-4, Rh106_prop=1.6389e-10, I129_prop=1.7535e-4, Cs135_prop=3.1282e-4, Cs137_prop=1.212e-3, Ce144_prop=4.0111e-4, Pr144_prop=1.6896e-8, Np239_prop=7.5852e-5, Pu241_prop=1.316e-3,Am242_prop=3.554e-8))
 
     total_sizewell = add_casks.add_casks(casks)
     
-    return casks.At(3) , total_sizewell
+    return total_sizewell 
  
 def plot_multiple_casks_hartlepool(removal_times):
       
@@ -101,7 +101,7 @@ def plot_multiple_casks_hartlepool(removal_times):
 
         total_hartlepool = add_casks.add_casks(casks)
 
-        return casks.At(3) , total_hartlepool #please change number for different cooling times, see command_line.py for the values for each reactor
+        return total_hartlepool 
  
 
 
