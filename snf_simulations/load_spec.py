@@ -40,9 +40,8 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 
 	#creating new bin edges and new bin centres to ensure equal bin widths so that the histograms can later be added together
 
-	new_edges = np.linspace(min_E, max_E, max_E +1)
-
-	new_centres = np.linspace(0.5, max_E-0.5, max_E)
+	new_edges = np.linspace(min_E, max_E, (max_E-min_E) + 1)
+	new_centres = new_edges[:-1] + 0.5
 
 	new_content = []
 	
