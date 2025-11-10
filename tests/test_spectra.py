@@ -2,8 +2,10 @@
 
 import numpy as np
 import ROOT
+from snf_simulations.load_and_scale import load_equal_scaled
 from snf_simulations.load_data import load_antineutrino_data
 from snf_simulations.load_spec import load_equal, load_spec
+from snf_simulations.scale import scale
 
 
 def test_load_antineutrino_data():
@@ -359,3 +361,145 @@ def test_load_equal_real():
     for i, isotope_data in enumerate(data):
         isotope_name = f"isotope_{i}"
         _test_load_equal(isotope_data, isotope_name=isotope_name)
+
+
+def _isotope_activity(mass_kg, atomic_mass, half_life_yrs, removal_time_yrs):
+    """Calculate the activity of an isotope spectrum after a given time."""
+    # NOTE: Taken from scale.scale (and cleaned up a bit)
+    # TODO: Move this to scale.py and reuse in both places,
+    #       Then add unit tests for this function too.
+    # Convert mass to number of atoms (kg to g, then to moles, then to atoms)
+    N0 = (mass_kg * 1000 / atomic_mass) * 6.022e23
+    # Calculate initial activity (in decays per second aka Becquerels)
+    lambda_ = np.log(2) / (half_life_yrs * 365 * 24 * 60 * 60)
+    A0 = N0 * lambda_
+    # Calculate activity after removal time (still in decays per second)
+    A = A0 * np.exp(-1 * lambda_ * removal_time_yrs * 365 * 24 * 60 * 60)
+    return A
+
+
+def _test_scale(spec, m, mr, half_life_yrs, removal_time_yrs):
+    """Test that scaling spectra works as expected."""
+    # Scale the spectrum
+    # NOTE ROOT edits in place, so make a copy to keep the original unscaled
+    scaled_spec = scale(spec.Clone(), m, mr, half_life_yrs, removal_time_yrs)
+
+    # Test basic properties
+    assert isinstance(scaled_spec, ROOT.TH1D), "Scaled spectrum is not a TH1D"
+    assert scaled_spec.GetNbinsX() == spec.GetNbinsX(), (
+        "Scaled spectrum has different number of bins"
+    )
+
+    # Test that each bin content and error has been scaled correctly
+    expected_activity = _isotope_activity(m, mr, half_life_yrs, removal_time_yrs)
+    for nbin in range(1, spec.GetNbinsX() + 1):
+        original_content = spec.GetBinContent(nbin)
+        scaled_content = scaled_spec.GetBinContent(nbin)
+        expected_content = original_content * expected_activity
+        assert np.isclose(scaled_content, expected_content), (
+            f"Scaled spectrum bin {nbin} content mismatch"
+        )
+
+        original_error = spec.GetBinError(nbin)
+        scaled_error = scaled_spec.GetBinError(nbin)
+        expected_error = original_error * expected_activity
+        assert np.isclose(scaled_error, expected_error), (
+            f"Scaled spectrum bin {nbin} error mismatch"
+        )
+
+    return scaled_spec
+
+
+def test_scale_mock():
+    """Test that scaling works on a mock spectrum."""
+    # Create a fake spectrum
+    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
+    dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
+    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    spec = load_spec(
+        Energy=energy,
+        dN=dN,
+        errors=errors,
+        isotope='test_isotope',
+    )
+
+    # Define scaling parameters
+    m = 1.0  # kg
+    mr = 100.0  # g/mol
+    half_life_yrs = 1.0  # year
+    removal_time_yrs = 0.5  # years
+
+    scaled_spec = _test_scale(spec, m, mr, half_life_yrs, removal_time_yrs)
+    A = 9.359326705935426e16  # Pre-calculated expected activity for these parameters
+    expected_contents = dN[:-1] * A
+    expected_errors = errors[:-1] * A
+    for i, nbin in enumerate(range(1, scaled_spec.GetNbinsX() + 1)):
+        assert np.isclose(scaled_spec.GetBinContent(nbin), expected_contents[i]), (
+            f"Scaled mock spectrum bin {nbin} content mismatch"
+        )
+        assert np.isclose(scaled_spec.GetBinError(nbin), expected_errors[i]), (
+            f"Scaled mock spectrum bin {nbin} error mismatch"
+        )
+
+
+def _test_load_and_scale(
+    data, name, m, mr, half_life_yrs, removal_time_yrs, max_E, min_E=0
+):
+    """Test that loading and scaling spectra works as expected."""
+    # Use the combined function
+    ls_spec = load_equal_scaled(
+        data, max_E, name, name, m, mr, half_life_yrs, removal_time_yrs, min_E=min_E
+    )
+    # Use the individual functions for comparison
+    loaded_spec = load_equal(
+        name=name,
+        isotope=name,
+        E=data[:, 0],
+        dN=data[:, 1],
+        error=data[:, 2],
+        max_E=max_E,
+        min_E=min_E,
+    )
+    scaled_spec = scale(loaded_spec.Clone(), m, mr, half_life_yrs, removal_time_yrs)
+
+    # Test that both methods give the same result
+    assert ls_spec.GetNbinsX() == scaled_spec.GetNbinsX(), (
+        "Load and scale spectrum has different number of bins"
+    )
+    for nbin in range(1, ls_spec.GetNbinsX() + 1):
+        ls_content = ls_spec.GetBinContent(nbin)
+        scaled_content = scaled_spec.GetBinContent(nbin)
+        assert np.isclose(ls_content, scaled_content), (
+            f"Load and scale spectrum bin {nbin} content mismatch"
+        )
+
+        ls_error = ls_spec.GetBinError(nbin)
+        scaled_error = scaled_spec.GetBinError(nbin)
+        assert np.isclose(ls_error, scaled_error), (
+            f"Load and scale spectrum bin {nbin} error mismatch"
+        )
+
+
+def test_load_and_scale_mock():
+    """Test that loading and scaling works on a mock spectrum."""
+    # Create a fake spectrum
+    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
+    dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
+    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    data = np.column_stack((energy, dN, errors))
+
+    # Define scaling parameters
+    m = 1.0  # kg
+    mr = 100.0  # g/mol
+    half_life_yrs = 1.0  # year
+    removal_time_yrs = 0.5  # years
+
+    _test_load_and_scale(
+        data,
+        "test_isotope",
+        m,
+        mr,
+        half_life_yrs,
+        removal_time_yrs,
+        max_E=3,
+    )
