@@ -67,15 +67,17 @@ def _test_load_spec(isotope_data, isotope_name="test_isotope"):
         assert spec.GetBinLowEdge(nbin) == expected_lowers[i], (
             f"{isotope_name} spectrum bin {nbin} lower edge mismatch"
         )
-        assert spec.GetBinLowEdge(nbin) + spec.GetBinWidth(nbin) == expected_uppers[i], (
-            f"{isotope_name} spectrum bin {nbin} upper edge mismatch"
-        )
+        assert (
+            spec.GetBinLowEdge(nbin) + spec.GetBinWidth(nbin) == expected_uppers[i]
+        ), f"{isotope_name} spectrum bin {nbin} upper edge mismatch"
         assert spec.GetBinContent(nbin) == expected_contents[i], (
             f"{isotope_name} spectrum bin {nbin} content mismatch"
         )
         assert spec.GetBinError(nbin) == expected_errors[i], (
             f"{isotope_name} spectrum bin {nbin} error mismatch"
         )
+
+    return spec
 
 
 def test_load_spec_mock():
@@ -98,7 +100,20 @@ def test_load_spec_mock():
     # NOTE: We lose the last data point (3, 70, 7), as it defines the upper edge of the final bin.
     # If we had a bin 7 then we wouldn't know what the upper limit would be
     # (since the bin widths don't have to be equal - see load_equal).
-    _test_load_spec(data)
+    spec = _test_load_spec(data)
+    centres = np.array([0.25, 0.75, 1.25, 1.75, 2.25, 2.75])
+    content = np.array([10, 20, 30, 40, 50, 60])
+    errors = np.array([1, 2, 3, 4, 5, 6])
+    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
+        assert spec.GetBinCenter(nbin) == centres[i], (
+            f"test_isotope spectrum bin {nbin} centre mismatch"
+        )
+        assert spec.GetBinContent(nbin) == content[i], (
+            f"test_isotope spectrum bin {nbin} content mismatch"
+        )
+        assert spec.GetBinError(nbin) == errors[i], (
+            f"test_isotope spectrum bin {nbin} error mismatch"
+        )
 
 
 def test_load_spec_real():
@@ -188,7 +203,7 @@ def _test_load_equal(isotope_data, isotope_name="test_isotope", min_E=0, max_E=N
 
     # Test bin spacing
     # The bins should now be equally spaced integers from min_E to max_E.
-    expected_edges = np.linspace(min_E, max_E, (max_E-min_E) + 1)
+    expected_edges = np.linspace(min_E, max_E, (max_E - min_E) + 1)
     expected_centres = expected_edges[:-1] + 0.5
     for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
         # Check that bin widths are equally spaced integers
@@ -226,6 +241,8 @@ def _test_load_equal(isotope_data, isotope_name="test_isotope", min_E=0, max_E=N
             f"{isotope_name} spectrum bin {nbin} error mismatch"
         )
 
+    return spec
+
 
 def test_load_equal_mock():
     """Test that equal spectra histograms can be created with mock data."""
@@ -259,7 +276,26 @@ def test_load_equal_mock():
     #  weight lower = 0.25 / 0.5 = 0.5
     #  weight upper = 0.25 / 0.5 = 0.5
     #  new error = sqrt(0.5^2 * 1.0^2 + 0.5^2 * 2.0^2) = 1.118...
-    _test_load_equal(data)
+    spec = _test_load_equal(data)
+    centres = np.array([0.5, 1.5, 2.5])
+    content = np.array([15.0, 35.0, 55.0])
+    errors = np.array(
+        [
+            np.sqrt((0.25 / 0.5) ** 2 * 1.0**2 + (0.25 / 0.5) ** 2 * 2.0**2),
+            np.sqrt((0.25 / 0.5) ** 2 * 3.0**2 + (0.25 / 0.5) ** 2 * 4.0**2),
+            np.sqrt((0.25 / 0.5) ** 2 * 5.0**2 + (0.25 / 0.5) ** 2 * 6.0**2),
+        ]
+    )
+    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
+        assert spec.GetBinCenter(nbin) == centres[i], (
+            f"test_isotope spectrum bin {nbin} centre mismatch"
+        )
+        assert spec.GetBinContent(nbin) == content[i], (
+            f"test_isotope spectrum bin {nbin} content mismatch"
+        )
+        assert np.isclose(spec.GetBinError(nbin), errors[i]), (
+            f"test_isotope spectrum bin {nbin} error mismatch"
+        )
 
 
 def test_load_equal_mock_extrapolate():
@@ -290,7 +326,31 @@ def test_load_equal_mock_extrapolate():
     #   8    6.0     6.5    7.0     30.0    3.0
     # NOTE: Any bins below the lowest original bin centre (1.0) or above the highest (5.0)
     #       just take the content and error of the first/last original bin.
-    _test_load_equal(data, min_E=min_E, max_E=max_E)
+    spec = _test_load_equal(data, min_E=min_E, max_E=max_E)
+    centres = np.array([-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5])
+    content = np.array([10.0, 10.0, 12.5, 17.5, 22.5, 27.5, 30.0, 30.0])
+    errors = np.array(
+        [
+            1.0,
+            1.0,
+            np.sqrt((1.5 / 2.0) ** 2 * 1.0**2 + (0.5 / 2.0) ** 2 * 2.0**2),
+            np.sqrt((0.5 / 2.0) ** 2 * 1.0**2 + (1.5 / 2.0) ** 2 * 2.0**2),
+            np.sqrt((1.5 / 2.0) ** 2 * 2.0**2 + (0.5 / 2.0) ** 2 * 3.0**2),
+            np.sqrt((0.5 / 2.0) ** 2 * 2.0**2 + (1.5 / 2.0) ** 2 * 3.0**2),
+            3.0,
+            3.0,
+        ]
+    )
+    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
+        assert spec.GetBinCenter(nbin) == centres[i], (
+            f"test_isotope spectrum bin {nbin} centre mismatch"
+        )
+        assert spec.GetBinContent(nbin) == content[i], (
+            f"test_isotope spectrum bin {nbin} content mismatch"
+        )
+        assert np.isclose(spec.GetBinError(nbin), errors[i]), (
+            f"test_isotope spectrum bin {nbin} error mismatch"
+        )
 
 
 def test_load_equal_real():
