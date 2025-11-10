@@ -59,6 +59,17 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 	new_errors = []
 
 	for i in range(0,len(new_centres)):
+		# The TH1D::Interpolate function looks for the two closest bins surrounding the new point.
+		# If it's before the first bin centre or above the final bin centre it just returns
+		# the content of the first/last bin.
+		# So here we do the same with the errors.
+		if new_centres[i] < h.GetBinCenter(1):
+			new_errors.append(h.GetBinError(1))
+			continue
+		if new_centres[i] >= h.GetBinCenter(h.GetNbinsX()):
+			new_errors.append(h.GetBinError(h.GetNbinsX()))
+			continue
+
 		# find which of the old bins the new centre would be in
 		idx = h.FindBin(new_centres[i])
 
