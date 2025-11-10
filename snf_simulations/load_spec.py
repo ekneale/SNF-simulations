@@ -58,22 +58,18 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 
 	new_errors = []
 
-	#seperate calculation of error on first interpolated point as iteration has to start from 1
+	for i in range(0,len(new_centres)):
+		# find which of the old bins the new centre would be in
+		idx = h.FindBin(new_centres[i])
 
-	point1 = [h.GetBinCenter(0), h.GetBinError(0)]
-	point2 = [h.GetBinCenter(1), h.GetBinError(1)]
-	d0 = point2[0] - point1[1]
-	d01 = abs(new_centres[0] - point1[0])
-	d02 = abs(new_centres[0] - point2[0])
-
-	first_err = np.sqrt(((d01/d0)*(point1[1])**2) + ((d02/d0)*(point2[1]**2)))
-	new_errors.append(first_err)
-
-	#calcualtion of rest of interpolated errors
-
-	for i in range(1,len(new_centres)):
-		comparison1 =[h.GetBinCenter(i-1), h.GetBinError(i-1)]
-		comparison2 =[h.GetBinCenter(i+1), h.GetBinError(i+1)]
+		# find which of the surrounding bins is lower and which is upper
+		# need to check which side of the centre of the found bin the new centre is
+		if new_centres[i] < h.GetBinCenter(idx):
+			comparison1 =[h.GetBinCenter(idx - 1), h.GetBinError(idx - 1)]
+			comparison2 =[h.GetBinCenter(idx), h.GetBinError(idx)]
+		else:
+			comparison1 =[h.GetBinCenter(idx), h.GetBinError(idx)]
+			comparison2 =[h.GetBinCenter(idx + 1), h.GetBinError(idx + 1)]
 
 		d = comparison2[0] - comparison1[0]
 		d1 = abs(new_centres[i] - comparison1[0])
@@ -82,8 +78,9 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 		errors = np.sqrt(((d1/d)*(comparison1[1])**2) + ((d2/d)*(comparison2[1]**2)))
 		new_errors.append(errors)
 
-	for i in range(len(new_centres)):
-		hnew.SetBinError(i,new_errors[i])
+	for i in range(1, len(new_centres)+1):
+		hnew.SetBinError(i,new_errors[i-1])
+
 
 	hnew.SetStats(0)
 
