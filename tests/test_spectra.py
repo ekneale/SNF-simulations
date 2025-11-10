@@ -27,20 +27,13 @@ def test_load_antineutrino_data():
         assert np.all(isotope_data[:, 2] >= 0), f"Isotope {i} has negative error values"
 
 
-def test_load_spec(isotope_data=None, isotope_name="test_isotope"):
+def _test_load_spec(isotope_data, isotope_name="test_isotope"):
     """Test that spectra histograms can be created and have the correct properties."""
     # NOTE: This will produce ROOT windows when run, which may need to be closed manually.
     #       Run pytest with -s to allow closing each window as they pop up.
-    if isotope_data is None:
-        # Create some fake data
-        # NOTE: Need to set dtype to float to keep ROOT happy
-        energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
-        dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-        errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    else:
-        energy = isotope_data[:, 0]
-        dN = isotope_data[:, 1]
-        errors = isotope_data[:, 2]
+    energy = isotope_data[:, 0]
+    dN = isotope_data[:, 1]
+    errors = isotope_data[:, 2]
 
     # Create the spectrum
     spec = load_spec(
@@ -64,17 +57,7 @@ def test_load_spec(isotope_data=None, isotope_name="test_isotope"):
     # Each bin is defined with the input energy values being the edges,
     # so the lower edge of bin 1 is energy[0], the upper edge of bin 1 (and the lower edge
     # of bin 2) is energy[1], etc.
-    # The test output should look like this:
-    # bin  lower  centre  upper  content  error
-    #   1    0.0    0.25    0.5     10.0    1.0
-    #   2    0.5    0.75    1.0     20.0    2.0
-    #   3    1.0    1.25    1.5     30.0    3.0
-    #   4    1.5    1.75    2.0     40.0    4.0
-    #   5    2.0    2.25    2.5     50.0    5.0
-    #   6    2.5    2.75    3.0     60.0    6.0
-    # NOTE: We lose the last data point (3, 70, 7), as it defines the upper edge of the final bin.
-    # If we had a bin 7 then we wouldn't know what the upper limit would be
-    # (since the bin widths don't have to be equal - see load_equal)
+    # Since we're using the energy values as bin edges, there are len(energy)-1 bins.
     expected_lowers = energy[:-1]
     expected_uppers = energy[1:]
     expected_contents = dN[:-1]
@@ -95,12 +78,35 @@ def test_load_spec(isotope_data=None, isotope_name="test_isotope"):
         )
 
 
-def test_load_spec_with_data():
+def test_load_spec_mock():
+    """Test that spectra histograms can be created with mock data."""
+    # Create some fake data
+    # NOTE: Need to set dtype to float to keep ROOT happy
+    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
+    dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
+    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    data = np.column_stack((energy, dN, errors))
+
+    # The test output should look like this:
+    # bin  lower  centre  upper  content  error
+    #   1    0.0    0.25    0.5     10.0    1.0
+    #   2    0.5    0.75    1.0     20.0    2.0
+    #   3    1.0    1.25    1.5     30.0    3.0
+    #   4    1.5    1.75    2.0     40.0    4.0
+    #   5    2.0    2.25    2.5     50.0    5.0
+    #   6    2.5    2.75    3.0     60.0    6.0
+    # NOTE: We lose the last data point (3, 70, 7), as it defines the upper edge of the final bin.
+    # If we had a bin 7 then we wouldn't know what the upper limit would be
+    # (since the bin widths don't have to be equal - see load_equal).
+    _test_load_spec(data)
+
+
+def test_load_spec_real():
     """Test that spectra histograms can be created for the included isotope data."""
     data = load_antineutrino_data()
     for i, isotope_data in enumerate(data):
         isotope_name = f"isotope_{i}"
-        test_load_spec(isotope_data=isotope_data, isotope_name=isotope_name)
+        _test_load_spec(isotope_data, isotope_name)
 
 
 def _linear_interpolate_with_errors(
@@ -150,18 +156,11 @@ def _linear_interpolate_with_errors(
     return new_content, new_errors
 
 
-def test_load_equal(isotope_data=None, isotope_name="test_isotope"):
+def _test_load_equal(isotope_data, isotope_name="test_isotope"):
     """Test that spectra can be loaded with equal bin widths."""
-    if isotope_data is None:
-        # Create some fake data
-        # NOTE: Need to set dtype to float to keep ROOT happy
-        energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
-        dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-        errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    else:
-        energy = isotope_data[:, 0]
-        dN = isotope_data[:, 1]
-        errors = isotope_data[:, 2]
+    energy = isotope_data[:, 0]
+    dN = isotope_data[:, 1]
+    errors = isotope_data[:, 2]
     min_E = 0  # BUG: The function forces the lowest bin to 0.5, so min_E has to be 0.
     max_E = int(np.max(energy))  # rounds down to nearest int
 
@@ -199,32 +198,6 @@ def test_load_equal(isotope_data=None, isotope_name="test_isotope"):
         )
 
     # Test bin contents and errors
-    # The test output should go from this (from load_spec):
-    # bin  lower  centre  upper  content  error
-    #   1    0.0    0.25    0.5     10.0    1.0
-    #   2    0.5    0.75    1.0     20.0    2.0
-    #   3    1.0    1.25    1.5     30.0    3.0
-    #   4    1.5    1.75    2.0     40.0    4.0
-    #   5    2.0    2.25    2.5     50.0    5.0
-    #   6    2.5    2.75    3.0     60.0    6.0
-    # to this:
-    # bin  lower  centre  upper  content  error
-    #   1    0.0     0.5    1.0     15.0    1.118...
-    #   2    1.0     1.5    2.0     35.0    2.5
-    #   3    2.0     2.5    3.0     55.0    3.905...
-    # The contents are found at the new centres by linear interpolation,
-    # using the ROOT TH1D::Interpolate method.
-    # The errors are a bit more complicated, they're calculated in quadrature based on the
-    # closest bins.
-    # e.g. for new bin 1 (centre 0.5):
-    #  lower old bin 1 centre = 0.25, error = 1.0
-    #  upper old bin 2 centre = 0.75, error = 2.0
-    #  distance to lower = 0.25
-    #  distance to upper = 0.25
-    #  total distance = 0.5
-    #  weight lower = 0.25 / 0.5 = 0.5
-    #  weight upper = 0.25 / 0.5 = 0.5
-    #  new error = sqrt(0.5^2 * 1.0^2 + 0.5^2 * 2.0^2) = 1.118...
     original_centres = energy[:-1] + np.diff(energy) / 2
     original_content = dN[:-1]
     original_errors = errors[:-1]
@@ -248,9 +221,44 @@ def test_load_equal(isotope_data=None, isotope_name="test_isotope"):
         )
 
 
-def test_load_equal_with_data():
+def test_load_equal_mock():
+    """Test that equal spectra histograms can be created with mock data."""
+    # Create some fake data
+    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
+    dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
+    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    data = np.column_stack((energy, dN, errors))
+
+    # The test output should go from this (from load_spec):
+    # bin  lower  centre  upper  content  error
+    #   1    0.0    0.25    0.5     10.0    1.0
+    #   2    0.5    0.75    1.0     20.0    2.0
+    #   3    1.0    1.25    1.5     30.0    3.0
+    #   4    1.5    1.75    2.0     40.0    4.0
+    #   5    2.0    2.25    2.5     50.0    5.0
+    #   6    2.5    2.75    3.0     60.0    6.0
+    # to this:
+    # bin  lower  centre  upper  content  error
+    #   1    0.0     0.5    1.0     15.0    1.118...
+    #   2    1.0     1.5    2.0     35.0    2.5
+    #   3    2.0     2.5    3.0     55.0    3.905...
+    # The contents are found at the new centres by linear interpolation, while the errors are
+    # calculated in quadrature based on the closest bins.
+    # e.g. for new bin 1 (centre 0.5):
+    #  lower old bin 1 centre = 0.25, error = 1.0
+    #  upper old bin 2 centre = 0.75, error = 2.0
+    #  distance to lower = 0.25
+    #  distance to upper = 0.25
+    #  total distance = 0.5
+    #  weight lower = 0.25 / 0.5 = 0.5
+    #  weight upper = 0.25 / 0.5 = 0.5
+    #  new error = sqrt(0.5^2 * 1.0^2 + 0.5^2 * 2.0^2) = 1.118...
+    _test_load_equal(data)
+
+
+def test_load_equal_real():
     """Test that equal spectra histograms can be created for the included isotope data."""
     data = load_antineutrino_data()
     for i, isotope_data in enumerate(data):
         isotope_name = f"isotope_{i}"
-        test_load_equal(isotope_data=isotope_data, isotope_name=isotope_name)
+        _test_load_equal(isotope_data, isotope_name=isotope_name)
