@@ -11,8 +11,9 @@ def load_spec(Energy,dN,errors,isotope):
 	for i in range(len(Energy)):
 		h.Fill(Energy[i],dN[i])
 
-	for i in range(len(Energy)-1):
-		h.SetBinError(i, errors[i])
+	# Fill the bins (note that ROOT histograms are 1-indexed)
+	for i in range(1, len(Energy)+1):
+		h.SetBinError(i, errors[i-1])
 
 	h.SetStats(0)
 
@@ -34,9 +35,8 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 
 	for i in range(len(E)):
 		h.Fill(E[i],dN[i])
-
-	for i in range(len(E)-1):
-		h.SetBinError(i, error[i])
+	for i in range(1, len(E)+1):
+		h.SetBinError(i, error[i-1])
 
 	#creating new bin edges and new bin centres to ensure equal bin widths so that the histograms can later be added together
 
