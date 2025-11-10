@@ -75,7 +75,7 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 		d1 = abs(new_centres[i] - comparison1[0])
 		d2 = abs(comparison2[0] - new_centres[i])
 
-		errors = np.sqrt(((d1/d)*(comparison1[1])**2) + ((d2/d)*(comparison2[1]**2)))
+		errors = np.sqrt(((d2/d)**2 * comparison1[1]**2) + ((d1/d)**2 * comparison2[1]**2))
 		new_errors.append(errors)
 
 	for i in range(1, len(new_centres)+1):
