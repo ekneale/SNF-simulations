@@ -1,5 +1,4 @@
 import numpy as np
-from snf_simulations import sample
 import ROOT
 from array import array
 
@@ -33,9 +32,9 @@ def flux_calc(
 
 
 def write_spec_multiple(total_sizewell, Hartlepool=False, Sizewell=False):
-    if Hartlepool == True:
+    if Hartlepool:
         reactor = "Hartlepool"
-    if Sizewell == True:
+    if Sizewell:
         reactor = "Sizewell"
 
     energy_multiple = []
@@ -58,9 +57,9 @@ def write_spec_multiple(total_sizewell, Hartlepool=False, Sizewell=False):
 
 
 def write_spec_single(total_spec, Hartlepool=False, Sizewell=False):
-    if Hartlepool == True:
+    if Hartlepool:
         reactor = "Hartlepool"
-    if Sizewell == True:
+    if Sizewell:
         reactor = "Sizewell"
 
     energy_single = []

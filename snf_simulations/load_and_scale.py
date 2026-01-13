@@ -1,6 +1,3 @@
-import numpy as np
-import ROOT
-
 from snf_simulations import scale, load_spec
 
 # combining load and scale functions

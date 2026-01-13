@@ -1,8 +1,3 @@
-import ROOT
-
-import numpy as np
-
-
 def add_spec(spectra):
     # adding spectra and setting limit to beyond the highest antineutrino energy in the database
 

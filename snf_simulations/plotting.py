@@ -16,7 +16,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
     legend = ROOT.TLegend(0.5, 0.7, 0.9, 0.9)
 
     # plotting a spectrum of antineutrino energies for the Sizewell PWR with varying cooling times
-    if Sizewell == True:
+    if Sizewell:
         reactor = "Sizewell"
         initial = define_proportions.TotSpec(
             cask_name="main",
@@ -81,7 +81,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
             spectra[i].Draw("hist same")
 
     # plotting a spectrum of antineutrino energies for the Hartlepool AGR with varying cooling times
-    if Sizewell == False:
+    if not Sizewell:
         reactor = "Hartlepool"
         initial = define_proportions.TotSpec(
             cask_name="main",
@@ -238,9 +238,9 @@ def plot_multiple_casks_hartlepool(removal_times):
 
 
 def plot(spectrum, Hartlepool=False, Sizewell=False):
-    if Hartlepool == True:
+    if Hartlepool:
         reactor = "Hartlepool"
-    if Sizewell == True:
+    if Sizewell:
         reactor = "Sizewell"
 
     c = ROOT.TCanvas("c", "Total Spectrum", 1200, 600)
@@ -265,7 +265,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
     extra_times = [1, 5, 10, 20]
 
     # for Hartlepool
-    if Hartlepool == True:
+    if Hartlepool:
         removal_times = [3, 7, 15, 19]
         casks0_h = ROOT.TList()
         casks1_h = ROOT.TList()
@@ -416,7 +416,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
         return sums_h
 
     # for sizewell
-    if Sizewell == True:
+    if Sizewell:
         removal_times = [0.5, 5, 10, 20]
         casks0_s = ROOT.TList()
         casks1_s = ROOT.TList()

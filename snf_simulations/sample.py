@@ -1,5 +1,3 @@
-import numpy as np
-from ROOT import TH1D, TCanvas
 import csv
 
 # sampling the total spectrum to simulate what a detector could observe
@@ -12,7 +10,7 @@ def sample(total_spec, N=100, save=True):
     for i in range(N):
         sampled.append(total_spec.GetRandom())
 
-    if save == True:
+    if save:
         with open("sampled_spectrum.csv", mode="w", newline="") as file:
             writer = csv.writer(file)
             for item in sampled:

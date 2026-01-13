@@ -2,7 +2,7 @@ import numpy as np
 import ROOT
 
 
-from snf_simulations import scale, add_spec, load_spec, load_and_scale, load_data
+from snf_simulations import add_spec, load_and_scale, load_data
 
 
 def AddDecays(

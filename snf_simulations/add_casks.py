@@ -1,8 +1,3 @@
-import numpy as np
-
-import ROOT
-
-
 def add_casks(casks):
     cask_sum = casks[0].Clone("casks")
     cask_sum.Reset()
