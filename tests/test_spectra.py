@@ -2,6 +2,7 @@
 
 import numpy as np
 import ROOT
+from snf_simulations.add_spec import add_spec
 from snf_simulations.load_and_scale import load_equal_scaled
 from snf_simulations.load_data import load_antineutrino_data
 from snf_simulations.load_spec import load_equal, load_spec
@@ -503,3 +504,70 @@ def test_load_and_scale_mock():
         removal_time_yrs,
         max_E=3,
     )
+
+
+def _test_add_spec(spectra_list):
+    """Test that adding multiple spectra works as expected."""
+    # Add the spectra together
+    combined_spec = add_spec(spectra_list)
+
+    # Test basic properties
+    assert isinstance(combined_spec, ROOT.TH1D), "Combined spectrum is not a TH1D"
+    assert combined_spec.GetNbinsX() == spectra_list[0].GetNbinsX(), (
+        "Combined spectrum has different number of bins"
+    )
+
+    # Test that each bin content and error has been added correctly
+    for nbin in range(1, combined_spec.GetNbinsX() + 1):
+        expected_content = sum(
+            spec.GetBinContent(nbin) for spec in spectra_list
+        )
+        combined_content = combined_spec.GetBinContent(nbin)
+        assert np.isclose(combined_content, expected_content), (
+            f"Combined spectrum bin {nbin} content mismatch"
+        )
+
+        expected_error = np.sqrt(
+            sum(spec.GetBinError(nbin) ** 2 for spec in spectra_list)
+        )
+        combined_error = combined_spec.GetBinError(nbin)
+        assert np.isclose(combined_error, expected_error), (
+            f"Combined spectrum bin {nbin} error mismatch"
+        )
+
+    return combined_spec
+
+
+def test_add_spec_mock():
+    """Test that adding spectra works on mock spectra."""
+    # Create some fake spectra
+    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
+    dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
+    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    spec1 = load_spec(
+        Energy=energy,
+        dN=dN,
+        errors=errors,
+        isotope='test_isotope1',
+    )
+    spec2 = load_spec(  # We'll make this one have double the counts and errors
+        Energy=energy,
+        dN=dN*2,
+        errors=errors*2,
+        isotope='test_isotope2',
+    )
+    spectra_list = ROOT.TList()
+    spectra_list.Add(spec1)
+    spectra_list.Add(spec2)
+
+    # Add the spectra together
+    combined_spec = _test_add_spec(spectra_list)
+    expected_contents = dN + dN * 2  # Sum of contents from both spectra, easy with numpy
+    expected_errors = np.sqrt(errors**2 + (errors*2)**2)  # Quadrature sum of errors
+    for i, nbin in enumerate(range(1, combined_spec.GetNbinsX() + 1)):
+        assert np.isclose(combined_spec.GetBinContent(nbin), expected_contents[i]), (
+            f"Combined mock spectrum bin {nbin} content mismatch"
+        )
+        assert np.isclose(combined_spec.GetBinError(nbin), expected_errors[i]), (
+            f"Combined mock spectrum bin {nbin} error mismatch"
+        )

@@ -10,7 +10,7 @@ def add_spec(spectra):
     # for i in range(len(spectra)):
     #     spectra[i].GetXaxis().SetLimits(0, 6000)
 
-    hsum = spectra[14].Clone("combined")
+    hsum = spectra[0].Clone("combined")
     hsum.Reset()
 
     hsum.Merge(spectra)
