@@ -38,7 +38,7 @@ def _load_output(filename):
     return energy, flux
 
 
-def test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
+def _test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     """Test single cask spectrum output."""
     print(f"--- Testing single cask for {site.capitalize()} ---")
 
@@ -93,7 +93,7 @@ def test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     print("--- Single tests passed ---")
 
 
-def test_multiple_casks(site="sizewell"):
+def _test_multiple_casks(site="sizewell"):
     """Test multiple cask spectrum output."""
     print(f"--- Testing multiple casks for {site.capitalize()} ---")
 
@@ -145,7 +145,7 @@ def test_multiple_casks(site="sizewell"):
     print("--- Multiple tests passed ---")
 
 
-def test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
+def _test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     """Test flux calculation at a given distance."""
     print(f"--- Testing flux calculation for {site.capitalize()} ---")
 
@@ -160,7 +160,7 @@ def test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
         spec_multiple = plotting.plot_multiple_casks_sizewell(removal_times=None)
     elif site == "hartlepool":
         spec_multiple = plotting.plot_multiple_casks_hartlepool(removal_times=None)
-    os.remove("Sizewell_Spectra_0.5.pdf")
+    os.remove(f"{site.capitalize()}_Spectra_0.5.pdf")
 
     # Calculate the single cask flux at 40m
     # Returns a single value of flux cm^-2 s^-1
@@ -168,17 +168,23 @@ def test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # but they don't get returned.
     flux_single_40 = flux.flux_calc(spec_single, distance_m=40)
     assert isinstance(flux_single_40, float), "Single flux is not a float"
-    assert flux_single_40 == 11992581412.516947, "Single flux value does not match"
+    if site == "sizewell":
+        assert flux_single_40 == 11992581412.516947, "Single flux value does not match"
+    else:
+        assert flux_single_40 == 4942454011.527514, "Single flux value does not match"
 
     # Calculate the multiple cask flux at 40m
     flux_multiple_40 = flux.flux_calc(spec_multiple, distance_m=40)
     assert isinstance(flux_multiple_40, float), "Multiple flux is not a float"
-    assert flux_multiple_40 == 13067942466.972416, "Multiple flux value does not match"
+    if site == "sizewell":
+        assert flux_multiple_40 == 13067942466.972416, "Multiple flux value does not match"
+    else:
+        assert flux_multiple_40 == 1443302654.935451, "Multiple flux value does not match"
 
     print("--- Flux calculation tests passed ---")
 
 
-def test_multiple_plot(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
+def _test_multiple_plot(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     """Test plotting multiple flux spectra on one graph."""
     print(f"--- Testing multiple flux plot for {site.capitalize()} ---")
 
@@ -191,9 +197,10 @@ def test_multiple_plot(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     )
     if site == "sizewell":
         spec_multiple = plotting.plot_multiple_casks_sizewell(removal_times=None)
+        os.remove("Sizewell_Spectra_0.5.pdf")
     elif site == "hartlepool":
         spec_multiple = plotting.plot_multiple_casks_hartlepool(removal_times=None)
-    os.remove("Sizewell_Spectra_0.5.pdf")
+        os.remove("Hartlepool_Spectra_0.5.pdf")
 
     # Write out the single and multiple spectra to get energy and flux arrays
     # And this will write out the csv files, so we have to remove them again...
@@ -226,7 +233,7 @@ def test_multiple_plot(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     print("--- Multiple flux plot test passed ---")
 
 
-def test_multiple_fluxes(site="sizewell"):
+def _test_multiple_fluxes(site="sizewell"):
     """Test plotting multiple flux spectra for different removal times."""
     print(f"--- Testing multiple fluxes for {site.capitalize()} ---")
 
@@ -254,13 +261,22 @@ def test_multiple_fluxes(site="sizewell"):
     os.remove("Sizewell_MultipleCasks.pdf")
 
     # Calculate the flux at 40m for each spectrum
-    fluxes = [
-        13067942466.972416,
-        6382016112.274839,
-        1168997513.1381407,
-        836038627.0802824,
-        653335228.0940852,
-    ]
+    if site == "sizewell":
+        fluxes = [
+            13067942466.972416,  # NOTE this is the same as on line 180
+            6382016112.274839,
+            1168997513.1381407,
+            836038627.0802824,
+            653335228.0940852,
+        ]
+    elif site == "hartlepool":
+        fluxes = [
+            1443302654.935451,  # NOTE this is the same as on line 182
+            1072461281.6162108,
+            723895968.3592274,
+            630561734.9021833,
+            495863701.8493648,
+        ]
     for spec, flux_ref in zip(sums_s, fluxes):
         flux_40 = flux.flux_calc(spec, distance_m=40)
         assert isinstance(flux_40, float), "Flux is not a float"
@@ -269,7 +285,7 @@ def test_multiple_fluxes(site="sizewell"):
     print("--- Multiple fluxes test passed ---")
 
 
-def test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
+def _test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     """Test plotting a sample spectrum for given removal times."""
     print(f"--- Testing sampling for {site.capitalize()} ---")
 
@@ -295,7 +311,7 @@ def test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # Compare to reference file
     # sample.sample() uses GetRandom(), but the output seems to be deterministic.
     # So we can compare to a reference file.
-    with open("../tests/test_data/sampled_spectrum.csv", "r") as f:
+    with open(f"../tests/test_data/{site.capitalize()}_sampled_spectrum.csv", "r") as f:
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]
     assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"
@@ -308,14 +324,32 @@ def test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     print("--- Sampling test passed ---")
 
 
+def test_sizewell_commandline():
+    """Run all tests for Sizewell site."""
+    _test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
+    _test_multiple_casks(site="sizewell")
+    _test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
+    _test_multiple_plot(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
+    _test_multiple_fluxes(site="sizewell")
+    _test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
+
+
+def test_hartlepool_commandline():
+    """Run all tests for Hartlepool site."""
+    _test_single_cask(site="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
+    _test_multiple_casks(site="hartlepool")
+    _test_flux_calc(site="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
+    _test_multiple_plot(site="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
+    _test_multiple_fluxes(site="hartlepool")
+    _test_sampling(site="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
+
+
 if __name__ == "__main__":
     # Run the tests using the same inputs as the command line script
-    test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
-    test_multiple_casks(site="sizewell")
-    test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
-    test_multiple_plot(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
-    test_multiple_fluxes(site="sizewell")
-    test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20])
+    test_sizewell_commandline()
+
+    # Now run for Hartlepool as well
+    test_hartlepool_commandline()
 
     print()
     print("All tests passed!")
