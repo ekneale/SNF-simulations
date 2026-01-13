@@ -3,6 +3,7 @@
 import numpy as np
 import ROOT
 from snf_simulations.add_spec import add_spec
+from snf_simulations.add_casks import add_casks
 from snf_simulations.load_and_scale import load_equal_scaled
 from snf_simulations.load_data import load_antineutrino_data
 from snf_simulations.load_spec import load_equal, load_spec
@@ -570,4 +571,53 @@ def test_add_spec_mock():
         )
         assert np.isclose(combined_spec.GetBinError(nbin), expected_errors[i]), (
             f"Combined mock spectrum bin {nbin} error mismatch"
+        )
+
+
+def test_add_casks_mock():
+    """Test that adding casks works on mock spectra."""
+    # TODO: Without the range being set in add_spec, add_casks is exactly the same.
+    #       So add_casks should really be removed and replaced.
+
+    # Create some fake spectra
+    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
+    dN = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
+    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    spec1 = load_spec(
+        Energy=energy,
+        dN=dN,
+        errors=errors,
+        isotope='test_isotope1',
+    )
+    spec2 = load_spec(  # We'll make this one have double the counts and errors
+        Energy=energy,
+        dN=dN*2,
+        errors=errors*2,
+        isotope='test_isotope2',
+    )
+    spectra_list = ROOT.TList()
+    spectra_list.Add(spec1)
+    spectra_list.Add(spec2)
+
+    # Add the spectra together with add_spec (also testing output is correct)
+    combined_spec = _test_add_spec(spectra_list)
+
+    # Add them with add_casks
+    combined_cask_spec = add_casks(spectra_list)
+
+    # Test that both methods give the same result
+    assert combined_cask_spec.GetNbinsX() == combined_spec.GetNbinsX(), (
+        "Add casks spectrum has different number of bins"
+    )
+    for nbin in range(1, combined_cask_spec.GetNbinsX() + 1):
+        cask_content = combined_cask_spec.GetBinContent(nbin)
+        spec_content = combined_spec.GetBinContent(nbin)
+        assert np.isclose(cask_content, spec_content), (
+            f"Add casks spectrum bin {nbin} content mismatch"
+        )
+
+        cask_error = combined_cask_spec.GetBinError(nbin)
+        spec_error = combined_spec.GetBinError(nbin)
+        assert np.isclose(cask_error, spec_error), (
+            f"Add casks spectrum bin {nbin} error mismatch"
         )
