@@ -422,7 +422,7 @@ def test_scale_mock():
         Energy=energy,
         dN=dN,
         errors=errors,
-        isotope='test_isotope',
+        isotope="test_isotope",
     )
 
     # Define scaling parameters
@@ -520,9 +520,7 @@ def _test_add_spec(spectra_list):
 
     # Test that each bin content and error has been added correctly
     for nbin in range(1, combined_spec.GetNbinsX() + 1):
-        expected_content = sum(
-            spec.GetBinContent(nbin) for spec in spectra_list
-        )
+        expected_content = sum(spec.GetBinContent(nbin) for spec in spectra_list)
         combined_content = combined_spec.GetBinContent(nbin)
         assert np.isclose(combined_content, expected_content), (
             f"Combined spectrum bin {nbin} content mismatch"
@@ -549,13 +547,13 @@ def test_add_spec_mock():
         Energy=energy,
         dN=dN,
         errors=errors,
-        isotope='test_isotope1',
+        isotope="test_isotope1",
     )
     spec2 = load_spec(  # We'll make this one have double the counts and errors
         Energy=energy,
-        dN=dN*2,
-        errors=errors*2,
-        isotope='test_isotope2',
+        dN=dN * 2,
+        errors=errors * 2,
+        isotope="test_isotope2",
     )
     spectra_list = ROOT.TList()
     spectra_list.Add(spec1)
@@ -563,8 +561,10 @@ def test_add_spec_mock():
 
     # Add the spectra together
     combined_spec = _test_add_spec(spectra_list)
-    expected_contents = dN + dN * 2  # Sum of contents from both spectra, easy with numpy
-    expected_errors = np.sqrt(errors**2 + (errors*2)**2)  # Quadrature sum of errors
+    expected_contents = (
+        dN + dN * 2
+    )  # Sum of contents from both spectra, easy with numpy
+    expected_errors = np.sqrt(errors**2 + (errors * 2) ** 2)  # Quadrature sum of errors
     for i, nbin in enumerate(range(1, combined_spec.GetNbinsX() + 1)):
         assert np.isclose(combined_spec.GetBinContent(nbin), expected_contents[i]), (
             f"Combined mock spectrum bin {nbin} content mismatch"
@@ -587,13 +587,13 @@ def test_add_casks_mock():
         Energy=energy,
         dN=dN,
         errors=errors,
-        isotope='test_isotope1',
+        isotope="test_isotope1",
     )
     spec2 = load_spec(  # We'll make this one have double the counts and errors
         Energy=energy,
-        dN=dN*2,
-        errors=errors*2,
-        isotope='test_isotope2',
+        dN=dN * 2,
+        errors=errors * 2,
+        isotope="test_isotope2",
     )
     spectra_list = ROOT.TList()
     spectra_list.Add(spec1)

@@ -177,9 +177,13 @@ def _test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     flux_multiple_40 = flux.flux_calc(spec_multiple, distance_m=40)
     assert isinstance(flux_multiple_40, float), "Multiple flux is not a float"
     if site == "sizewell":
-        assert flux_multiple_40 == 13067942466.972416, "Multiple flux value does not match"
+        assert flux_multiple_40 == 13067942466.972416, (
+            "Multiple flux value does not match"
+        )
     else:
-        assert flux_multiple_40 == 1443302654.935451, "Multiple flux value does not match"
+        assert flux_multiple_40 == 1443302654.935451, (
+            "Multiple flux value does not match"
+        )
 
     print("--- Flux calculation tests passed ---")
 
