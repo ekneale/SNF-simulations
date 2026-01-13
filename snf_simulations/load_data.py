@@ -4,7 +4,7 @@ def load_antineutrino_data():
 
     #loading in antineutrino spectrum data from IAEA
     #columns represent energy, dN/dE and e=uncertainty on flux respectively
-   
+
     Sr90 = np.genfromtxt("./antineutrino_spec_data/Sr90_an.txt",skip_header=1)[:,[7,10,11]]
 
     #some elements like Y90 have two decay chains so they are cut off where the main decay chain ends
@@ -35,4 +35,4 @@ def load_antineutrino_data():
 
 
 
-    return(Sr90, Y90,Pu241, Cs137, Am242, Cs135, I129, Np239, Tc99, Zr93, Ce144, Kr88, Pr144, Rb88, Rh106, Ru106)  
+    return(Sr90, Y90,Pu241, Cs137, Am242, Cs135, I129, Np239, Tc99, Zr93, Ce144, Kr88, Pr144, Rb88, Rh106, Ru106)

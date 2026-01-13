@@ -34,54 +34,54 @@ def write_spec_multiple(total_sizewell, Hartlepool = False, Sizewell = False):
     if Sizewell == True:
         reactor = "Sizewell"
 
-    energy_multiple = [] 
+    energy_multiple = []
     flux_multiple = []
-    n_bins = total_sizewell.GetNbinsX()  
-    
+    n_bins = total_sizewell.GetNbinsX()
+
     for i in range(1, n_bins +1):
         energy1 = total_sizewell.GetBinCenter(i) /1e3
         flux1 = total_sizewell.GetBinContent(i)
         energy_multiple.append(energy1)
         flux_multiple.append(flux1)
-        #saving energy and flux data as a csv file 
+        #saving energy and flux data as a csv file
 
     with open(f"{reactor}_multiple.csv", mode= 'w', newline='') as file:
-        
+
         file.write("\"energy\": "+str(energy_multiple)+",\n")
         file.write("\"(flux)\": "+str(flux_multiple)+",\n")
         print("Energy and Flux saved to csv")
 
-        return energy_multiple, flux_multiple 
-    
-    
+        return energy_multiple, flux_multiple
+
+
 def write_spec_single(total_spec, Hartlepool = False, Sizewell = False):
     if Hartlepool == True:
         reactor = "Hartlepool"
     if Sizewell == True:
         reactor = "Sizewell"
 
-    energy_single = [] 
+    energy_single = []
     flux_single = []
-    n_bins = total_spec.GetNbinsX() 
-    
+    n_bins = total_spec.GetNbinsX()
+
     for i in range(1, n_bins +1):
         energy1 = total_spec.GetBinCenter(i) /1e3
         flux1 = total_spec.GetBinContent(i)
         energy_single.append(energy1)
         flux_single.append(flux1)
-        #saving energy and flux data as a csv file 
+        #saving energy and flux data as a csv file
 
-# change name for what cooling time has been chosen 
+# change name for what cooling time has been chosen
     with open(f"{reactor}_single_0.5.csv", mode= 'w', newline='') as file:
-        
+
         file.write("\"energy\": "+str(energy_single)+",\n")
         file.write("\"(flux)\": "+str(flux_single)+",\n")
         print("Energy and Flux saved to csv")
 
         return energy_single, flux_single
-    
 
-   
+
+
 def multiple_single_plot(energy_single, flux_single, energy_multiple,flux_multiple):
     c = ROOT.TCanvas("c", "true_neutrino_energy", 1200, 600)
     c.SetLogy()
@@ -95,8 +95,8 @@ def multiple_single_plot(energy_single, flux_single, energy_multiple,flux_multip
     graph_single.Draw("APL")
     graph_multiple.Draw("same L")
 
-    legend.AddEntry(graph_single, "Single cask sizewell 0.5 yrs") 
-    legend.AddEntry(graph_multiple, "Sizewell multiple casks") 
+    legend.AddEntry(graph_single, "Single cask sizewell 0.5 yrs")
+    legend.AddEntry(graph_multiple, "Sizewell multiple casks")
     legend.SetBorderSize(0)
     legend.SetFillStyle(0)
     legend.Draw()

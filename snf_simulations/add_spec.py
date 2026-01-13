@@ -15,9 +15,9 @@ def add_spec(spectra):
 
     hsum.Merge(spectra)
     hsum.SetTitle("Total Spectrum")
- 
+
     return hsum
 
 
 
-    
+

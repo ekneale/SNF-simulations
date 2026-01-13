@@ -8,7 +8,7 @@ def AddDecays(t, parent_prop0, parent_half_life, daughter_half_life, total_mass 
 
     #calculation of additional contributing isotopes that have been created from the decay of their parent isotope
 
-    m_parent_initial = total_mass * parent_prop0 
+    m_parent_initial = total_mass * parent_prop0
 
     lambdaA = np.log(2) / parent_half_life
     lambdaB = np.log(2) / daughter_half_life
@@ -50,7 +50,7 @@ def TotSpec(cask_name,removal_time =0,total_m =1000, max_E=6000, Sr90_prop=0, Y9
         mass.append(proportions[i] * total_m)
 
     spectra = ROOT.TList()
-    
+
     #adding the scaled spectra of each isotope to the list that will later be added together
 
     spectra.Add(load_and_scale.load_equal_scaled(Sr90, 546,(isotopes[0] + str(removal_time)+ str(cask_name)), isotopes[0], mass[0], mr[0], half_life_yrs[0], removal_time))
@@ -82,16 +82,11 @@ def TotSpec(cask_name,removal_time =0,total_m =1000, max_E=6000, Sr90_prop=0, Y9
         spectra.Add(load_and_scale.load_equal_scaled(Pr144, 2997, "additional Pr144" + str(removal_time)+ str(cask_name), isotopes[12], extra_Pr144, mr[12], half_life_yrs[12], 0 ))
 
         extra_Rb88 = AddDecays(t = removal_time, parent_prop0=Kr88_prop, parent_half_life=half_life_yrs[11], daughter_half_life=half_life_yrs[13], total_mass=total_m)
-        spectra.Add(load_and_scale.load_equal_scaled(Rb88, 5301, "additional Rb88" + str(removal_time)+ str(cask_name), isotopes[13], extra_Rb88, mr[13], half_life_yrs[13], 0 ))    
+        spectra.Add(load_and_scale.load_equal_scaled(Rb88, 5301, "additional Rb88" + str(removal_time)+ str(cask_name), isotopes[13], extra_Rb88, mr[13], half_life_yrs[13], 0 ))
 
         extra_Rh106 = AddDecays(t = removal_time, parent_prop0=Ru106_prop, parent_half_life=half_life_yrs[15], daughter_half_life=half_life_yrs[14], total_mass=total_m)
         spectra.Add(load_and_scale.load_equal_scaled(Rh106, 3541, "additional Rh106" + str(removal_time)+ str(cask_name), isotopes[14], extra_Rh106, mr[14], half_life_yrs[14], 0 ))
-   
+
     total_spec = add_spec.add_spec(spectra)
     total_spec.GetXaxis().SetRangeUser(0,max_E)
     return total_spec
-
-
-
-
-    

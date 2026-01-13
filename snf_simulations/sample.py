@@ -7,7 +7,7 @@ import csv
 
 def sample(total_spec, N=100, save = True):
     sampled = []
-    
+
     for i in range(N):
         sampled.append(total_spec.GetRandom())
 
@@ -18,5 +18,5 @@ def sample(total_spec, N=100, save = True):
                 writer.writerow([item])
 
         print('saved as csv')
-    
+
     return sampled

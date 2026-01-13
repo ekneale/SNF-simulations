@@ -5,8 +5,8 @@ from snf_simulations import plotting, flux
 #hfile = TFile("Sizewell_Spectra.root", "RECREATE")
 
 #plotting the spectrum for a single dry cask of fuel for either Hartlepool or Sizewell, depending which is set to True/False
-spec_single = plotting.plot_single_cask([0.5,1,5,10,20], Sizewell= True) 
-energy_single, flux_single = flux.write_spec_single(spec_single, Sizewell = True) 
+spec_single = plotting.plot_single_cask([0.5,1,5,10,20], Sizewell= True)
+energy_single, flux_single = flux.write_spec_single(spec_single, Sizewell = True)
 
 
 
@@ -23,7 +23,7 @@ flux.flux_calc(spec_single, 40)
 
 
 
-#plot both flux spectra on one graph 
+#plot both flux spectra on one graph
 flux.multiple_single_plot(energy_single, flux_single, energy_multiple, flux_multiple, )
 
 lots_of_graphs = plotting.multiple_fluxes(Sizewell= True)

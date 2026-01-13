@@ -6,7 +6,6 @@ setup(name = "snf_simulations",
       packages = ["simulation"],
       install_requires = ['numpy', 'ROOT'],
       author='Zuzanna Leliwa',
-      author_email='zleliwa1@sheffield.ac.uk', 
+      author_email='zleliwa1@sheffield.ac.uk',
       zip_safe=False
 )
-   
