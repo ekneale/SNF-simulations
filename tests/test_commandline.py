@@ -81,7 +81,7 @@ def _test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
 
     # Compare to the reference data file
     # (this again assumes we're in the main package directory)
-    ref_filename = f"../tests/test_data/{site.capitalize()}_single_0.5.csv"
+    ref_filename = f"../../tests/test_data/{site.capitalize()}_single_0.5.csv"
     energy_ref, flux_ref = _load_output(ref_filename)
     assert energy_ref == energy_single, "Reference energy does not match"
     assert flux_ref == flux_single, "Reference flux does not match"
@@ -134,7 +134,7 @@ def _test_multiple_casks(site="sizewell"):
 
     # Compare to the reference data file
     # (this again assumes we're in the main package directory)
-    ref_filename = f"../tests/test_data/{site.capitalize()}_multiple.csv"
+    ref_filename = f"../../tests/test_data/{site.capitalize()}_multiple.csv"
     energy_ref, flux_ref = _load_output(ref_filename)
     assert energy_ref == energy_multiple, "Reference energy does not match"
     assert flux_ref == flux_multiple, "Reference flux does not match"
@@ -315,7 +315,7 @@ def _test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # Compare to reference file
     # sample.sample() uses GetRandom(), but the output seems to be deterministic.
     # So we can compare to a reference file.
-    with open(f"../tests/test_data/{site.capitalize()}_sampled_spectrum.csv", "r") as f:
+    with open(f"../../tests/test_data/{site.capitalize()}_sampled_spectrum.csv", "r") as f:
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]
     assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"

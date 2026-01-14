@@ -158,7 +158,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
     c.Update()
     legend.Draw()
     input("exit")
-    c.SaveAs(f"{reactor}_Spectra_0.5.C")  # change no for cooling time
+    c.SaveAs(f"{reactor}_Spectra_0.5.pdf")  # change no for cooling time
 
     return spectra.At(0)  # needs .At() as its a Tlist not a python array
 
@@ -195,7 +195,7 @@ def plot_multiple_casks_sizewell(removal_times):
 
     total_sizewell = add_casks(casks)
 
-    # c.SaveAs("Sizewell_MultipleCasks.C")
+    # c.SaveAs("Sizewell_MultipleCasks.pdf")
 
     return total_sizewell
 
@@ -231,7 +231,7 @@ def plot_multiple_casks_hartlepool(removal_times):
 
     total_hartlepool = add_casks(casks)
 
-    # c.SaveAs("Hartlepool_MultipleCasks.C")
+    # c.SaveAs("Hartlepool_MultipleCasks.pdf")
 
     return total_hartlepool
 
@@ -259,7 +259,7 @@ def plot(spectrum, Hartlepool=False, Sizewell=False):
 
     c.Update()
     input("exit")
-    c.SaveAs(f"{reactor}_casks.C")
+    c.SaveAs(f"{reactor}_casks.pdf")
 
 
 # plotting previous spectrum for 10 dry casks x 10 tonned x 4 cooling times for varying cooling times since the initial measurement
