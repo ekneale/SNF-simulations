@@ -2,11 +2,11 @@ import numpy as np
 import ROOT
 
 from .load_data import load_antineutrino_data
-from .spec import add_spec, load_equal_scaled
+from .spec import add_spec, load_spec
 
 
 def AddDecays(
-    t, parent_prop0, parent_half_life, daughter_half_life, total_mass=1000, BR=1
+    t, parent_prop0, parent_half_life, daughter_half_life, total_mass=1000, BR=1,
 ):
     # calculation of additional contributing isotopes that have been created from the decay of their parent isotope
 
@@ -148,196 +148,180 @@ def TotSpec(
     # adding the scaled spectra of each isotope to the list that will later be added together
 
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Sr90,
-            546,
             (isotopes[0] + str(removal_time) + str(cask_name)),
-            isotopes[0],
             mass[0],
             mr[0],
             half_life_yrs[0],
             removal_time,
-        )
+            546,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Y90,
-            2278,
             (isotopes[1] + str(removal_time) + str(cask_name)),
-            isotopes[1],
             mass[1],
             mr[1],
             half_life_yrs[1],
             removal_time,
-        )
+            2278,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Pu241,
-            20,
             (isotopes[2] + str(removal_time) + str(cask_name)),
-            isotopes[2],
             mass[2],
             mr[2],
             half_life_yrs[2],
             removal_time,
-        )
+            20,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Cs137,
-            1175,
             (isotopes[3] + str(removal_time) + str(cask_name)),
-            isotopes[3],
             mass[3],
             mr[3],
             half_life_yrs[3],
             removal_time,
-        )
+            1175,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Am242,
-            664,
             (isotopes[4] + str(removal_time) + str(cask_name)),
-            isotopes[4],
             mass[4],
             mr[4],
             half_life_yrs[4],
             removal_time,
-        )
+            664,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Cs135,
-            268,
             (isotopes[5] + str(removal_time) + str(cask_name)),
-            isotopes[5],
             mass[5],
             mr[5],
             half_life_yrs[5],
             removal_time,
-        )
+            268,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             I129,
-            149,
             (isotopes[6] + str(removal_time) + str(cask_name)),
-            isotopes[6],
             mass[6],
             mr[6],
             half_life_yrs[6],
             removal_time,
-        )
+            149,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Np239,
-            714,
             (isotopes[7] + str(removal_time) + str(cask_name)),
-            isotopes[7],
             mass[7],
             mr[7],
             half_life_yrs[7],
             removal_time,
-        )
+            714,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Tc99,
-            440,
             (isotopes[8] + str(removal_time) + str(cask_name)),
-            isotopes[8],
             mass[8],
             mr[8],
             half_life_yrs[8],
             removal_time,
-        )
+            440,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Zr93,
-            1000,
             (isotopes[9] + str(removal_time) + str(cask_name)),
-            isotopes[9],
             mass[9],
             mr[9],
             half_life_yrs[9],
             removal_time,
-        )
+            1000,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Ce144,
-            318,
             (isotopes[10] + str(removal_time) + str(cask_name)),
-            isotopes[10],
             mass[10],
             mr[10],
             half_life_yrs[10],
             removal_time,
-        )
+            318,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Kr88,
-            2918,
             (isotopes[11] + str(removal_time) + str(cask_name)),
-            isotopes[11],
             mass[11],
             mr[11],
             half_life_yrs[11],
             removal_time,
-        )
+            2918,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Pr144,
-            2997,
             (isotopes[12] + str(removal_time) + str(cask_name)),
-            isotopes[12],
             mass[12],
             mr[12],
             half_life_yrs[12],
             removal_time,
-        )
+            2997,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Rb88,
-            5301,
             (isotopes[13] + str(removal_time) + str(cask_name)),
-            isotopes[13],
             mass[13],
             mr[13],
             half_life_yrs[13],
             removal_time,
-        )
+            5301,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Rh106,
-            3541,
             (isotopes[14] + str(removal_time) + str(cask_name)),
-            isotopes[14],
             mass[14],
             mr[14],
             half_life_yrs[14],
             removal_time,
-        )
+            3541,
+        ),
     )
     spectra.Add(
-        load_equal_scaled(
+        load_spec(
             Ru106,
-            39,
             (isotopes[15] + str(removal_time) + str(cask_name)),
-            isotopes[15],
             mass[15],
             mr[15],
             half_life_yrs[15],
             removal_time,
-        )
+            39,
+        ),
     )
 
     # adding on the spectrum of any newly created isotopes from previous decays
@@ -353,16 +337,15 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_equal_scaled(
+            load_spec(
                 Y90,
-                2278,
                 "additional Y90" + str(removal_time) + str(cask_name),
-                isotopes[1],
                 extra_Y90,
                 mr[1],
                 half_life_yrs[1],
                 0,
-            )
+                2278,
+            ),
         )
 
         extra_Pr144 = AddDecays(
@@ -373,16 +356,15 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_equal_scaled(
+            load_spec(
                 Pr144,
-                2997,
                 "additional Pr144" + str(removal_time) + str(cask_name),
-                isotopes[12],
                 extra_Pr144,
                 mr[12],
                 half_life_yrs[12],
                 0,
-            )
+                2997,
+            ),
         )
 
         extra_Rb88 = AddDecays(
@@ -393,16 +375,15 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_equal_scaled(
+            load_spec(
                 Rb88,
-                5301,
                 "additional Rb88" + str(removal_time) + str(cask_name),
-                isotopes[13],
                 extra_Rb88,
                 mr[13],
                 half_life_yrs[13],
                 0,
-            )
+                5301,
+            ),
         )
 
         extra_Rh106 = AddDecays(
@@ -413,16 +394,15 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_equal_scaled(
+            load_spec(
                 Rh106,
-                3541,
                 "additional Rh106" + str(removal_time) + str(cask_name),
-                isotopes[14],
                 extra_Rh106,
                 mr[14],
                 half_life_yrs[14],
                 0,
-            )
+                3541,
+            ),
         )
 
     total_spec = add_spec(spectra)

@@ -315,7 +315,9 @@ def _test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # Compare to reference file
     # sample.sample() uses GetRandom(), but the output seems to be deterministic.
     # So we can compare to a reference file.
-    with open(f"../../tests/test_data/{site.capitalize()}_sampled_spectrum.csv", "r") as f:
+    with open(
+        f"../../tests/test_data/{site.capitalize()}_sampled_spectrum.csv", "r"
+    ) as f:
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]
     assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"

@@ -1,152 +1,192 @@
+"""Functions for loading and manipulating spectra."""
+
 import numpy as np
 import ROOT
 
 
-def load_spec(Energy, dN, errors, isotope):
-    c = ROOT.TCanvas()
+def create_spec(energy, dn_de, errors, name):
+    """Load spectrum data into a ROOT TH1D histogram.
 
-    # the energies are the bin edges and the bin centres are between these, however these graphs have unequal bin widths
-    h = ROOT.TH1D(isotope, isotope, len(Energy) - 1, np.array(Energy))
+    Args:
+        energy (array-like): Array of energy bin edges (keV).
+        dn_de (array-like): Array of dN/dE values corresponding to each energy bin.
+        errors (array-like): Array of errors for each dN/dE value.
+        name (str): Name of the histogram.
 
-    for i in range(len(Energy)):
-        h.Fill(Energy[i], dN[i])
+    Returns:
+        ROOT.TH1D: Histogram representing the spectrum.
 
-    # Fill the bins (note that ROOT histograms are 1-indexed)
-    for i in range(1, len(Energy) + 1):
-        h.SetBinError(i, errors[i - 1])
+    """
+    # Create a histogram, using the energies as the bin edges.
+    # Arguments are:
+    #   name
+    #   histogram title
+    #   number of bins
+    #   array of lower bin edges
+    # Note that number of bins is len(energy) - 1 as there is one less bin than edges,
+    # and the last energy value is assumed to be the upper edge of the final bin.
+    spec = ROOT.TH1D(name, name, len(energy) - 1, np.array(energy))
 
-    h.SetStats(0)
+    # Fill the bins
+    # Note that ROOT histograms are 1-indexed, so bin 1 takes array value [0] etc.
+    # For spec.Fill this doesn't matter, as it fills each bin sequentially.
+    # But for spec.SetBinError we loop starting at bin 1, so need the error from [i-1].
+    # Using enumerate() with start=1 will handle this nicely.
+    for e, dn in zip(energy, dn_de):
+        spec.Fill(e, dn)
+    for i, err in enumerate(errors, start=1):
+        spec.SetBinError(i, err)
 
-    h.GetXaxis().SetTitle("Energy [keV]")
-    h.GetYaxis().SetTitle("dN/dE")
+    # Formatting for display
+    spec.SetStats(0)
+    spec.GetXaxis().SetTitle("Energy [keV]")
+    spec.GetYaxis().SetTitle("#frac{dN}{dE} [keV^{-1}]")
 
-    c.Update()
-
-    h.Draw("hist E")
-    input("exit")
-
-    return h
+    return spec
 
 
-def load_equal(
-    name,
-    isotope,
-    E,
-    dN,
-    error,
-    max_E,
-    min_E=0,
-):
-    h = ROOT.TH1D("h", "", len(E) - 1, np.array(E))
+def equalise_spec(spec, max_energy, min_energy=0):
+    """Convert a ROOT TH1D histogram to have equal bin widths.
 
-    # loading in original spectra
+    Each bin will be 1 keV wide, spaced from min_energy to max_energy.
 
-    for i in range(len(E)):
-        h.Fill(E[i], dN[i])
-    for i in range(1, len(E) + 1):
-        h.SetBinError(i, error[i - 1])
+    Args:
+        spec (ROOT.TH1D): Original histogram with variable bin widths.
+        max_energy (float): Maximum energy for the new histogram.
+        min_energy (float, default=0): Minimum energy for the new histogram.
 
-    # creating new bin edges and new bin centres to ensure equal bin widths so that the histograms can later be added together
+    Returns:
+        ROOT.TH1D: New histogram with equal bin widths.
 
-    new_edges = np.linspace(min_E, max_E, (max_E - min_E) + 1)
+    """
+    # Create new bin edges and new bin centres.
+    new_edges = np.linspace(min_energy, max_energy, (max_energy - min_energy) + 1)
     new_centres = new_edges[:-1] + 0.5
 
-    new_content = []
+    # Interpolate the content of the original histogram to the new bin centres
+    new_content = [spec.Interpolate(centre) for centre in new_centres]
 
-    for i in range(len(new_centres)):
-        new_content.append(h.Interpolate(new_centres[i]))
-
-    hnew = ROOT.TH1D(
-        str(name), isotope + "equal bin widths", len(new_centres), new_edges
-    )
-
-    for i in range(len(new_centres)):
-        hnew.Fill(new_centres[i], new_content[i])
-
-    # calculation of new errors for interpolated graph
-
+    # Calculate the new errors for interpolated bins
     new_errors = []
-
-    for i in range(0, len(new_centres)):
-        # The TH1D::Interpolate function looks for the two closest bins surrounding the new point.
-        # If it's before the first bin centre or above the final bin centre it just returns
-        # the content of the first/last bin.
-        # So here we do the same with the errors.
-        if new_centres[i] < h.GetBinCenter(1):
-            new_errors.append(h.GetBinError(1))
+    for centre in new_centres:
+        # The TH1D::Interpolate function looks for the two closest bins surrounding the
+        # given point.
+        # If it's below the first bin centre or above the final bin centre it just
+        # returns the content of the first/last bin, so here we do the same.
+        if centre < spec.GetBinCenter(1):
+            new_errors.append(spec.GetBinError(1))
             continue
-        if new_centres[i] >= h.GetBinCenter(h.GetNbinsX()):
-            new_errors.append(h.GetBinError(h.GetNbinsX()))
+        if centre >= spec.GetBinCenter(spec.GetNbinsX()):
+            new_errors.append(spec.GetBinError(spec.GetNbinsX()))
             continue
 
-        # find which of the old bins the new centre would be in
-        idx = h.FindBin(new_centres[i])
+        # Find which of the old bins the new centre would fall within.
+        idx = spec.FindBin(centre)
 
-        # find which of the surrounding bins is lower and which is upper
-        # need to check which side of the centre of the found bin the new centre is
-        if new_centres[i] < h.GetBinCenter(idx):
-            comparison1 = [h.GetBinCenter(idx - 1), h.GetBinError(idx - 1)]
-            comparison2 = [h.GetBinCenter(idx), h.GetBinError(idx)]
+        # Find which of the surrounding bins is lower and which is upper.
+        # We need to check which side of the centre of the found bin the new centre is.
+        if centre < spec.GetBinCenter(idx):
+            lower_centre = spec.GetBinCenter(idx - 1)
+            upper_centre = spec.GetBinCenter(idx)
+            lower_error = spec.GetBinError(idx - 1)
+            upper_error = spec.GetBinError(idx)
         else:
-            comparison1 = [h.GetBinCenter(idx), h.GetBinError(idx)]
-            comparison2 = [h.GetBinCenter(idx + 1), h.GetBinError(idx + 1)]
+            lower_centre = spec.GetBinCenter(idx)
+            upper_centre = spec.GetBinCenter(idx + 1)
+            lower_error = spec.GetBinError(idx)
+            upper_error = spec.GetBinError(idx + 1)
 
-        d = comparison2[0] - comparison1[0]
-        d1 = abs(new_centres[i] - comparison1[0])
-        d2 = abs(comparison2[0] - new_centres[i])
-
-        errors = np.sqrt(
-            ((d2 / d) ** 2 * comparison1[1] ** 2)
-            + ((d1 / d) ** 2 * comparison2[1] ** 2)
+        # Linear interpolation of the new error.
+        # We find the new error by scaling the errors of the surrounding two bins
+        # by the distance of the new centre to each of them.
+        dist = abs(upper_centre - lower_centre)
+        dist_lower = abs(centre - lower_centre)
+        dist_upper = abs(upper_centre - centre)
+        weight_lower = (dist - dist_lower) / dist
+        weight_upper = (dist - dist_upper) / dist
+        error = np.sqrt(
+            (weight_lower * lower_error) ** 2 + (weight_upper * upper_error) ** 2,
         )
-        new_errors.append(errors)
+        new_errors.append(error)
 
-    for i in range(1, len(new_centres) + 1):
-        hnew.SetBinError(i, new_errors[i - 1])
-
-    hnew.SetStats(0)
-
-    hnew.GetXaxis().SetTitle("Energy [keV]")
-    hnew.GetYaxis().SetTitle("#frac{dN}{dE} [keV^{-1}]")
-
-    hnew.GetXaxis().SetLabelSize(0.05)
-    hnew.GetYaxis().SetLabelSize(0.05)
-
-    hnew.GetXaxis().SetTitleSize(0.047)
-    hnew.GetYaxis().SetTitleSize(0.047)
-
-    return hnew
-
-
-def scale(spectrum, m, mr, half_life_yrs, removal_time):
-    # mass is inputted in kg
-    # removal time is in years
-
-    # calculation of activity of isotope
-    N0 = (m * 1000 / mr) * 6.022e23
-    A0 = N0 * (np.log(2) / (half_life_yrs * 365 * 24 * 60**2))
-    A = A0 * np.exp(-1 * (np.log(2) / half_life_yrs) * removal_time)
-
-    spectrum.SetStats(0)
-
-    spectrum.Scale(A)
-
-    spectrum.SetTitle("Scaled Spectrum")
-    spectrum.GetXaxis().SetTitle("Energy [keV]")
-    spectrum.GetYaxis().SetTitle("Relative Flux [keV^{-1}s^{-1}]")
-
-    return spectrum
-
-
-def load_equal_scaled(
-    data, max_E, named, isotope, m, mr, half_life_yrs, removal_time, min_E=0
-):
-    # combining load and scale functions
-    spec = load_equal(
-        named, isotope, data[:, 0], data[:, 1], data[:, 2], max_E, min_E
+    # Create the new histogram
+    name = spec.GetName()
+    title = spec.GetTitle()
+    spec_equal = ROOT.TH1D(
+        str(name),
+        str(title) + " equal bin widths",
+        len(new_centres),
+        new_edges,
     )
-    spec_scaled = scale(spec, m, mr, half_life_yrs, removal_time)
-    spec_scaled.SetTitle(isotope)
+
+    # Fill the new histogram with the interpolated content
+    for centre, content in zip(new_centres, new_content):
+        spec_equal.Fill(centre, content)
+    for i, err in enumerate(new_errors, start=1):
+        spec_equal.SetBinError(i, err)
+
+    # Formatting for display
+    spec_equal.SetStats(0)
+    spec_equal.GetXaxis().SetTitle("Energy [keV]")
+    spec_equal.GetYaxis().SetTitle("#frac{dN}{dE} [keV^{-1}]")
+    spec_equal.GetXaxis().SetLabelSize(0.05)
+    spec_equal.GetYaxis().SetLabelSize(0.05)
+    spec_equal.GetXaxis().SetTitleSize(0.047)
+    spec_equal.GetYaxis().SetTitleSize(0.047)
+
+    return spec_equal
+
+
+def scale_spec(spec, mass, molar_mass, half_life, removal_time):
+    """Scale a ROOT TH1D histogram spectrum by the activity of the isotope.
+
+    Args:
+        spec (ROOT.TH1D): Histogram representing the spectrum to be scaled.
+        mass (float): Mass of the isotope in kg.
+        molar_mass (float): Molar mass of the isotope in g/mol.
+        half_life (float): Half-life of the isotope in years.
+        removal_time (float): Time since removal from reactor in years.
+
+    Returns:
+        ROOT.TH1D: Scaled histogram.
+
+    """
+    # Calculate the activity of the isotope
+    N0 = (mass * 1000 / molar_mass) * 6.022e23
+    A0 = N0 * (np.log(2) / (half_life * 365 * 24 * 60**2))
+    A = A0 * np.exp(-1 * (np.log(2) / half_life) * removal_time)
+
+    # Scale the spectrum
+    spec.Scale(A)
+
+    # Formatting for display
+    spec.SetStats(0)
+    title = spec.GetTitle()
+    spec.SetTitle(title + " scaled")
+    spec.GetXaxis().SetTitle("Energy [keV]")
+    spec.GetYaxis().SetTitle("Relative Flux [keV^{-1}s^{-1}]")
+
+    return spec
+
+
+def load_spec(
+    data,
+    name,
+    mass,
+    molar_mass,
+    half_life,
+    removal_time,
+    max_energy,
+    min_energy=0,
+):
+    """Load, equalise and scale a spectrum from data.
+
+    Combines the create_spec, equalise_spec and scale_spec functions.
+    """
+    spec = create_spec(data[:, 0], data[:, 1], data[:, 2], name)
+    spec_equal = equalise_spec(spec, max_energy, min_energy)
+    spec_scaled = scale_spec(spec_equal, mass, molar_mass, half_life, removal_time)
+    spec_scaled.SetTitle(name)
     return spec_scaled
 
 
