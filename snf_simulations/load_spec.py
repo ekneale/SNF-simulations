@@ -11,8 +11,9 @@ def load_spec(Energy,dN,errors,isotope):
 	for i in range(len(Energy)):
 		h.Fill(Energy[i],dN[i])
 
-	for i in range(len(Energy)-1):
-		h.SetBinError(i, errors[i])
+	# Fill the bins (note that ROOT histograms are 1-indexed)
+	for i in range(1, len(Energy)+1):
+		h.SetBinError(i, errors[i-1])
 
 	h.SetStats(0)
 
@@ -34,15 +35,13 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 
 	for i in range(len(E)):
 		h.Fill(E[i],dN[i])
-
-	for i in range(len(E)-1):
-		h.SetBinError(i, error[i])
+	for i in range(1, len(E)+1):
+		h.SetBinError(i, error[i-1])
 
 	#creating new bin edges and new bin centres to ensure equal bin widths so that the histograms can later be added together
 
-	new_edges = np.linspace(min_E, max_E, max_E +1)
-
-	new_centres = np.linspace(0.5, max_E-0.5, max_E)
+	new_edges = np.linspace(min_E, max_E, (max_E-min_E) + 1)
+	new_centres = new_edges[:-1] + 0.5
 
 	new_content = []
 	
@@ -58,32 +57,40 @@ def load_equal(name, isotope,E,dN, error, max_E, min_E=0,):
 
 	new_errors = []
 
-	#seperate calculation of error on first interpolated point as iteration has to start from 1
+	for i in range(0,len(new_centres)):
+		# The TH1D::Interpolate function looks for the two closest bins surrounding the new point.
+		# If it's before the first bin centre or above the final bin centre it just returns
+		# the content of the first/last bin.
+		# So here we do the same with the errors.
+		if new_centres[i] < h.GetBinCenter(1):
+			new_errors.append(h.GetBinError(1))
+			continue
+		if new_centres[i] >= h.GetBinCenter(h.GetNbinsX()):
+			new_errors.append(h.GetBinError(h.GetNbinsX()))
+			continue
 
-	point1 = [h.GetBinCenter(0), h.GetBinError(0)]
-	point2 = [h.GetBinCenter(1), h.GetBinError(1)]
-	d0 = point2[0] - point1[1]
-	d01 = abs(new_centres[0] - point1[0])
-	d02 = abs(new_centres[0] - point2[0])
+		# find which of the old bins the new centre would be in
+		idx = h.FindBin(new_centres[i])
 
-	first_err = np.sqrt(((d01/d0)*(point1[1])**2) + ((d02/d0)*(point2[1]**2)))
-	new_errors.append(first_err)
-
-	#calcualtion of rest of interpolated errors
-
-	for i in range(1,len(new_centres)):
-		comparison1 =[h.GetBinCenter(i-1), h.GetBinError(i-1)]
-		comparison2 =[h.GetBinCenter(i+1), h.GetBinError(i+1)]
+		# find which of the surrounding bins is lower and which is upper
+		# need to check which side of the centre of the found bin the new centre is
+		if new_centres[i] < h.GetBinCenter(idx):
+			comparison1 =[h.GetBinCenter(idx - 1), h.GetBinError(idx - 1)]
+			comparison2 =[h.GetBinCenter(idx), h.GetBinError(idx)]
+		else:
+			comparison1 =[h.GetBinCenter(idx), h.GetBinError(idx)]
+			comparison2 =[h.GetBinCenter(idx + 1), h.GetBinError(idx + 1)]
 
 		d = comparison2[0] - comparison1[0]
 		d1 = abs(new_centres[i] - comparison1[0])
 		d2 = abs(comparison2[0] - new_centres[i])
 
-		errors = np.sqrt(((d1/d)*(comparison1[1])**2) + ((d2/d)*(comparison2[1]**2)))
+		errors = np.sqrt(((d2/d)**2 * comparison1[1]**2) + ((d1/d)**2 * comparison2[1]**2))
 		new_errors.append(errors)
 
-	for i in range(len(new_centres)):
-		hnew.SetBinError(i,new_errors[i])
+	for i in range(1, len(new_centres)+1):
+		hnew.SetBinError(i,new_errors[i-1])
+
 
 	hnew.SetStats(0)
 

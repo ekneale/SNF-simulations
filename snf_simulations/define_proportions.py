@@ -2,7 +2,7 @@ import numpy as np
 import ROOT
 
 
-from snf_simulations import scale, add_spec, load_spec, load_and_scale, load_antineutrino_data
+from snf_simulations import scale, add_spec, load_spec, load_and_scale, load_data
 
 def AddDecays(t, parent_prop0, parent_half_life, daughter_half_life, total_mass = 1000, BR=1):
 
@@ -25,7 +25,7 @@ def TotSpec(cask_name,removal_time =0,total_m =1000, max_E=6000, Sr90_prop=0, Y9
     #mass is in kg
     #all times given in years
 
-    Sr90, Y90,Pu241, Cs137, Am242, Cs135, I129, Np239, Tc99, Zr93, Ce144, Kr88, Pr144, Rb88, Rh106, Ru106 = load_antineutrino_data.load_antineutrino_data()
+    Sr90, Y90,Pu241, Cs137, Am242, Cs135, I129, Np239, Tc99, Zr93, Ce144, Kr88, Pr144, Rb88, Rh106, Ru106 = load_data.load_antineutrino_data()
 
     #name of isotopes in database
 
