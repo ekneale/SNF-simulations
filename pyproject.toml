@@ -1,0 +1,25 @@
+[project]
+name = "snf-simulations"
+version = "0.1.0"
+description = "Simulate antineutrino spectra for different compositions of spent nuclear fuel."
+authors = [
+    {name = "Zuzanna Leliwa", email = "zleliwa1@sheffield.ac.uk"},
+    {name = "Abigail Power", email = "apower3@sheffield.ac.uk"},
+    {name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk"},
+    {name = "Martin Dyer", email = "martin.dyer@sheffield.ac.uk"},
+]
+maintainers = [
+    {name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk"},
+]
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = [
+    'LICENSE.txt'
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+]
+
+[project.urls]
+source = "https://github.com/ekneale/SNF-simulations"
