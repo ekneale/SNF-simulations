@@ -1,6 +1,8 @@
 import ROOT
-from snf_simulations import define_proportions, add_casks, sample
 
+from .define_proportions import TotSpec
+from .sample import sample
+from .spec import add_casks
 
 # the things that have been changed so far:
 # for the single casks, the energy and flux will save to a csv file. You can pick which cooling time by changing the number in the spectra.At().
@@ -18,7 +20,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
     # plotting a spectrum of antineutrino energies for the Sizewell PWR with varying cooling times
     if Sizewell:
         reactor = "Sizewell"
-        initial = define_proportions.TotSpec(
+        initial = TotSpec(
             cask_name="main",
             total_m=100000,
             Kr88_prop=1.427e-10,
@@ -43,7 +45,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
 
         for i in range(len(removal_times)):
             spectra.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="main",
                     total_m=100000,
                     removal_time=removal_times[i],
@@ -83,7 +85,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
     # plotting a spectrum of antineutrino energies for the Hartlepool AGR with varying cooling times
     if not Sizewell:
         reactor = "Hartlepool"
-        initial = define_proportions.TotSpec(
+        initial = TotSpec(
             cask_name="main",
             total_m=100000,
             Kr88_prop=6.4374e-11,
@@ -108,7 +110,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
 
         for i in range(len(removal_times)):
             spectra.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="main",
                     total_m=100000,
                     removal_time=removal_times[i],
@@ -168,7 +170,7 @@ def plot_multiple_casks_sizewell(removal_times):
 
     for i in range(len(removal_times)):
         casks.Add(
-            define_proportions.TotSpec(
+            TotSpec(
                 cask_name="Sizewell",
                 total_m=100000,
                 removal_time=removal_times[i],
@@ -191,7 +193,7 @@ def plot_multiple_casks_sizewell(removal_times):
             )
         )
 
-    total_sizewell = add_casks.add_casks(casks)
+    total_sizewell = add_casks(casks)
 
     # c.SaveAs("Sizewell_MultipleCasks.C")
 
@@ -204,7 +206,7 @@ def plot_multiple_casks_hartlepool(removal_times):
 
     for i in range(len(removal_times)):
         casks.Add(
-            define_proportions.TotSpec(
+            TotSpec(
                 cask_name="Hartlepool",
                 total_m=100000,
                 removal_time=removal_times[i],
@@ -227,7 +229,7 @@ def plot_multiple_casks_hartlepool(removal_times):
             )
         )
 
-    total_hartlepool = add_casks.add_casks(casks)
+    total_hartlepool = add_casks(casks)
 
     # c.SaveAs("Hartlepool_MultipleCasks.C")
 
@@ -274,7 +276,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
         casks20_h = ROOT.TList()
         for i in range(len(removal_times)):
             casks0_h.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Hartlepool0",
                     total_m=100000,
                     removal_time=removal_times[i],
@@ -297,11 +299,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum0 = add_casks.add_casks(casks0_h)
+        sum0 = add_casks(casks0_h)
 
         for i in range(len(removal_times)):
             casks1_h.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Hartlepool1",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[0],
@@ -324,11 +326,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum1 = add_casks.add_casks(casks1_h)
+        sum1 = add_casks(casks1_h)
 
         for i in range(len(removal_times)):
             casks5_h.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Hartlepool2",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[1],
@@ -351,11 +353,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum5 = add_casks.add_casks(casks5_h)
+        sum5 = add_casks(casks5_h)
 
         for i in range(len(removal_times)):
             casks10_h.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Hartlepool3",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[2],
@@ -378,11 +380,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum10 = add_casks.add_casks(casks10_h)
+        sum10 = add_casks(casks10_h)
 
         for i in range(len(removal_times)):
             casks20_h.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Hartlepool4",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[3],
@@ -405,7 +407,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum20 = add_casks.add_casks(casks20_h)
+        sum20 = add_casks(casks20_h)
 
         sums_h = ROOT.TList()  #
         sums_h.Add(sum0)
@@ -426,7 +428,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks0_s.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Sizewell0",
                     total_m=100000,
                     removal_time=removal_times[i],
@@ -449,11 +451,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum0_s = add_casks.add_casks(casks0_s)
+        sum0_s = add_casks(casks0_s)
 
         for i in range(len(removal_times)):
             casks1_s.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Sizewell1",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[0],
@@ -476,11 +478,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum1_s = add_casks.add_casks(casks1_s)
+        sum1_s = add_casks(casks1_s)
 
         for i in range(len(removal_times)):
             casks5_s.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Sizewell2",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[1],
@@ -503,11 +505,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum5_s = add_casks.add_casks(casks5_s)
+        sum5_s = add_casks(casks5_s)
 
         for i in range(len(removal_times)):
             casks10_s.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Sizewell3",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[2],
@@ -530,11 +532,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum10_s = add_casks.add_casks(casks10_s)
+        sum10_s = add_casks(casks10_s)
 
         for i in range(len(removal_times)):
             casks20_s.Add(
-                define_proportions.TotSpec(
+                TotSpec(
                     cask_name="Sizewell4",
                     total_m=100000,
                     removal_time=removal_times[i] + extra_times[3],
@@ -557,7 +559,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum20_s = add_casks.add_casks(casks20_s)
+        sum20_s = add_casks(casks20_s)
 
         sums_s = ROOT.TList()  #
         sums_s.Add(sum0_s)
@@ -616,7 +618,7 @@ def plot_sample(totSpec):
     #     reactor == "Sizewell"
 
     h = ROOT.TH1D("sample", "", 6000, 0, 6000)
-    sampled = sample.sample(totSpec, N=1000000)
+    sampled = sample(totSpec, N=1000000)
 
     for i in range(1000000):
         h.Fill(sampled[i])

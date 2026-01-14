@@ -1,8 +1,8 @@
 import numpy as np
 import ROOT
 
-
-from snf_simulations import add_spec, load_and_scale, load_data
+from .load_data import load_antineutrino_data
+from .spec import add_spec, load_equal_scaled
 
 
 def AddDecays(
@@ -68,7 +68,7 @@ def TotSpec(
         Rb88,
         Rh106,
         Ru106,
-    ) = load_data.load_antineutrino_data()
+    ) = load_antineutrino_data()
 
     # name of isotopes in database
 
@@ -148,7 +148,7 @@ def TotSpec(
     # adding the scaled spectra of each isotope to the list that will later be added together
 
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Sr90,
             546,
             (isotopes[0] + str(removal_time) + str(cask_name)),
@@ -160,7 +160,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Y90,
             2278,
             (isotopes[1] + str(removal_time) + str(cask_name)),
@@ -172,7 +172,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Pu241,
             20,
             (isotopes[2] + str(removal_time) + str(cask_name)),
@@ -184,7 +184,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Cs137,
             1175,
             (isotopes[3] + str(removal_time) + str(cask_name)),
@@ -196,7 +196,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Am242,
             664,
             (isotopes[4] + str(removal_time) + str(cask_name)),
@@ -208,7 +208,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Cs135,
             268,
             (isotopes[5] + str(removal_time) + str(cask_name)),
@@ -220,7 +220,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             I129,
             149,
             (isotopes[6] + str(removal_time) + str(cask_name)),
@@ -232,7 +232,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Np239,
             714,
             (isotopes[7] + str(removal_time) + str(cask_name)),
@@ -244,7 +244,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Tc99,
             440,
             (isotopes[8] + str(removal_time) + str(cask_name)),
@@ -256,7 +256,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Zr93,
             1000,
             (isotopes[9] + str(removal_time) + str(cask_name)),
@@ -268,7 +268,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Ce144,
             318,
             (isotopes[10] + str(removal_time) + str(cask_name)),
@@ -280,7 +280,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Kr88,
             2918,
             (isotopes[11] + str(removal_time) + str(cask_name)),
@@ -292,7 +292,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Pr144,
             2997,
             (isotopes[12] + str(removal_time) + str(cask_name)),
@@ -304,7 +304,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Rb88,
             5301,
             (isotopes[13] + str(removal_time) + str(cask_name)),
@@ -316,7 +316,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Rh106,
             3541,
             (isotopes[14] + str(removal_time) + str(cask_name)),
@@ -328,7 +328,7 @@ def TotSpec(
         )
     )
     spectra.Add(
-        load_and_scale.load_equal_scaled(
+        load_equal_scaled(
             Ru106,
             39,
             (isotopes[15] + str(removal_time) + str(cask_name)),
@@ -353,7 +353,7 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_and_scale.load_equal_scaled(
+            load_equal_scaled(
                 Y90,
                 2278,
                 "additional Y90" + str(removal_time) + str(cask_name),
@@ -373,7 +373,7 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_and_scale.load_equal_scaled(
+            load_equal_scaled(
                 Pr144,
                 2997,
                 "additional Pr144" + str(removal_time) + str(cask_name),
@@ -393,7 +393,7 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_and_scale.load_equal_scaled(
+            load_equal_scaled(
                 Rb88,
                 5301,
                 "additional Rb88" + str(removal_time) + str(cask_name),
@@ -413,7 +413,7 @@ def TotSpec(
             total_mass=total_m,
         )
         spectra.Add(
-            load_and_scale.load_equal_scaled(
+            load_equal_scaled(
                 Rh106,
                 3541,
                 "additional Rh106" + str(removal_time) + str(cask_name),
@@ -425,6 +425,6 @@ def TotSpec(
             )
         )
 
-    total_spec = add_spec.add_spec(spectra)
+    total_spec = add_spec(spectra)
     total_spec.GetXaxis().SetRangeUser(0, max_E)
     return total_spec

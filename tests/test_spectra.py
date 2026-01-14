@@ -2,12 +2,15 @@
 
 import numpy as np
 import ROOT
-from snf_simulations.add_spec import add_spec
-from snf_simulations.add_casks import add_casks
-from snf_simulations.load_and_scale import load_equal_scaled
 from snf_simulations.load_data import load_antineutrino_data
-from snf_simulations.load_spec import load_equal, load_spec
-from snf_simulations.scale import scale
+from snf_simulations.spec import (
+    add_casks,
+    add_spec,
+    load_equal,
+    load_equal_scaled,
+    load_spec,
+    scale,
+)
 
 
 def test_load_antineutrino_data():

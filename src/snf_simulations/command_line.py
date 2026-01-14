@@ -1,4 +1,4 @@
-from snf_simulations import plotting, flux
+from . import plotting, flux
 # from ROOT import TFile
 
 # creating root file in order to export to simulation

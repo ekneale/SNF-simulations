@@ -1,5 +1,5 @@
-import ROOT
 import numpy as np
+import ROOT
 
 
 def load_spec(Energy, dN, errors, isotope):
@@ -116,3 +116,61 @@ def load_equal(
     hnew.GetYaxis().SetTitleSize(0.047)
 
     return hnew
+
+
+def scale(spectrum, m, mr, half_life_yrs, removal_time):
+    # mass is inputted in kg
+    # removal time is in years
+
+    # calculation of activity of isotope
+    N0 = (m * 1000 / mr) * 6.022e23
+    A0 = N0 * (np.log(2) / (half_life_yrs * 365 * 24 * 60**2))
+    A = A0 * np.exp(-1 * (np.log(2) / half_life_yrs) * removal_time)
+
+    spectrum.SetStats(0)
+
+    spectrum.Scale(A)
+
+    spectrum.SetTitle("Scaled Spectrum")
+    spectrum.GetXaxis().SetTitle("Energy [keV]")
+    spectrum.GetYaxis().SetTitle("Relative Flux [keV^{-1}s^{-1}]")
+
+    return spectrum
+
+
+def load_equal_scaled(
+    data, max_E, named, isotope, m, mr, half_life_yrs, removal_time, min_E=0
+):
+    # combining load and scale functions
+    spec = load_equal(
+        named, isotope, data[:, 0], data[:, 1], data[:, 2], max_E, min_E
+    )
+    spec_scaled = scale(spec, m, mr, half_life_yrs, removal_time)
+    spec_scaled.SetTitle(isotope)
+    return spec_scaled
+
+
+def add_casks(casks):
+    cask_sum = casks[0].Clone("casks")
+    cask_sum.Reset()
+
+    cask_sum.Merge(casks)
+    cask_sum.SetTitle("Total spectrum for all casks")
+
+    return cask_sum
+
+
+def add_spec(spectra):
+    # adding spectra and setting limit to beyond the highest antineutrino energy in the database
+
+    # TODO: removed for now: it doesn't seem to work, and it would break the tests.
+    # for i in range(len(spectra)):
+    #     spectra[i].GetXaxis().SetLimits(0, 6000)
+
+    hsum = spectra[0].Clone("combined")
+    hsum.Reset()
+
+    hsum.Merge(spectra)
+    hsum.SetTitle("Total Spectrum")
+
+    return hsum
