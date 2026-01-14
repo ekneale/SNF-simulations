@@ -150,27 +150,9 @@ def load_equal_scaled(
     return spec_scaled
 
 
-def add_casks(casks):
-    cask_sum = casks[0].Clone("casks")
-    cask_sum.Reset()
-
-    cask_sum.Merge(casks)
-    cask_sum.SetTitle("Total spectrum for all casks")
-
-    return cask_sum
-
-
 def add_spec(spectra):
-    # adding spectra and setting limit to beyond the highest antineutrino energy in the database
-
-    # TODO: removed for now: it doesn't seem to work, and it would break the tests.
-    # for i in range(len(spectra)):
-    #     spectra[i].GetXaxis().SetLimits(0, 6000)
-
-    hsum = spectra[0].Clone("combined")
-    hsum.Reset()
-
-    hsum.Merge(spectra)
-    hsum.SetTitle("Total Spectrum")
-
-    return hsum
+    """Combine a ROOT.TList of spectra into one total spectrum."""
+    total_spec = spectra[0].Clone("combined")
+    total_spec.Reset()
+    total_spec.Merge(spectra)
+    return total_spec

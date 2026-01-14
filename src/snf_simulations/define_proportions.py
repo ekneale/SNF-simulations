@@ -426,5 +426,6 @@ def TotSpec(
         )
 
     total_spec = add_spec(spectra)
+    total_spec.SetTitle("Total Spectrum")
     total_spec.GetXaxis().SetRangeUser(0, max_E)
     return total_spec

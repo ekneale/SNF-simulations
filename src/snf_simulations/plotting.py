@@ -2,7 +2,7 @@ import ROOT
 
 from .define_proportions import TotSpec
 from .sample import sample
-from .spec import add_casks
+from .spec import add_spec
 
 # the things that have been changed so far:
 # for the single casks, the energy and flux will save to a csv file. You can pick which cooling time by changing the number in the spectra.At().
@@ -193,7 +193,8 @@ def plot_multiple_casks_sizewell(removal_times):
             )
         )
 
-    total_sizewell = add_casks(casks)
+    total_sizewell = add_spec(casks)
+    total_sizewell.SetTitle("Total spectrum for all casks")
 
     # c.SaveAs("Sizewell_MultipleCasks.pdf")
 
@@ -229,7 +230,8 @@ def plot_multiple_casks_hartlepool(removal_times):
             )
         )
 
-    total_hartlepool = add_casks(casks)
+    total_hartlepool = add_spec(casks)
+    total_hartlepool.SetTitle("Total spectrum for all casks")
 
     # c.SaveAs("Hartlepool_MultipleCasks.pdf")
 
@@ -299,7 +301,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum0 = add_casks(casks0_h)
+        sum0 = add_spec(casks0_h)
+        sum0.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks1_h.Add(
@@ -326,7 +329,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum1 = add_casks(casks1_h)
+        sum1 = add_spec(casks1_h)
+        sum1.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks5_h.Add(
@@ -353,7 +357,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum5 = add_casks(casks5_h)
+        sum5 = add_spec(casks5_h)
+        sum5.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks10_h.Add(
@@ -380,7 +385,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum10 = add_casks(casks10_h)
+        sum10 = add_spec(casks10_h)
+        sum10.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks20_h.Add(
@@ -407,7 +413,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum20 = add_casks(casks20_h)
+        sum20 = add_spec(casks20_h)
+        sum20.SetTitle("Total spectrum for all casks")
 
         sums_h = ROOT.TList()  #
         sums_h.Add(sum0)
@@ -451,7 +458,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum0_s = add_casks(casks0_s)
+        sum0_s = add_spec(casks0_s)
+        sum0_s.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks1_s.Add(
@@ -478,7 +486,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum1_s = add_casks(casks1_s)
+        sum1_s = add_spec(casks1_s)
+        sum1_s.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks5_s.Add(
@@ -505,7 +514,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum5_s = add_casks(casks5_s)
+        sum5_s = add_spec(casks5_s)
+        sum5_s.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks10_s.Add(
@@ -532,7 +542,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum10_s = add_casks(casks10_s)
+        sum10_s = add_spec(casks10_s)
+        sum10_s.SetTitle("Total spectrum for all casks")
 
         for i in range(len(removal_times)):
             casks20_s.Add(
@@ -559,7 +570,8 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
                 )
             )
 
-        sum20_s = add_casks(casks20_s)
+        sum20_s = add_spec(casks20_s)
+        sum20_s.SetTitle("Total spectrum for all casks")
 
         sums_s = ROOT.TList()  #
         sums_s.Add(sum0_s)
