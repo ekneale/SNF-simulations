@@ -17,7 +17,7 @@ def load_antineutrino_data():
 
     Y90 = np.genfromtxt(spec_files.joinpath("Y90_an.txt"), skip_header=1)
     end = int(np.where(Y90[:, 7] == 2278.5)[0])
-    Y90 = Y90[:end, [7, 10, 11]]
+    Y90 = Y90[:end+1, [7, 10, 11]]
 
     Pu241 = np.genfromtxt(spec_files.joinpath("Pu241_an.txt"), skip_header=1)[
         :, [7, 10, 11],
@@ -40,7 +40,7 @@ def load_antineutrino_data():
 
     Tc99 = np.genfromtxt(spec_files.joinpath("Tc99_an.txt"), skip_header=1)
     end0 = int(np.where(Tc99[:, 7] == 297.5)[0])
-    Tc99 = Tc99[:end0, [7, 10, 11]]
+    Tc99 = Tc99[:end0+1, [7, 10, 11]]
 
     Zr93 = np.genfromtxt(spec_files.joinpath("Zr93_an.txt"), skip_header=1)[
         :, [7, 10, 11],

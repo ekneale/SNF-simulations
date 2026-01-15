@@ -169,19 +169,19 @@ def _test_flux_calc(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     flux_single_40 = flux.flux_calc(spec_single, distance_m=40)
     assert isinstance(flux_single_40, float), "Single flux is not a float"
     if site == "sizewell":
-        assert flux_single_40 == 11992581412.516947, "Single flux value does not match"
+        assert flux_single_40 == 11992567783.00658, "Single flux value does not match"
     else:
-        assert flux_single_40 == 4942454011.527514, "Single flux value does not match"
+        assert flux_single_40 == 4942443091.633026, "Single flux value does not match"
 
     # Calculate the multiple cask flux at 40m
     flux_multiple_40 = flux.flux_calc(spec_multiple, distance_m=40)
     assert isinstance(flux_multiple_40, float), "Multiple flux is not a float"
     if site == "sizewell":
-        assert flux_multiple_40 == 13067942466.972416, (
+        assert flux_multiple_40 == 13067897209.144945, (
             "Multiple flux value does not match"
         )
     else:
-        assert flux_multiple_40 == 1443302654.935451, (
+        assert flux_multiple_40 == 1443268305.2325196, (
             "Multiple flux value does not match"
         )
 
@@ -267,19 +267,19 @@ def _test_multiple_fluxes(site="sizewell"):
     # Calculate the flux at 40m for each spectrum
     if site == "sizewell":
         fluxes = [
-            13067942466.972416,  # NOTE this is the same as on line 180
-            6382016112.274839,
-            1168997513.1381407,
-            836038627.0802824,
-            653335228.0940852,
+            13067897209.144945,  # NOTE this one is the same as in _test_flux_calc
+            6381971926.645747,
+            1168957368.2360244,
+            836003017.479554,
+            653307209.876354,
         ]
     elif site == "hartlepool":
         fluxes = [
-            1443302654.935451,  # NOTE this is the same as on line 182
-            1072461281.6162108,
-            723895968.3592274,
-            630561734.9021833,
-            495863701.8493648,
+            1443268305.2325196,  # NOTE this one is the same as in _test_flux_calc
+            1072427745.6884356,
+            723865499.2550066,
+            630534707.9926968,
+            495842436.63382983,
         ]
     for spec, flux_ref in zip(sums_s, fluxes):
         flux_40 = flux.flux_calc(spec, distance_m=40)
