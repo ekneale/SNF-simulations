@@ -1,85 +1,46 @@
+"""Load in data for antineutrino spectra from IAEA files."""
 from importlib.resources import files
 
 import numpy as np
 
 
-def load_antineutrino_data():
-    """Load in antineutrino spectrum data from IAEA."""
+def load_spec_data(isotope_name):
+    """Load in spectrum data from text files.
+
+    Args:
+        isotope_name (str): Name of the isotope to load data for.
+
+    Returns:
+        np.ndarray: Array containing energy, dN/dE, and uncertainty.
+
+    """
     spec_files = files("snf_simulations.data.spec_data")
+    filename = f"{isotope_name}_an.txt"
+    if not spec_files.joinpath(filename).is_file():
+        msg = f"Spectrum data file for {isotope_name} not found."
+        raise ValueError(msg)
 
-    # Columns represent energy, dN/dE and e=uncertainty on flux respectively.
-    # Some elements like Y90 have two decay chains, so they are cut off where the
-    # main decay chain ends.
+    data = np.genfromtxt(spec_files.joinpath(filename), skip_header=1)
 
-    Sr90 = np.genfromtxt(spec_files.joinpath("Sr90_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
+    # Some isotopes have multiple decay chains, so cut off where the
+    # main decay chain ends based on the p_energy column.
+    data = data[data[:, 3] == 0]
 
-    Y90 = np.genfromtxt(spec_files.joinpath("Y90_an.txt"), skip_header=1)
-    end = int(np.where(Y90[:, 7] == 2278.5)[0])
-    Y90 = Y90[:end+1, [7, 10, 11]]
+    return data[:, [7, 10, 11]]  # energy, dN/dE, uncertainty
 
-    Pu241 = np.genfromtxt(spec_files.joinpath("Pu241_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Cs137 = np.genfromtxt(spec_files.joinpath("Cs137_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Am242 = np.genfromtxt(spec_files.joinpath("Am242_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Cs135 = np.genfromtxt(spec_files.joinpath("Cs135_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    I129 = np.genfromtxt(spec_files.joinpath("I129_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Np239 = np.genfromtxt(spec_files.joinpath("Np239_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
 
-    Tc99 = np.genfromtxt(spec_files.joinpath("Tc99_an.txt"), skip_header=1)
-    end0 = int(np.where(Tc99[:, 7] == 297.5)[0])
-    Tc99 = Tc99[:end0+1, [7, 10, 11]]
+def load_antineutrino_data(isotopes):
+    """Load in antineutrino spectrum data from the IAEA.
 
-    Zr93 = np.genfromtxt(spec_files.joinpath("Zr93_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
+    Args:
+        isotopes (list of str): List of isotope names to load data for.
 
-    Ce144 = np.genfromtxt(spec_files.joinpath("Ce144_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Kr88 = np.genfromtxt(spec_files.joinpath("Kr88_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Pr144 = np.genfromtxt(spec_files.joinpath("Pr144_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Rb88 = np.genfromtxt(spec_files.joinpath("Rb88_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Rh106 = np.genfromtxt(spec_files.joinpath("Rh106_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
-    Ru106 = np.genfromtxt(spec_files.joinpath("Ru106_an.txt"), skip_header=1)[
-        :, [7, 10, 11],
-    ]
+    Returns:
+        list of np.ndarray: List of arrays containing spectrum data for each isotope.
 
-    return (
-        Sr90,
-        Y90,
-        Pu241,
-        Cs137,
-        Am242,
-        Cs135,
-        I129,
-        Np239,
-        Tc99,
-        Zr93,
-        Ce144,
-        Kr88,
-        Pr144,
-        Rb88,
-        Rh106,
-        Ru106,
-    )
+    """
+    spec_data = []
+    for isotope in isotopes:
+        data = load_spec_data(isotope)
+        spec_data.append(data)
+    return spec_data

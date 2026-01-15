@@ -3,6 +3,7 @@
 import numpy as np
 import ROOT
 
+from snf_simulations.define_proportions import ISOTOPES
 from snf_simulations.load_data import load_antineutrino_data
 from snf_simulations.spec import (
     add_spec,
@@ -12,11 +13,14 @@ from snf_simulations.spec import (
     scale_spec,
 )
 
+# Suppress assert warnings from ruff
+# ruff: noqa: S101
+
 
 def test_load_antineutrino_data():
     """Test that antineutrino data is imported correctly."""
-    data = load_antineutrino_data()
-    assert isinstance(data, tuple), "Loaded data is not a tuple"
+    data = load_antineutrino_data(ISOTOPES)
+    assert isinstance(data, list), "Loaded data is not a list"
     assert len(data) == 16, f"Loaded {len(data)} isotopes, expected 16"
     for i, isotope_data in enumerate(data):
         # Basic structure checks
@@ -122,7 +126,7 @@ def test_create_spec_mock():
 
 def test_create_spec_real():
     """Test that spectra histograms can be created for the included isotope data."""
-    data = load_antineutrino_data()
+    data = load_antineutrino_data(ISOTOPES)
     for i, isotope_data in enumerate(data):
         isotope_name = f"isotope_{i}"
         _test_create_spec(isotope_data, isotope_name)
@@ -365,7 +369,7 @@ def test_equalise_spec_mock_extrapolate():
 
 def test_equalise_spec_real():
     """Test that equal spectra histograms can be created for the included isotope data."""
-    data = load_antineutrino_data()
+    data = load_antineutrino_data(ISOTOPES)
     for i, isotope_data in enumerate(data):
         isotope_name = f"isotope_{i}"
         _test_equalise_spec(isotope_data, isotope_name=isotope_name)
