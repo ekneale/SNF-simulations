@@ -3,7 +3,7 @@
 import numpy as np
 import ROOT
 
-from snf_simulations.load_data import load_antineutrino_data, load_isotopes
+from snf_simulations.load_data import load_antineutrino_data, load_isotope_data
 from snf_simulations.spec import (
     add_spec,
     create_spec,
@@ -16,26 +16,47 @@ from snf_simulations.spec import (
 # ruff: noqa: S101
 
 
+def test_load_isotope_data():
+    """Test that isotope data is imported correctly."""
+    atomic_masses, half_lives = load_isotope_data()
+    assert isinstance(atomic_masses, dict), "Atomic masses is not a dictionary"
+    assert isinstance(half_lives, dict), "Half lives is not a dictionary"
+    assert len(atomic_masses) == 16, (
+        f"Loaded {len(atomic_masses)} isotopes, expected 16"
+    )
+    assert len(atomic_masses) == len(half_lives), (
+        "Atomic masses and half lives have different number of isotopes",
+    )
+
+
 def test_load_antineutrino_data():
-    """Test that antineutrino data is imported correctly."""
-    isotopes, _, _ = load_isotopes()
+    """Test that antineutrino spectra are imported correctly."""
+    atomic_masses, _ = load_isotope_data()
+    isotopes = list(atomic_masses.keys())
     data = load_antineutrino_data(isotopes)
-    assert isinstance(data, list), "Loaded data is not a list"
+    assert isinstance(data, dict), "Loaded data is not a dictionary"
     assert len(data) == 16, f"Loaded {len(data)} isotopes, expected 16"
-    for i, isotope_data in enumerate(data):
+
+    for isotope, isotope_data in data.items():
         # Basic structure checks
         assert isinstance(isotope_data, np.ndarray), (
-            f"Isotope {i} data is not a numpy array"
+            f"Isotope {isotope} spectrum is not a numpy array"
         )
         assert isotope_data.shape[1] == 3, (
-            f"Isotope {i} data has {isotope_data.shape[1]} columns, expected 3"
+            f"Isotope {isotope} spectrum has {isotope_data.shape[1]} columns, expected 3"
         )
-        assert isotope_data.shape[0] > 0, f"Isotope {i} data has no rows"
+        assert isotope_data.shape[0] > 0, f"Isotope {isotope} spectrum has no rows"
 
         # Physical value checks
-        assert np.all(isotope_data[:, 0] >= 0), f"Isotope {i} has negative energies"
-        assert np.all(isotope_data[:, 1] >= 0), f"Isotope {i} has negative flux values"
-        assert np.all(isotope_data[:, 2] >= 0), f"Isotope {i} has negative error values"
+        assert np.all(isotope_data[:, 0] >= 0), (
+            f"Isotope {isotope} has negative energies"
+        )
+        assert np.all(isotope_data[:, 1] >= 0), (
+            f"Isotope {isotope} has negative flux values"
+        )
+        assert np.all(isotope_data[:, 2] >= 0), (
+            f"Isotope {isotope} has negative uncertainties"
+        )
 
 
 def _test_create_spec(isotope_data, isotope_name="test_isotope"):
@@ -126,11 +147,11 @@ def test_create_spec_mock():
 
 def test_create_spec_real():
     """Test that spectra histograms can be created for the included isotope data."""
-    isotopes, _, _ = load_isotopes()
+    atomic_masses, _ = load_isotope_data()
+    isotopes = list(atomic_masses.keys())
     data = load_antineutrino_data(isotopes)
-    for i, isotope_data in enumerate(data):
-        isotope_name = f"isotope_{i}"
-        _test_create_spec(isotope_data, isotope_name)
+    for isotope, isotope_data in data.items():
+        _test_create_spec(isotope_data, isotope_name=isotope)
 
 
 def _linear_interpolate_with_errors(
@@ -184,7 +205,10 @@ def _linear_interpolate_with_errors(
 
 
 def _test_equalise_spec(
-    isotope_data, isotope_name="test_isotope", min_energy=0, max_energy=None,
+    isotope_data,
+    isotope_name="test_isotope",
+    min_energy=0,
+    max_energy=None,
 ):
     """Test that spectra can be loaded with equal bin widths."""
     energy = isotope_data[:, 0]
@@ -370,11 +394,11 @@ def test_equalise_spec_mock_extrapolate():
 
 def test_equalise_spec_real():
     """Test that equal spectra histograms can be created for the included isotope data."""
-    isotopes, _, _ = load_isotopes()
+    atomic_masses, _ = load_isotope_data()
+    isotopes = list(atomic_masses.keys())
     data = load_antineutrino_data(isotopes)
-    for i, isotope_data in enumerate(data):
-        isotope_name = f"isotope_{i}"
-        _test_equalise_spec(isotope_data, isotope_name=isotope_name)
+    for isotope, isotope_data in data.items():
+        _test_equalise_spec(isotope_data, isotope_name=isotope)
 
 
 def _isotope_activity(mass, atomic_mass, half_life, removal_time):
@@ -486,7 +510,9 @@ def _test_load_and_scale(
         name=name,
     )
     equalised_spec = equalise_spec(spec, max_energy, min_energy)
-    scaled_spec = scale_spec(equalised_spec.Clone(), mass, molar_mass, half_life, removal_time)
+    scaled_spec = scale_spec(
+        equalised_spec.Clone(), mass, molar_mass, half_life, removal_time
+    )
 
     # Test that both methods give the same result
     assert ls_spec.GetNbinsX() == scaled_spec.GetNbinsX(), (

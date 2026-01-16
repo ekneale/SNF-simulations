@@ -1,12 +1,17 @@
 import numpy as np
 import ROOT
 
-from .load_data import load_antineutrino_data, load_isotopes
+from .load_data import load_antineutrino_data, load_isotope_data
 from .spec import add_spec, load_spec
 
 
 def AddDecays(
-    t, parent_prop0, parent_half_life, daughter_half_life, total_mass=1000, BR=1,
+    t,
+    parent_prop0,
+    parent_half_life,
+    daughter_half_life,
+    total_mass=1000,
+    BR=1,
 ):
     # calculation of additional contributing isotopes that have been created from the decay of their parent isotope
 
@@ -51,228 +56,208 @@ def TotSpec(
     # mass is in kg
     # all times given in years
 
-    # Load the isotope data
-    isotopes, atomic_masses, half_lives = load_isotopes()
-
-    (
-        Sr90,
-        Y90,
-        Pu241,
-        Cs137,
-        Am242,
-        Cs135,
-        I129,
-        Np239,
-        Tc99,
-        Zr93,
-        Ce144,
-        Kr88,
-        Pr144,
-        Rb88,
-        Rh106,
-        Ru106,
-    ) = load_antineutrino_data(isotopes)
-
-
     # inputted proportions of isotopes defined by the user
-    proportions = [
-        Sr90_prop,
-        Y90_prop,
-        Pu241_prop,
-        Cs137_prop,
-        Am242_prop,
-        Cs135_prop,
-        I129_prop,
-        Np239_prop,
-        Tc99_prop,
-        Zr93_prop,
-        Ce144_prop,
-        Kr88_prop,
-        Pr144_prop,
-        Rb88_prop,
-        Rh106_prop,
-        Ru106_prop,
-    ]
+    proportions = {
+        "Sr90": Sr90_prop,
+        "Y90": Y90_prop,
+        "Pu241": Pu241_prop,
+        "Cs137": Cs137_prop,
+        "Am242": Am242_prop,
+        "Cs135": Cs135_prop,
+        "I129": I129_prop,
+        "Np239": Np239_prop,
+        "Tc99": Tc99_prop,
+        "Zr93": Zr93_prop,
+        "Ce144": Ce144_prop,
+        "Kr88": Kr88_prop,
+        "Pr144": Pr144_prop,
+        "Rb88": Rb88_prop,
+        "Rh106": Rh106_prop,
+        "Ru106": Ru106_prop,
+    }
+
+    # Load the isotope data dicts
+    isotopes = list(proportions.keys())
+    atomic_masses, half_lives = load_isotope_data(isotopes)
+    isotope_data = load_antineutrino_data(isotopes)
 
     # calculated mass of isotopes from inputted proportions
-    masses = [prop * total_m for prop in proportions]
-
-    spectra = ROOT.TList()
+    masses = {isotope: prop * total_m for isotope, prop in proportions.items()}
 
     # adding the scaled spectra of each isotope to the list that will later be added together
-
+    spectra = ROOT.TList()
     spectra.Add(
         load_spec(
-            Sr90,
-            (isotopes[0] + str(removal_time) + str(cask_name)),
-            masses[0],
-            atomic_masses[0],
-            half_lives[0],
+            isotope_data["Sr90"],
+            ("Sr90" + str(removal_time) + str(cask_name)),
+            masses["Sr90"],
+            atomic_masses["Sr90"],
+            half_lives["Sr90"],
             removal_time,
             546,
         ),
     )
     spectra.Add(
         load_spec(
-            Y90,
-            (isotopes[1] + str(removal_time) + str(cask_name)),
-            masses[1],
-            atomic_masses[1],
-            half_lives[1],
+            isotope_data["Y90"],
+            ("Y90" + str(removal_time) + str(cask_name)),
+            masses["Y90"],
+            atomic_masses["Y90"],
+            half_lives["Y90"],
             removal_time,
             2278,
         ),
     )
     spectra.Add(
         load_spec(
-            Pu241,
-            (isotopes[2] + str(removal_time) + str(cask_name)),
-            masses[2],
-            atomic_masses[2],
-            half_lives[2],
+            isotope_data["Pu241"],
+            ("Pu241" + str(removal_time) + str(cask_name)),
+            masses["Pu241"],
+            atomic_masses["Pu241"],
+            half_lives["Pu241"],
             removal_time,
             20,
         ),
     )
     spectra.Add(
         load_spec(
-            Cs137,
-            (isotopes[3] + str(removal_time) + str(cask_name)),
-            masses[3],
-            atomic_masses[3],
-            half_lives[3],
+            isotope_data["Cs137"],
+            ("Cs137" + str(removal_time) + str(cask_name)),
+            masses["Cs137"],
+            atomic_masses["Cs137"],
+            half_lives["Cs137"],
             removal_time,
             1175,
         ),
     )
     spectra.Add(
         load_spec(
-            Am242,
-            (isotopes[4] + str(removal_time) + str(cask_name)),
-            masses[4],
-            atomic_masses[4],
-            half_lives[4],
+            isotope_data["Am242"],
+            ("Am242" + str(removal_time) + str(cask_name)),
+            masses["Am242"],
+            atomic_masses["Am242"],
+            half_lives["Am242"],
             removal_time,
             664,
         ),
     )
     spectra.Add(
         load_spec(
-            Cs135,
-            (isotopes[5] + str(removal_time) + str(cask_name)),
-            masses[5],
-            atomic_masses[5],
-            half_lives[5],
+            isotope_data["Cs135"],
+            ("Cs135" + str(removal_time) + str(cask_name)),
+            masses["Cs135"],
+            atomic_masses["Cs135"],
+            half_lives["Cs135"],
             removal_time,
             268,
         ),
     )
     spectra.Add(
         load_spec(
-            I129,
-            (isotopes[6] + str(removal_time) + str(cask_name)),
-            masses[6],
-            atomic_masses[6],
-            half_lives[6],
+            isotope_data["I129"],
+            ("I129" + str(removal_time) + str(cask_name)),
+            masses["I129"],
+            atomic_masses["I129"],
+            half_lives["I129"],
             removal_time,
             149,
         ),
     )
     spectra.Add(
         load_spec(
-            Np239,
-            (isotopes[7] + str(removal_time) + str(cask_name)),
-            masses[7],
-            atomic_masses[7],
-            half_lives[7],
+            isotope_data["Np239"],
+            ("Np239" + str(removal_time) + str(cask_name)),
+            masses["Np239"],
+            atomic_masses["Np239"],
+            half_lives["Np239"],
             removal_time,
             714,
         ),
     )
     spectra.Add(
         load_spec(
-            Tc99,
-            (isotopes[8] + str(removal_time) + str(cask_name)),
-            masses[8],
-            atomic_masses[8],
-            half_lives[8],
+            isotope_data["Tc99"],
+            ("Tc99" + str(removal_time) + str(cask_name)),
+            masses["Tc99"],
+            atomic_masses["Tc99"],
+            half_lives["Tc99"],
             removal_time,
             440,
         ),
     )
     spectra.Add(
         load_spec(
-            Zr93,
-            (isotopes[9] + str(removal_time) + str(cask_name)),
-            masses[9],
-            atomic_masses[9],
-            half_lives[9],
+            isotope_data["Zr93"],
+            ("Zr93" + str(removal_time) + str(cask_name)),
+            masses["Zr93"],
+            atomic_masses["Zr93"],
+            half_lives["Zr93"],
             removal_time,
             1000,
         ),
     )
     spectra.Add(
         load_spec(
-            Ce144,
-            (isotopes[10] + str(removal_time) + str(cask_name)),
-            masses[10],
-            atomic_masses[10],
-            half_lives[10],
+            isotope_data["Ce144"],
+            ("Ce144" + str(removal_time) + str(cask_name)),
+            masses["Ce144"],
+            atomic_masses["Ce144"],
+            half_lives["Ce144"],
             removal_time,
             318,
         ),
     )
     spectra.Add(
         load_spec(
-            Kr88,
-            (isotopes[11] + str(removal_time) + str(cask_name)),
-            masses[11],
-            atomic_masses[11],
-            half_lives[11],
+            isotope_data["Kr88"],
+            ("Kr88" + str(removal_time) + str(cask_name)),
+            masses["Kr88"],
+            atomic_masses["Kr88"],
+            half_lives["Kr88"],
             removal_time,
             2918,
         ),
     )
     spectra.Add(
         load_spec(
-            Pr144,
-            (isotopes[12] + str(removal_time) + str(cask_name)),
-            masses[12],
-            atomic_masses[12],
-            half_lives[12],
+            isotope_data["Pr144"],
+            ("Pr144" + str(removal_time) + str(cask_name)),
+            masses["Pr144"],
+            atomic_masses["Pr144"],
+            half_lives["Pr144"],
             removal_time,
             2997,
         ),
     )
     spectra.Add(
         load_spec(
-            Rb88,
-            (isotopes[13] + str(removal_time) + str(cask_name)),
-            masses[13],
-            atomic_masses[13],
-            half_lives[13],
+            isotope_data["Rb88"],
+            ("Rb88" + str(removal_time) + str(cask_name)),
+            masses["Rb88"],
+            atomic_masses["Rb88"],
+            half_lives["Rb88"],
             removal_time,
             5301,
         ),
     )
     spectra.Add(
         load_spec(
-            Rh106,
-            (isotopes[14] + str(removal_time) + str(cask_name)),
-            masses[14],
-            atomic_masses[14],
-            half_lives[14],
+            isotope_data["Rh106"],
+            ("Rh106" + str(removal_time) + str(cask_name)),
+            masses["Rh106"],
+            atomic_masses["Rh106"],
+            half_lives["Rh106"],
             removal_time,
             3541,
         ),
     )
     spectra.Add(
         load_spec(
-            Ru106,
-            (isotopes[15] + str(removal_time) + str(cask_name)),
-            masses[15],
-            atomic_masses[15],
-            half_lives[15],
+            isotope_data["Ru106"],
+            ("Ru106" + str(removal_time) + str(cask_name)),
+            masses["Ru106"],
+            atomic_masses["Ru106"],
+            half_lives["Ru106"],
             removal_time,
             39,
         ),
@@ -286,17 +271,17 @@ def TotSpec(
         extra_Y90 = AddDecays(
             t=removal_time,
             parent_prop0=Sr90_prop,
-            parent_half_life=half_lives[0],
-            daughter_half_life=half_lives[1],
+            parent_half_life=half_lives["Sr90"],
+            daughter_half_life=half_lives["Y90"],
             total_mass=total_m,
         )
         spectra.Add(
             load_spec(
-                Y90,
+                isotope_data["Y90"],
                 "additional Y90" + str(removal_time) + str(cask_name),
                 extra_Y90,
-                atomic_masses[1],
-                half_lives[1],
+                atomic_masses["Y90"],
+                half_lives["Y90"],
                 0,
                 2278,
             ),
@@ -305,17 +290,17 @@ def TotSpec(
         extra_Pr144 = AddDecays(
             t=removal_time,
             parent_prop0=Ce144_prop,
-            parent_half_life=half_lives[10],
-            daughter_half_life=half_lives[12],
+            parent_half_life=half_lives["Ce144"],
+            daughter_half_life=half_lives["Pr144"],
             total_mass=total_m,
         )
         spectra.Add(
             load_spec(
-                Pr144,
+                isotope_data["Pr144"],
                 "additional Pr144" + str(removal_time) + str(cask_name),
                 extra_Pr144,
-                atomic_masses[12],
-                half_lives[12],
+                atomic_masses["Pr144"],
+                half_lives["Pr144"],
                 0,
                 2997,
             ),
@@ -324,17 +309,17 @@ def TotSpec(
         extra_Rb88 = AddDecays(
             t=removal_time,
             parent_prop0=Kr88_prop,
-            parent_half_life=half_lives[11],
-            daughter_half_life=half_lives[13],
+            parent_half_life=half_lives["Kr88"],
+            daughter_half_life=half_lives["Rb88"],
             total_mass=total_m,
         )
         spectra.Add(
             load_spec(
-                Rb88,
+                isotope_data["Rb88"],
                 "additional Rb88" + str(removal_time) + str(cask_name),
                 extra_Rb88,
-                atomic_masses[13],
-                half_lives[13],
+                atomic_masses["Rb88"],
+                half_lives["Rb88"],
                 0,
                 5301,
             ),
@@ -343,17 +328,17 @@ def TotSpec(
         extra_Rh106 = AddDecays(
             t=removal_time,
             parent_prop0=Ru106_prop,
-            parent_half_life=half_lives[15],
-            daughter_half_life=half_lives[14],
+            parent_half_life=half_lives["Ru106"],
+            daughter_half_life=half_lives["Rh106"],
             total_mass=total_m,
         )
         spectra.Add(
             load_spec(
-                Rh106,
+                isotope_data["Rh106"],
                 "additional Rh106" + str(removal_time) + str(cask_name),
                 extra_Rh106,
-                atomic_masses[14],
-                half_lives[14],
+                atomic_masses["Rh106"],
+                half_lives["Rh106"],
                 0,
                 3541,
             ),
