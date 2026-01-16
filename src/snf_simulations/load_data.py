@@ -4,6 +4,26 @@ from importlib.resources import files
 import numpy as np
 
 
+def load_isotopes():
+    """Load in isotope parameters from the database."""
+    data_files = files("snf_simulations.data")
+    filename = data_files.joinpath("isotopes.csv")
+    if not filename.is_file():
+        msg = "Isotope CSV file not found."
+        raise ValueError(msg)
+
+    data = np.genfromtxt(
+        filename,
+        delimiter=",",
+        skip_header=1,
+        dtype=str,
+    )
+    names, atomic_masses, half_lives = data[:,0], data[:,1], data[:,2]
+    atomic_masses = atomic_masses.astype(float)
+    half_lives = half_lives.astype(float)
+    return names, atomic_masses, half_lives
+
+
 def load_spec_data(isotope_name):
     """Load in spectrum data from text files.
 
@@ -15,8 +35,8 @@ def load_spec_data(isotope_name):
 
     """
     spec_files = files("snf_simulations.data.spec_data")
-    filename = f"{isotope_name}_an.txt"
-    if not spec_files.joinpath(filename).is_file():
+    filename = spec_files.joinpath(f"{isotope_name}_an.txt")
+    if not filename.is_file():
         msg = f"Spectrum data file for {isotope_name} not found."
         raise ValueError(msg)
 
