@@ -8,6 +8,44 @@ import ROOT
 from .load_data import load_antineutrino_data, load_isotope_data
 from .spec import add_spec, load_spec
 
+# TODO: these proportions could be loaded from a data file instead
+SIZEWELL_PROPORTIONS = {
+    "Sr90": 5.356e-4,
+    "Y90": 1.3922e-7,
+    "Pu241": 1.316e-3,
+    "Cs137": 1.212e-3,
+    "Am242": 3.554e-8,
+    "Cs135": 3.1282e-4,
+    "I129": 1.7535e-4,
+    "Np239": 7.5852e-5,
+    "Tc99": 7.9742e-4,
+    "Zr93": 1.7681e-6,
+    "Ce144": 4.0111e-4,
+    "Kr88": 1.427e-10,
+    "Pr144": 1.6896e-8,
+    "Rb88": 1.6645e-11,
+    "Rh106": 1.6389e-10,
+    "Ru106": 1.7496e-4,
+}
+HARTLEPOOL_PROPORTIONS = {
+    "Sr90": 4.2912e-4,
+    "Y90": 1.0953e-7,
+    "Pu241": 5.3075e-4,
+    "Cs137": 8.6117e-4,
+    "Am242": 1.3708e-8,
+    "Cs135": 3.8379e-4,
+    "I129": 1.2097e-4,
+    "Np239": 2.0904e-5,
+    "Tc99": 6.12e-4,
+    "Zr93": 5.5068e-4,
+    "Ce144": 1.7271e-4,
+    "Kr88": 6.4374e-11,
+    "Pr144": 7.2749e-9,
+    "Rb88": 7.5089e-11,
+    "Rh106": 5.7428e-11,
+    "Ru106": 6.1306e-5,
+}
+
 
 class DecayChain(NamedTuple):
     """Class to represent a decay chain from parent to daughter isotope."""
@@ -57,58 +95,35 @@ def get_decay_mass(
     return daughter_mass
 
 
-def TotSpec(
-    cask_name,
-    removal_time=0,
-    total_mass=1000,
-    max_E=6000,
-    Sr90_prop=0,
-    Y90_prop=0,
-    Pu241_prop=0,
-    Cs137_prop=0,
-    Am242_prop=0,
-    Cs135_prop=0,
-    I129_prop=0,
-    Np239_prop=0,
-    Tc99_prop=0,
-    Zr93_prop=0,
-    Ce144_prop=0,
-    Kr88_prop=0,
-    Pr144_prop=0,
-    Rb88_prop=0,
-    Rh106_prop=0,
-    Ru106_prop=0,
-):
-    # total mass is in kg
-    # all times given in years
+def get_total_spec(
+    cask_name: str,
+    isotope_proportions: dict,
+    total_mass: float = 1000,
+    removal_time: float = 0,
+    max_energy: float = 6000,
+) -> ROOT.TH1D:
+    """Calculate the total antineutrino spectrum from spent nuclear fuel.
 
-    # inputted proportions of isotopes defined by the user
-    proportions = {
-        "Sr90": Sr90_prop,
-        "Y90": Y90_prop,
-        "Pu241": Pu241_prop,
-        "Cs137": Cs137_prop,
-        "Am242": Am242_prop,
-        "Cs135": Cs135_prop,
-        "I129": I129_prop,
-        "Np239": Np239_prop,
-        "Tc99": Tc99_prop,
-        "Zr93": Zr93_prop,
-        "Ce144": Ce144_prop,
-        "Kr88": Kr88_prop,
-        "Pr144": Pr144_prop,
-        "Rb88": Rb88_prop,
-        "Rh106": Rh106_prop,
-        "Ru106": Ru106_prop,
-    }
+    Args:
+        cask_name: Name of the SNF cask.
+        isotope_proportions: Dictionary of isotope proportions of the total mass.
+        total_mass: Total mass of SNF (kg). Default is 1000 kg.
+        removal_time: Time since removal from reactor (years). Default is 0.
+        max_energy: Maximum energy to consider (keV). Default is 6000 keV.
 
+    Returns:
+        ROOT.TH1D: Total combined antineutrino spectrum as a ROOT histogram.
+
+    """
     # Load the isotope data dicts
-    isotopes = list(proportions.keys())
+    isotopes = list(isotope_proportions.keys())
     molar_masses, half_lives = load_isotope_data(isotopes)
     isotope_data = load_antineutrino_data(isotopes)
 
     # Calculate the mass of each isotope from the input proportions of the total mass
-    masses = {isotope: prop * total_mass for isotope, prop in proportions.items()}
+    masses = {
+        isotope: prop * total_mass for isotope, prop in isotope_proportions.items()
+    }
 
     # Create the scaled spectra of each isotope and add them to a ROOT TList
     spectra = ROOT.TList()
@@ -129,6 +144,8 @@ def TotSpec(
         # All of these decay chains have a branching ratio of 1.
         # If any additional isotopes were to be added with decay chains
         # involving more beta emitting isotopes then they can be added here.
+        # TODO: work out how these are selected, if we can define them dynamically
+        # or from an input file then that would be ideal.
         decay_chains = (
             DecayChain("Sr90", "Y90"),
             DecayChain("Ce144", "Pr144"),
@@ -161,5 +178,5 @@ def TotSpec(
     # Sum all the spectra to get the total spectrum
     total_spec = add_spec(spectra)
     total_spec.SetTitle("Total Spectrum")
-    total_spec.GetXaxis().SetRangeUser(0, max_E)
+    total_spec.GetXaxis().SetRangeUser(0, max_energy)
     return total_spec

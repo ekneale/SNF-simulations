@@ -1,6 +1,10 @@
 import ROOT
 
-from .define_proportions import TotSpec
+from .define_proportions import (
+    HARTLEPOOL_PROPORTIONS,
+    SIZEWELL_PROPORTIONS,
+    get_total_spec,
+)
 from .sample import sample
 from .spec import add_spec
 
@@ -20,51 +24,22 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
     # plotting a spectrum of antineutrino energies for the Sizewell PWR with varying cooling times
     if Sizewell:
         reactor = "Sizewell"
-        initial = TotSpec(
+        initial = get_total_spec(
             cask_name="main",
+            isotope_proportions=SIZEWELL_PROPORTIONS,
             total_mass=100000,
-            Kr88_prop=1.427e-10,
-            Rb88_prop=1.6645e-11,
-            Sr90_prop=5.356e-4,
-            Y90_prop=1.3922e-7,
-            Zr93_prop=1.7681e-6,
-            Tc99_prop=7.9742e-4,
-            Ru106_prop=1.7496e-4,
-            Rh106_prop=1.6389e-10,
-            I129_prop=1.7535e-4,
-            Cs135_prop=3.1282e-4,
-            Cs137_prop=1.212e-3,
-            Ce144_prop=4.0111e-4,
-            Pr144_prop=1.6896e-8,
-            Np239_prop=7.5852e-5,
-            Pu241_prop=1.316e-3,
-            Am242_prop=3.554e-8,
+            removal_time=0,
         )
         initial.SetLineColor(ROOT.kBlue)
         spectra = ROOT.TList()
 
         for i in range(len(removal_times)):
             spectra.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="main",
+                    isotope_proportions=SIZEWELL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i],
-                    Kr88_prop=1.427e-10,
-                    Rb88_prop=1.6645e-11,
-                    Sr90_prop=5.356e-4,
-                    Y90_prop=1.3922e-7,
-                    Zr93_prop=1.7681e-6,
-                    Tc99_prop=7.9742e-4,
-                    Ru106_prop=1.7496e-4,
-                    Rh106_prop=1.6389e-10,
-                    I129_prop=1.7535e-4,
-                    Cs135_prop=3.1282e-4,
-                    Cs137_prop=1.212e-3,
-                    Ce144_prop=4.0111e-4,
-                    Pr144_prop=1.6896e-8,
-                    Np239_prop=7.5852e-5,
-                    Pu241_prop=1.316e-3,
-                    Am242_prop=3.554e-8,
                 )
             )
 
@@ -74,7 +49,8 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
         for i in range(len(spectra)):
             spectra[i].SetLineColor(colors[i])
             legend.AddEntry(
-                spectra[i], str(removal_times[i]) + " Years since removal from core"
+                spectra[i],
+                str(removal_times[i]) + " Years since removal from core",
             )
 
         initial.Draw("hist")
@@ -85,51 +61,22 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
     # plotting a spectrum of antineutrino energies for the Hartlepool AGR with varying cooling times
     if not Sizewell:
         reactor = "Hartlepool"
-        initial = TotSpec(
+        initial = get_total_spec(
             cask_name="main",
+            isotope_proportions=HARTLEPOOL_PROPORTIONS,
             total_mass=100000,
-            Kr88_prop=6.4374e-11,
-            Rb88_prop=7.5089e-11,
-            Sr90_prop=4.2912e-4,
-            Y90_prop=1.0953e-7,
-            Zr93_prop=5.5068e-4,
-            Tc99_prop=6.12e-4,
-            Ru106_prop=6.1306e-5,
-            Rh106_prop=5.7428e-11,
-            I129_prop=1.2097e-4,
-            Cs135_prop=3.8379e-4,
-            Cs137_prop=8.6117e-4,
-            Ce144_prop=1.7271e-4,
-            Pr144_prop=7.2749e-9,
-            Np239_prop=2.0904e-5,
-            Pu241_prop=5.3075e-4,
-            Am242_prop=1.3708e-8,
+            removal_time=0,
         )
         initial.SetLineColor(ROOT.kBlue)
         spectra = ROOT.TList()
 
         for i in range(len(removal_times)):
             spectra.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="main",
+                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i],
-                    Kr88_prop=6.4374e-11,
-                    Rb88_prop=7.5089e-11,
-                    Sr90_prop=4.2912e-4,
-                    Y90_prop=1.0953e-7,
-                    Zr93_prop=5.5068e-4,
-                    Tc99_prop=6.12e-4,
-                    Ru106_prop=6.1306e-5,
-                    Rh106_prop=5.7428e-11,
-                    I129_prop=1.2097e-4,
-                    Cs135_prop=3.8379e-4,
-                    Cs137_prop=8.6117e-4,
-                    Ce144_prop=1.7271e-4,
-                    Pr144_prop=7.2749e-9,
-                    Np239_prop=2.0904e-5,
-                    Pu241_prop=5.3075e-4,
-                    Am242_prop=1.3708e-8,
                 )
             )
 
@@ -139,7 +86,8 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
         for i in range(len(spectra)):
             spectra[i].SetLineColor(colors[i])
             legend.AddEntry(
-                spectra[i], str(removal_times[i]) + " Years since removal from core"
+                spectra[i],
+                str(removal_times[i]) + " Years since removal from core",
             )
 
         initial.Draw("hist")
@@ -170,26 +118,11 @@ def plot_multiple_casks_sizewell(removal_times):
 
     for i in range(len(removal_times)):
         casks.Add(
-            TotSpec(
+            get_total_spec(
                 cask_name="Sizewell",
+                isotope_proportions=SIZEWELL_PROPORTIONS,
                 total_mass=100000,
                 removal_time=removal_times[i],
-                Kr88_prop=1.427e-10,
-                Rb88_prop=1.6645e-11,
-                Sr90_prop=5.356e-4,
-                Y90_prop=1.3922e-7,
-                Zr93_prop=1.7681e-6,
-                Tc99_prop=7.9742e-4,
-                Ru106_prop=1.7496e-4,
-                Rh106_prop=1.6389e-10,
-                I129_prop=1.7535e-4,
-                Cs135_prop=3.1282e-4,
-                Cs137_prop=1.212e-3,
-                Ce144_prop=4.0111e-4,
-                Pr144_prop=1.6896e-8,
-                Np239_prop=7.5852e-5,
-                Pu241_prop=1.316e-3,
-                Am242_prop=3.554e-8,
             )
         )
 
@@ -207,26 +140,11 @@ def plot_multiple_casks_hartlepool(removal_times):
 
     for i in range(len(removal_times)):
         casks.Add(
-            TotSpec(
+            get_total_spec(
                 cask_name="Hartlepool",
+                isotope_proportions=HARTLEPOOL_PROPORTIONS,
                 total_mass=100000,
                 removal_time=removal_times[i],
-                Kr88_prop=6.4374e-11,
-                Rb88_prop=7.5089e-11,
-                Sr90_prop=4.2912e-4,
-                Y90_prop=1.0953e-7,
-                Zr93_prop=5.5068e-4,
-                Tc99_prop=6.12e-4,
-                Ru106_prop=6.1306e-5,
-                Rh106_prop=5.7428e-11,
-                I129_prop=1.2097e-4,
-                Cs135_prop=3.8379e-4,
-                Cs137_prop=8.6117e-4,
-                Ce144_prop=1.7271e-4,
-                Pr144_prop=7.2749e-9,
-                Np239_prop=2.0904e-5,
-                Pu241_prop=5.3075e-4,
-                Am242_prop=1.3708e-8,
             )
         )
 
@@ -278,26 +196,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
         casks20_h = ROOT.TList()
         for i in range(len(removal_times)):
             casks0_h.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Hartlepool0",
+                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i],
-                    Kr88_prop=6.4374e-11,
-                    Rb88_prop=7.5089e-11,
-                    Sr90_prop=4.2912e-4,
-                    Y90_prop=1.0953e-7,
-                    Zr93_prop=5.5068e-4,
-                    Tc99_prop=6.12e-4,
-                    Ru106_prop=6.1306e-5,
-                    Rh106_prop=5.7428e-11,
-                    I129_prop=1.2097e-4,
-                    Cs135_prop=3.8379e-4,
-                    Cs137_prop=8.6117e-4,
-                    Ce144_prop=1.7271e-4,
-                    Pr144_prop=7.2749e-9,
-                    Np239_prop=2.0904e-5,
-                    Pu241_prop=5.3075e-4,
-                    Am242_prop=1.3708e-8,
                 )
             )
 
@@ -306,26 +209,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks1_h.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Hartlepool1",
+                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[0],
-                    Kr88_prop=6.4374e-11,
-                    Rb88_prop=7.5089e-11,
-                    Sr90_prop=4.2912e-4,
-                    Y90_prop=1.0953e-7,
-                    Zr93_prop=5.5068e-4,
-                    Tc99_prop=6.12e-4,
-                    Ru106_prop=6.1306e-5,
-                    Rh106_prop=5.7428e-11,
-                    I129_prop=1.2097e-4,
-                    Cs135_prop=3.8379e-4,
-                    Cs137_prop=8.6117e-4,
-                    Ce144_prop=1.7271e-4,
-                    Pr144_prop=7.2749e-9,
-                    Np239_prop=2.0904e-5,
-                    Pu241_prop=5.3075e-4,
-                    Am242_prop=1.3708e-8,
                 )
             )
 
@@ -334,26 +222,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks5_h.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Hartlepool2",
+                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[1],
-                    Kr88_prop=6.4374e-11,
-                    Rb88_prop=7.5089e-11,
-                    Sr90_prop=4.2912e-4,
-                    Y90_prop=1.0953e-7,
-                    Zr93_prop=5.5068e-4,
-                    Tc99_prop=6.12e-4,
-                    Ru106_prop=6.1306e-5,
-                    Rh106_prop=5.7428e-11,
-                    I129_prop=1.2097e-4,
-                    Cs135_prop=3.8379e-4,
-                    Cs137_prop=8.6117e-4,
-                    Ce144_prop=1.7271e-4,
-                    Pr144_prop=7.2749e-9,
-                    Np239_prop=2.0904e-5,
-                    Pu241_prop=5.3075e-4,
-                    Am242_prop=1.3708e-8,
                 )
             )
 
@@ -362,26 +235,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks10_h.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Hartlepool3",
+                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[2],
-                    Kr88_prop=6.4374e-11,
-                    Rb88_prop=7.5089e-11,
-                    Sr90_prop=4.2912e-4,
-                    Y90_prop=1.0953e-7,
-                    Zr93_prop=5.5068e-4,
-                    Tc99_prop=6.12e-4,
-                    Ru106_prop=6.1306e-5,
-                    Rh106_prop=5.7428e-11,
-                    I129_prop=1.2097e-4,
-                    Cs135_prop=3.8379e-4,
-                    Cs137_prop=8.6117e-4,
-                    Ce144_prop=1.7271e-4,
-                    Pr144_prop=7.2749e-9,
-                    Np239_prop=2.0904e-5,
-                    Pu241_prop=5.3075e-4,
-                    Am242_prop=1.3708e-8,
                 )
             )
 
@@ -390,33 +248,18 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks20_h.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Hartlepool4",
+                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[3],
-                    Kr88_prop=6.4374e-11,
-                    Rb88_prop=7.5089e-11,
-                    Sr90_prop=4.2912e-4,
-                    Y90_prop=1.0953e-7,
-                    Zr93_prop=5.5068e-4,
-                    Tc99_prop=6.12e-4,
-                    Ru106_prop=6.1306e-5,
-                    Rh106_prop=5.7428e-11,
-                    I129_prop=1.2097e-4,
-                    Cs135_prop=3.8379e-4,
-                    Cs137_prop=8.6117e-4,
-                    Ce144_prop=1.7271e-4,
-                    Pr144_prop=7.2749e-9,
-                    Np239_prop=2.0904e-5,
-                    Pu241_prop=5.3075e-4,
-                    Am242_prop=1.3708e-8,
                 )
             )
 
         sum20 = add_spec(casks20_h)
         sum20.SetTitle("Total spectrum for all casks")
 
-        sums_h = ROOT.TList()  #
+        sums_h = ROOT.TList()
         sums_h.Add(sum0)
         sums_h.Add(sum1)
         sums_h.Add(sum5)
@@ -425,7 +268,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
         return sums_h
 
     # for sizewell
-    if Sizewell:
+    else:
         removal_times = [0.5, 5, 10, 20]
         casks0_s = ROOT.TList()
         casks1_s = ROOT.TList()
@@ -435,26 +278,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks0_s.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Sizewell0",
+                    isotope_proportions=SIZEWELL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i],
-                    Kr88_prop=1.427e-10,
-                    Rb88_prop=1.6645e-11,
-                    Sr90_prop=5.356e-4,
-                    Y90_prop=1.3922e-7,
-                    Zr93_prop=1.7681e-6,
-                    Tc99_prop=7.9742e-4,
-                    Ru106_prop=1.7496e-4,
-                    Rh106_prop=1.6389e-10,
-                    I129_prop=1.7535e-4,
-                    Cs135_prop=3.1282e-4,
-                    Cs137_prop=1.212e-3,
-                    Ce144_prop=4.0111e-4,
-                    Pr144_prop=1.6896e-8,
-                    Np239_prop=7.5852e-5,
-                    Pu241_prop=1.316e-3,
-                    Am242_prop=3.554e-8,
                 )
             )
 
@@ -463,26 +291,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks1_s.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Sizewell1",
+                    isotope_proportions=SIZEWELL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[0],
-                    Kr88_prop=1.427e-10,
-                    Rb88_prop=1.6645e-11,
-                    Sr90_prop=5.356e-4,
-                    Y90_prop=1.3922e-7,
-                    Zr93_prop=1.7681e-6,
-                    Tc99_prop=7.9742e-4,
-                    Ru106_prop=1.7496e-4,
-                    Rh106_prop=1.6389e-10,
-                    I129_prop=1.7535e-4,
-                    Cs135_prop=3.1282e-4,
-                    Cs137_prop=1.212e-3,
-                    Ce144_prop=4.0111e-4,
-                    Pr144_prop=1.6896e-8,
-                    Np239_prop=7.5852e-5,
-                    Pu241_prop=1.316e-3,
-                    Am242_prop=3.554e-8,
                 )
             )
 
@@ -491,26 +304,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks5_s.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Sizewell2",
+                    isotope_proportions=SIZEWELL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[1],
-                    Kr88_prop=1.427e-10,
-                    Rb88_prop=1.6645e-11,
-                    Sr90_prop=5.356e-4,
-                    Y90_prop=1.3922e-7,
-                    Zr93_prop=1.7681e-6,
-                    Tc99_prop=7.9742e-4,
-                    Ru106_prop=1.7496e-4,
-                    Rh106_prop=1.6389e-10,
-                    I129_prop=1.7535e-4,
-                    Cs135_prop=3.1282e-4,
-                    Cs137_prop=1.212e-3,
-                    Ce144_prop=4.0111e-4,
-                    Pr144_prop=1.6896e-8,
-                    Np239_prop=7.5852e-5,
-                    Pu241_prop=1.316e-3,
-                    Am242_prop=3.554e-8,
                 )
             )
 
@@ -519,26 +317,11 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks10_s.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Sizewell3",
+                    isotope_proportions=SIZEWELL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[2],
-                    Kr88_prop=1.427e-10,
-                    Rb88_prop=1.6645e-11,
-                    Sr90_prop=5.356e-4,
-                    Y90_prop=1.3922e-7,
-                    Zr93_prop=1.7681e-6,
-                    Tc99_prop=7.9742e-4,
-                    Ru106_prop=1.7496e-4,
-                    Rh106_prop=1.6389e-10,
-                    I129_prop=1.7535e-4,
-                    Cs135_prop=3.1282e-4,
-                    Cs137_prop=1.212e-3,
-                    Ce144_prop=4.0111e-4,
-                    Pr144_prop=1.6896e-8,
-                    Np239_prop=7.5852e-5,
-                    Pu241_prop=1.316e-3,
-                    Am242_prop=3.554e-8,
                 )
             )
 
@@ -547,39 +330,25 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
 
         for i in range(len(removal_times)):
             casks20_s.Add(
-                TotSpec(
+                get_total_spec(
                     cask_name="Sizewell4",
+                    isotope_proportions=SIZEWELL_PROPORTIONS,
                     total_mass=100000,
                     removal_time=removal_times[i] + extra_times[3],
-                    Kr88_prop=1.427e-10,
-                    Rb88_prop=1.6645e-11,
-                    Sr90_prop=5.356e-4,
-                    Y90_prop=1.3922e-7,
-                    Zr93_prop=1.7681e-6,
-                    Tc99_prop=7.9742e-4,
-                    Ru106_prop=1.7496e-4,
-                    Rh106_prop=1.6389e-10,
-                    I129_prop=1.7535e-4,
-                    Cs135_prop=3.1282e-4,
-                    Cs137_prop=1.212e-3,
-                    Ce144_prop=4.0111e-4,
-                    Pr144_prop=1.6896e-8,
-                    Np239_prop=7.5852e-5,
-                    Pu241_prop=1.316e-3,
-                    Am242_prop=3.554e-8,
                 )
             )
 
         sum20_s = add_spec(casks20_s)
         sum20_s.SetTitle("Total spectrum for all casks")
 
-        sums_s = ROOT.TList()  #
+        sums_s = ROOT.TList()
         sums_s.Add(sum0_s)
         sums_s.Add(sum1_s)
         sums_s.Add(sum5_s)
         sums_s.Add(sum10_s)
         sums_s.Add(sum20_s)
         return sums_s
+
 
 
 # plotting separately to avoid graphics errors
@@ -623,14 +392,14 @@ def plot_multiple(multiple):
     c.SaveAs("Sizewell_MultipleCasks.pdf")
 
 
-def plot_sample(totSpec):
+def plot_sample(total_spec):
     # if Hartlepool == True:
     #     reactor = "Hartlepool"
     # if Sizewell == True:
     #     reactor == "Sizewell"
 
     h = ROOT.TH1D("sample", "", 6000, 0, 6000)
-    sampled = sample(totSpec, N=1000000)
+    sampled = sample(total_spec, N=1000000)
 
     for i in range(1000000):
         h.Fill(sampled[i])
