@@ -14,7 +14,7 @@ def load_isotope_data(isotopes=None):
 
     Returns:
         tuple: Two dictionaries:
-            - atomic_masses: Dictionary of atomic masses (g/mol) for each isotope.
+            - molar_masses: Dictionary of molar masses (g/mol) for each isotope.
             - half_lives: Dictionary of half-lives (years) for each isotope.
 
     """
@@ -32,9 +32,9 @@ def load_isotope_data(isotopes=None):
     )
     if isotopes is not None:
         data = data[np.isin(data[:, 0], isotopes)]
-    atomic_masses = {str(d[0]): int(d[1]) for d in data}
+    molar_masses = {str(d[0]): int(d[1]) for d in data}
     half_lives = {str(d[0]): float(d[2]) for d in data}
-    return atomic_masses, half_lives
+    return molar_masses, half_lives
 
 
 def load_spectrum(isotope_name):

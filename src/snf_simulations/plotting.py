@@ -22,7 +22,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
         reactor = "Sizewell"
         initial = TotSpec(
             cask_name="main",
-            total_m=100000,
+            total_mass=100000,
             Kr88_prop=1.427e-10,
             Rb88_prop=1.6645e-11,
             Sr90_prop=5.356e-4,
@@ -47,7 +47,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
             spectra.Add(
                 TotSpec(
                     cask_name="main",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i],
                     Kr88_prop=1.427e-10,
                     Rb88_prop=1.6645e-11,
@@ -87,7 +87,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
         reactor = "Hartlepool"
         initial = TotSpec(
             cask_name="main",
-            total_m=100000,
+            total_mass=100000,
             Kr88_prop=6.4374e-11,
             Rb88_prop=7.5089e-11,
             Sr90_prop=4.2912e-4,
@@ -112,7 +112,7 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
             spectra.Add(
                 TotSpec(
                     cask_name="main",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i],
                     Kr88_prop=6.4374e-11,
                     Rb88_prop=7.5089e-11,
@@ -172,7 +172,7 @@ def plot_multiple_casks_sizewell(removal_times):
         casks.Add(
             TotSpec(
                 cask_name="Sizewell",
-                total_m=100000,
+                total_mass=100000,
                 removal_time=removal_times[i],
                 Kr88_prop=1.427e-10,
                 Rb88_prop=1.6645e-11,
@@ -209,7 +209,7 @@ def plot_multiple_casks_hartlepool(removal_times):
         casks.Add(
             TotSpec(
                 cask_name="Hartlepool",
-                total_m=100000,
+                total_mass=100000,
                 removal_time=removal_times[i],
                 Kr88_prop=6.4374e-11,
                 Rb88_prop=7.5089e-11,
@@ -280,7 +280,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks0_h.Add(
                 TotSpec(
                     cask_name="Hartlepool0",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i],
                     Kr88_prop=6.4374e-11,
                     Rb88_prop=7.5089e-11,
@@ -308,7 +308,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks1_h.Add(
                 TotSpec(
                     cask_name="Hartlepool1",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[0],
                     Kr88_prop=6.4374e-11,
                     Rb88_prop=7.5089e-11,
@@ -336,7 +336,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks5_h.Add(
                 TotSpec(
                     cask_name="Hartlepool2",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[1],
                     Kr88_prop=6.4374e-11,
                     Rb88_prop=7.5089e-11,
@@ -364,7 +364,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks10_h.Add(
                 TotSpec(
                     cask_name="Hartlepool3",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[2],
                     Kr88_prop=6.4374e-11,
                     Rb88_prop=7.5089e-11,
@@ -392,7 +392,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks20_h.Add(
                 TotSpec(
                     cask_name="Hartlepool4",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[3],
                     Kr88_prop=6.4374e-11,
                     Rb88_prop=7.5089e-11,
@@ -437,7 +437,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks0_s.Add(
                 TotSpec(
                     cask_name="Sizewell0",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i],
                     Kr88_prop=1.427e-10,
                     Rb88_prop=1.6645e-11,
@@ -465,7 +465,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks1_s.Add(
                 TotSpec(
                     cask_name="Sizewell1",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[0],
                     Kr88_prop=1.427e-10,
                     Rb88_prop=1.6645e-11,
@@ -493,7 +493,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks5_s.Add(
                 TotSpec(
                     cask_name="Sizewell2",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[1],
                     Kr88_prop=1.427e-10,
                     Rb88_prop=1.6645e-11,
@@ -521,7 +521,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks10_s.Add(
                 TotSpec(
                     cask_name="Sizewell3",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[2],
                     Kr88_prop=1.427e-10,
                     Rb88_prop=1.6645e-11,
@@ -549,7 +549,7 @@ def multiple_fluxes(Sizewell=False, Hartlepool=False):
             casks20_s.Add(
                 TotSpec(
                     cask_name="Sizewell4",
-                    total_m=100000,
+                    total_mass=100000,
                     removal_time=removal_times[i] + extra_times[3],
                     Kr88_prop=1.427e-10,
                     Rb88_prop=1.6645e-11,

@@ -18,21 +18,19 @@ from snf_simulations.spec import (
 
 def test_load_isotope_data():
     """Test that isotope data is imported correctly."""
-    atomic_masses, half_lives = load_isotope_data()
-    assert isinstance(atomic_masses, dict), "Atomic masses is not a dictionary"
+    molar_masses, half_lives = load_isotope_data()
+    assert isinstance(molar_masses, dict), "Molar masses is not a dictionary"
     assert isinstance(half_lives, dict), "Half lives is not a dictionary"
-    assert len(atomic_masses) == 16, (
-        f"Loaded {len(atomic_masses)} isotopes, expected 16"
-    )
-    assert len(atomic_masses) == len(half_lives), (
-        "Atomic masses and half lives have different number of isotopes",
+    assert len(molar_masses) == 16, f"Loaded {len(molar_masses)} isotopes, expected 16"
+    assert len(molar_masses) == len(half_lives), (
+        "Molar masses and half lives have different number of isotopes",
     )
 
 
 def test_load_antineutrino_data():
     """Test that antineutrino spectra are imported correctly."""
-    atomic_masses, _ = load_isotope_data()
-    isotopes = list(atomic_masses.keys())
+    molar_masses, _ = load_isotope_data()
+    isotopes = list(molar_masses.keys())
     data = load_antineutrino_data(isotopes)
     assert isinstance(data, dict), "Loaded data is not a dictionary"
     assert len(data) == 16, f"Loaded {len(data)} isotopes, expected 16"
@@ -147,8 +145,8 @@ def test_create_spec_mock():
 
 def test_create_spec_real():
     """Test that spectra histograms can be created for the included isotope data."""
-    atomic_masses, _ = load_isotope_data()
-    isotopes = list(atomic_masses.keys())
+    molar_masses, _ = load_isotope_data()
+    isotopes = list(molar_masses.keys())
     data = load_antineutrino_data(isotopes)
     for isotope, isotope_data in data.items():
         _test_create_spec(isotope_data, isotope_name=isotope)
@@ -394,20 +392,20 @@ def test_equalise_spec_mock_extrapolate():
 
 def test_equalise_spec_real():
     """Test that equal spectra histograms can be created for the included isotope data."""
-    atomic_masses, _ = load_isotope_data()
-    isotopes = list(atomic_masses.keys())
+    molar_masses, _ = load_isotope_data()
+    isotopes = list(molar_masses.keys())
     data = load_antineutrino_data(isotopes)
     for isotope, isotope_data in data.items():
         _test_equalise_spec(isotope_data, isotope_name=isotope)
 
 
-def _isotope_activity(mass, atomic_mass, half_life, removal_time):
+def _isotope_activity(mass, molar_mass, half_life, removal_time):
     """Calculate the activity of an isotope spectrum after a given time."""
     # NOTE: Taken from scale.scale (and cleaned up a bit)
     # TODO: Move this to scale.py and reuse in both places,
     #       Then add unit tests for this function too.
     # Convert mass to number of atoms (kg to g, then to moles, then to atoms)
-    N0 = (mass * 1000 / atomic_mass) * 6.022e23
+    N0 = (mass * 1000 / molar_mass) * 6.022e23
     # Calculate initial activity (in decays per second aka Becquerels)
     lambda_ = np.log(2) / (half_life * 365 * 24 * 60 * 60)
     A0 = N0 * lambda_
@@ -511,7 +509,7 @@ def _test_load_and_scale(
     )
     equalised_spec = equalise_spec(spec, max_energy, min_energy)
     scaled_spec = scale_spec(
-        equalised_spec.Clone(), mass, molar_mass, half_life, removal_time
+        equalised_spec.Clone(), mass, molar_mass, half_life, removal_time,
     )
 
     # Test that both methods give the same result
