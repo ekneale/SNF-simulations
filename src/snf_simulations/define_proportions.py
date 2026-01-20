@@ -94,7 +94,6 @@ def TotSpec(
             atomic_masses["Sr90"],
             half_lives["Sr90"],
             removal_time,
-            546,
         ),
     )
     spectra.Add(
@@ -105,7 +104,6 @@ def TotSpec(
             atomic_masses["Y90"],
             half_lives["Y90"],
             removal_time,
-            2278,
         ),
     )
     spectra.Add(
@@ -116,7 +114,6 @@ def TotSpec(
             atomic_masses["Pu241"],
             half_lives["Pu241"],
             removal_time,
-            20,
         ),
     )
     spectra.Add(
@@ -127,7 +124,6 @@ def TotSpec(
             atomic_masses["Cs137"],
             half_lives["Cs137"],
             removal_time,
-            1175,
         ),
     )
     spectra.Add(
@@ -138,7 +134,6 @@ def TotSpec(
             atomic_masses["Am242"],
             half_lives["Am242"],
             removal_time,
-            664,
         ),
     )
     spectra.Add(
@@ -149,7 +144,6 @@ def TotSpec(
             atomic_masses["Cs135"],
             half_lives["Cs135"],
             removal_time,
-            268,
         ),
     )
     spectra.Add(
@@ -160,7 +154,6 @@ def TotSpec(
             atomic_masses["I129"],
             half_lives["I129"],
             removal_time,
-            149,
         ),
     )
     spectra.Add(
@@ -171,7 +164,6 @@ def TotSpec(
             atomic_masses["Np239"],
             half_lives["Np239"],
             removal_time,
-            714,
         ),
     )
     spectra.Add(
@@ -182,7 +174,6 @@ def TotSpec(
             atomic_masses["Tc99"],
             half_lives["Tc99"],
             removal_time,
-            440,
         ),
     )
     spectra.Add(
@@ -193,7 +184,6 @@ def TotSpec(
             atomic_masses["Zr93"],
             half_lives["Zr93"],
             removal_time,
-            1000,
         ),
     )
     spectra.Add(
@@ -204,7 +194,6 @@ def TotSpec(
             atomic_masses["Ce144"],
             half_lives["Ce144"],
             removal_time,
-            318,
         ),
     )
     spectra.Add(
@@ -215,7 +204,6 @@ def TotSpec(
             atomic_masses["Kr88"],
             half_lives["Kr88"],
             removal_time,
-            2918,
         ),
     )
     spectra.Add(
@@ -226,7 +214,6 @@ def TotSpec(
             atomic_masses["Pr144"],
             half_lives["Pr144"],
             removal_time,
-            2997,
         ),
     )
     spectra.Add(
@@ -237,7 +224,6 @@ def TotSpec(
             atomic_masses["Rb88"],
             half_lives["Rb88"],
             removal_time,
-            5301,
         ),
     )
     spectra.Add(
@@ -248,7 +234,6 @@ def TotSpec(
             atomic_masses["Rh106"],
             half_lives["Rh106"],
             removal_time,
-            3541,
         ),
     )
     spectra.Add(
@@ -259,7 +244,6 @@ def TotSpec(
             atomic_masses["Ru106"],
             half_lives["Ru106"],
             removal_time,
-            39,
         ),
     )
 
@@ -283,7 +267,6 @@ def TotSpec(
                 atomic_masses["Y90"],
                 half_lives["Y90"],
                 0,
-                2278,
             ),
         )
 
@@ -302,7 +285,6 @@ def TotSpec(
                 atomic_masses["Pr144"],
                 half_lives["Pr144"],
                 0,
-                2997,
             ),
         )
 
@@ -321,7 +303,6 @@ def TotSpec(
                 atomic_masses["Rb88"],
                 half_lives["Rb88"],
                 0,
-                5301,
             ),
         )
 
@@ -340,7 +321,6 @@ def TotSpec(
                 atomic_masses["Rh106"],
                 half_lives["Rh106"],
                 0,
-                3541,
             ),
         )
 

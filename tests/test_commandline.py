@@ -25,7 +25,7 @@ def _load_output(filename):
     `flix.write_spec_multiple` functions are not really proper CSV files,
     so we have to do a bit of manual parsing here to get the data out.
     """
-    with open(filename, "r") as f:
+    with open(filename) as f:
         energy_line = f.readline()
         flux_line = f.readline()
 
@@ -58,7 +58,7 @@ def _test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     counts, values = spec_single.counts(), spec_single.values()
     assert isinstance(counts, np.ndarray), "Counts are not a numpy array"
     assert isinstance(values, np.ndarray), "Values are not a numpy array"
-    assert len(counts) == len(values) == 5301, "Data has wrong length"
+    assert len(counts) == len(values) == 5312, "Data has wrong length"
 
     # Write the spectrum to a file and get back the energy and flux arrays
     energy_single, flux_single = flux.write_spec_single(
@@ -70,7 +70,7 @@ def _test_single_cask(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # Check the returned arrays
     assert isinstance(energy_single, list), "Energy is not a list"
     assert isinstance(flux_single, list), "Flux is not a list"
-    assert len(energy_single) == len(flux_single) == 5301, "Data has wrong length"
+    assert len(energy_single) == len(flux_single) == 5312, "Data has wrong length"
 
     # Load the data back from the output file
     # (this assumes the file has been written in the current working directory)
@@ -111,7 +111,7 @@ def _test_multiple_casks(site="sizewell"):
     counts, values = spec_multiple.counts(), spec_multiple.values()
     assert isinstance(counts, np.ndarray), "Counts are not a numpy array"
     assert isinstance(values, np.ndarray), "Values are not a numpy array"
-    assert len(counts) == len(values) == 5301, "Data has wrong length"
+    assert len(counts) == len(values) == 5312, "Data has wrong length"
 
     # Write the spectrum to a file and get back the energy and flux arrays
     energy_multiple, flux_multiple = flux.write_spec_multiple(
@@ -123,7 +123,7 @@ def _test_multiple_casks(site="sizewell"):
     # Check the returned arrays
     assert isinstance(energy_multiple, list), "Energy is not a list"
     assert isinstance(flux_multiple, list), "Flux is not a list"
-    assert len(energy_multiple) == len(flux_multiple) == 5301, "Data has wrong length"
+    assert len(energy_multiple) == len(flux_multiple) == 5312, "Data has wrong length"
 
     # Load the data back from the output file
     # (this assumes the file has been written in the current working directory)
@@ -307,7 +307,7 @@ def _test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
 
     # Open the sample file and check the contents
     # Note 1 million samples is hardcoded in plot_sample
-    with open("sampled_spectrum.csv", "r") as f:
+    with open("sampled_spectrum.csv") as f:
         lines = f.readlines()
         samples = [float(line.strip()) for line in lines]
     assert len(samples) == 1000000, "Wrong number of samples in CSV"
@@ -316,7 +316,7 @@ def _test_sampling(site="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # sample.sample() uses GetRandom(), but the output seems to be deterministic.
     # So we can compare to a reference file.
     with open(
-        f"../../tests/test_data/{site.capitalize()}_sampled_spectrum.csv", "r"
+        f"../../tests/test_data/{site.capitalize()}_sampled_spectrum.csv",
     ) as f:
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]

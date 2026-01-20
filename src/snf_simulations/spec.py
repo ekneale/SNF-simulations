@@ -176,7 +176,7 @@ def load_spec(
     molar_mass,
     half_life,
     removal_time,
-    max_energy,
+    max_energy=None,
     min_energy=0,
 ):
     """Load, equalise and scale a spectrum from data.
@@ -184,6 +184,8 @@ def load_spec(
     Combines the create_spec, equalise_spec and scale_spec functions.
     """
     spec = create_spec(data[:, 0], data[:, 1], data[:, 2], name)
+    if max_energy is None:
+        max_energy = int(np.floor(max(data[:, 0])))
     spec_equal = equalise_spec(spec, max_energy, min_energy)
     spec_scaled = scale_spec(spec_equal, mass, molar_mass, half_life, removal_time)
     spec_scaled.SetTitle(name)
