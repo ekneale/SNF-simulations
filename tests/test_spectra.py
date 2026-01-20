@@ -509,7 +509,11 @@ def _test_load_and_scale(
     )
     equalised_spec = equalise_spec(spec, max_energy, min_energy)
     scaled_spec = scale_spec(
-        equalised_spec.Clone(), mass, molar_mass, half_life, removal_time,
+        equalised_spec.Clone(),
+        mass,
+        molar_mass,
+        half_life,
+        removal_time,
     )
 
     # Test that both methods give the same result

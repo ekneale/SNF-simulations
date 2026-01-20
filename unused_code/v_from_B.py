@@ -1,5 +1,5 @@
-import ROOT
 import numpy as np
+import ROOT
 
 
 def v_from_B(Energy, dN, isotope):

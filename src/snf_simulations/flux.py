@@ -1,6 +1,7 @@
+from array import array
+
 import numpy as np
 import ROOT
-from array import array
 
 
 def flux_calc(
@@ -8,7 +9,8 @@ def flux_calc(
     distance_m,
 ):
     total_flux_above_threshold = total_spec.Integral(
-        1801, 6000
+        1801,
+        6000,
     )  # total flux per second above threshold
 
     print(total_flux_above_threshold, "per second")
@@ -31,24 +33,19 @@ def flux_calc(
     return flux
 
 
-def write_spec_multiple(total_sizewell, Hartlepool=False, Sizewell=False):
-    if Hartlepool:
-        reactor = "Hartlepool"
-    if Sizewell:
-        reactor = "Sizewell"
-
+def write_spec_multiple(spec_multiple, reactor):
     energy_multiple = []
     flux_multiple = []
-    n_bins = total_sizewell.GetNbinsX()
+    n_bins = spec_multiple.GetNbinsX()
 
     for i in range(1, n_bins + 1):
-        energy1 = total_sizewell.GetBinCenter(i) / 1e3
-        flux1 = total_sizewell.GetBinContent(i)
+        energy1 = spec_multiple.GetBinCenter(i) / 1e3
+        flux1 = spec_multiple.GetBinContent(i)
         energy_multiple.append(energy1)
         flux_multiple.append(flux1)
         # saving energy and flux data as a csv file
 
-    with open(f"{reactor}_multiple.csv", mode="w", newline="") as file:
+    with open(f"{reactor.capitalize()}_multiple.csv", mode="w", newline="") as file:
         file.write('"energy": ' + str(energy_multiple) + ",\n")
         file.write('"(flux)": ' + str(flux_multiple) + ",\n")
         print("Energy and Flux saved to csv")
@@ -56,12 +53,7 @@ def write_spec_multiple(total_sizewell, Hartlepool=False, Sizewell=False):
         return energy_multiple, flux_multiple
 
 
-def write_spec_single(total_spec, Hartlepool=False, Sizewell=False):
-    if Hartlepool:
-        reactor = "Hartlepool"
-    if Sizewell:
-        reactor = "Sizewell"
-
+def write_spec_single(total_spec, reactor):
     energy_single = []
     flux_single = []
     n_bins = total_spec.GetNbinsX()
@@ -74,7 +66,7 @@ def write_spec_single(total_spec, Hartlepool=False, Sizewell=False):
         # saving energy and flux data as a csv file
 
     # change name for what cooling time has been chosen
-    with open(f"{reactor}_single_0.5.csv", mode="w", newline="") as file:
+    with open(f"{reactor.capitalize()}_single_0.5.csv", mode="w", newline="") as file:
         file.write('"energy": ' + str(energy_single) + ",\n")
         file.write('"(flux)": ' + str(flux_single) + ",\n")
         print("Energy and Flux saved to csv")
@@ -82,29 +74,39 @@ def write_spec_single(total_spec, Hartlepool=False, Sizewell=False):
         return energy_single, flux_single
 
 
-def multiple_single_plot(energy_single, flux_single, energy_multiple, flux_multiple):
+def multiple_single_plot(
+    energy_single,
+    flux_single,
+    energy_multiple,
+    flux_multiple,
+    reactor,
+):
     c = ROOT.TCanvas("c", "true_neutrino_energy", 1200, 600)
     c.SetLogy()
     # c.SetLogx()
     legend = ROOT.TLegend(0.7, 0.15, 0.9, 0.3)
     graph_single = ROOT.TGraph(
-        len(energy_single), array("d", energy_single), array("d", flux_single)
+        len(energy_single),
+        array("d", energy_single),
+        array("d", flux_single),
     )
     graph_single.SetLineColor(ROOT.kBlue)
 
     graph_multiple = ROOT.TGraph(
-        len(energy_multiple), array("d", energy_multiple), array("d", flux_multiple)
+        len(energy_multiple),
+        array("d", energy_multiple),
+        array("d", flux_multiple),
     )
     graph_multiple.SetLineColor(ROOT.kRed)
     graph_single.Draw("APL")
     graph_multiple.Draw("same L")
 
-    legend.AddEntry(graph_single, "Single cask sizewell 0.5 yrs")
-    legend.AddEntry(graph_multiple, "Sizewell multiple casks")
+    legend.AddEntry(graph_single, f"Single cask {reactor.capitalize()} 0.5 yrs")
+    legend.AddEntry(graph_multiple, f"{reactor.capitalize()} multiple casks")
     legend.SetBorderSize(0)
     legend.SetFillStyle(0)
     legend.Draw()
 
     c.Update()
-    c.SaveAs("Multiple_Single_comp_Sizewell_0.5.png")
+    c.SaveAs(f"Multiple_Single_comp_{reactor.capitalize()}_0.5.png")
     input("press enter to exit")

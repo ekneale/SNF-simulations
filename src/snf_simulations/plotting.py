@@ -1,8 +1,7 @@
 import ROOT
 
 from .define_proportions import (
-    HARTLEPOOL_PROPORTIONS,
-    SIZEWELL_PROPORTIONS,
+    REACTOR_PROPORTIONS,
     get_total_spec,
 )
 from .sample import sample
@@ -16,85 +15,59 @@ from .spec import add_spec
 # At the moment you have to manually change the csv file name for what reactor, cooling time etc but eventually this would be done automatically.
 
 
-def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
+def plot_single_cask(reactor, removal_times):
+    """Plot single cask spectra for given reactor and removal times.
+
+    Args:
+        reactor (str): Reactor name, either "sizewell" or "hartlepool".
+        removal_times (list): List of removal times in years.
+
+    Returns:
+        ROOT.TH1D: The first spectrum in the list for further use.
+
+    """
+    if reactor not in REACTOR_PROPORTIONS:
+        msg = f"Reactor '{reactor}' not recognized."
+        msg += f" Available reactors: {list(REACTOR_PROPORTIONS.keys())}"
+        raise ValueError(msg)
+    proportions = REACTOR_PROPORTIONS[reactor]
+
+    # Create canvas and legend
     c = ROOT.TCanvas("c", "Total Spectrum", 1200, 600)
     c.SetLogy()
     legend = ROOT.TLegend(0.5, 0.7, 0.9, 0.9)
 
-    # plotting a spectrum of antineutrino energies for the Sizewell PWR with varying cooling times
-    if Sizewell:
-        reactor = "Sizewell"
-        initial = get_total_spec(
+    # Get initial spectrum at removal time 0 for reference
+    initial = get_total_spec(
+        cask_name="main",
+        isotope_proportions=proportions,
+        total_mass=100000,
+        removal_time=0,
+    )
+    initial.SetLineColor(ROOT.kBlue)
+    legend.AddEntry(initial, "1 Day since removal from core")
+    initial.Draw("hist")
+
+    # Get spectra for specified removal times
+    spectra = ROOT.TList()
+    colors = [ROOT.kRed, ROOT.kGreen, ROOT.kBlack, ROOT.kViolet, ROOT.kOrange]
+    for removal_time, color in zip(removal_times, colors):
+        spec = get_total_spec(
             cask_name="main",
-            isotope_proportions=SIZEWELL_PROPORTIONS,
+            isotope_proportions=proportions,
             total_mass=100000,
-            removal_time=0,
+            removal_time=removal_time,
         )
-        initial.SetLineColor(ROOT.kBlue)
-        spectra = ROOT.TList()
-
-        for i in range(len(removal_times)):
-            spectra.Add(
-                get_total_spec(
-                    cask_name="main",
-                    isotope_proportions=SIZEWELL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i],
-                )
-            )
-
-        legend.AddEntry(initial, "1 Day since removal from core")
-        colors = [ROOT.kRed, ROOT.kGreen, ROOT.kBlack, ROOT.kViolet, ROOT.kOrange]
-
-        for i in range(len(spectra)):
-            spectra[i].SetLineColor(colors[i])
-            legend.AddEntry(
-                spectra[i],
-                str(removal_times[i]) + " Years since removal from core",
-            )
-
-        initial.Draw("hist")
-
-        for i in range(len(spectra)):
-            spectra[i].Draw("hist same")
-
-    # plotting a spectrum of antineutrino energies for the Hartlepool AGR with varying cooling times
-    if not Sizewell:
-        reactor = "Hartlepool"
-        initial = get_total_spec(
-            cask_name="main",
-            isotope_proportions=HARTLEPOOL_PROPORTIONS,
-            total_mass=100000,
-            removal_time=0,
+        spec.SetLineColor(color)
+        spectra.Add(spec)
+    for i in range(len(spectra)):
+        legend.AddEntry(
+            spectra[i],
+            str(removal_times[i]) + " Years since removal from core",
         )
-        initial.SetLineColor(ROOT.kBlue)
-        spectra = ROOT.TList()
+        spectra[i].Draw("hist same")
 
-        for i in range(len(removal_times)):
-            spectra.Add(
-                get_total_spec(
-                    cask_name="main",
-                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i],
-                )
-            )
-
-        legend.AddEntry(initial, "1 Day since removal from core")
-        colors = [ROOT.kRed, ROOT.kGreen, ROOT.kBlack, ROOT.kViolet, ROOT.kOrange]
-
-        for i in range(len(spectra)):
-            spectra[i].SetLineColor(colors[i])
-            legend.AddEntry(
-                spectra[i],
-                str(removal_times[i]) + " Years since removal from core",
-            )
-
-        initial.Draw("hist")
-
-        for i in range(len(spectra)):
-            spectra[i].Draw("hist same")
-
+    # Format plot
     initial.SetTitle("")
     initial.GetXaxis().SetTitle("Energy [keV]")
     initial.GetXaxis().SetLabelSize(0.05)
@@ -103,10 +76,11 @@ def plot_single_cask(removal_times=[], Sizewell=False, HartlePool=False):
     initial.GetYaxis().SetLabelSize(0.05)
     initial.GetXaxis().SetTitleSize(0.05)
 
+    # Display and save plot
     c.Update()
     legend.Draw()
-    input("exit")
-    c.SaveAs(f"{reactor}_Spectra_0.5.pdf")  # change no for cooling time
+    input("exit")  # pause to view plot
+    c.SaveAs(f"{reactor.capitalize()}_Spectra_0.5.pdf")  # change no for cooling time
 
     return spectra.At(0)  # needs .At() as its a Tlist not a python array
 
@@ -120,10 +94,10 @@ def plot_multiple_casks_sizewell(removal_times):
         casks.Add(
             get_total_spec(
                 cask_name="Sizewell",
-                isotope_proportions=SIZEWELL_PROPORTIONS,
+                isotope_proportions=REACTOR_PROPORTIONS["sizewell"],
                 total_mass=100000,
                 removal_time=removal_times[i],
-            )
+            ),
         )
 
     total_sizewell = add_spec(casks)
@@ -142,10 +116,10 @@ def plot_multiple_casks_hartlepool(removal_times):
         casks.Add(
             get_total_spec(
                 cask_name="Hartlepool",
-                isotope_proportions=HARTLEPOOL_PROPORTIONS,
+                isotope_proportions=REACTOR_PROPORTIONS["hartlepool"],
                 total_mass=100000,
                 removal_time=removal_times[i],
-            )
+            ),
         )
 
     total_hartlepool = add_spec(casks)
@@ -159,12 +133,7 @@ def plot_multiple_casks_hartlepool(removal_times):
 # just using the plot_multiple_casks results in a graphics error due to the amount spectra being added so plot has to be saved separately and then plotted
 
 
-def plot(spectrum, Hartlepool=False, Sizewell=False):
-    if Hartlepool:
-        reactor = "Hartlepool"
-    if Sizewell:
-        reactor = "Sizewell"
-
+def plot(spectrum, reactor):
     c = ROOT.TCanvas("c", "Total Spectrum", 1200, 600)
     c.SetLogy()
 
@@ -178,188 +147,117 @@ def plot(spectrum, Hartlepool=False, Sizewell=False):
     spectrum.GetXaxis().SetTitleSize(0.05)
 
     c.Update()
-    input("exit")
-    c.SaveAs(f"{reactor}_casks.pdf")
+    input("exit")  # pause to view plot
+    c.SaveAs(f"{reactor.capitalize()}_casks.pdf")
 
 
-# plotting previous spectrum for 10 dry casks x 10 tonned x 4 cooling times for varying cooling times since the initial measurement
-def multiple_fluxes(Sizewell=False, Hartlepool=False):
+def multiple_fluxes(reactor):
+    """Plot multiple flux spectra for different cooling times.
+
+    Args:
+        reactor (str): Reactor name, either "sizewell" or "hartlepool".
+
+    Returns:
+        ROOT.TList: List of summed spectra for different cooling times.
+
+    """
     extra_times = [1, 5, 10, 20]
-
-    # for Hartlepool
-    if Hartlepool:
+    if reactor == "hartlepool":
         removal_times = [3, 7, 15, 19]
-        casks0_h = ROOT.TList()
-        casks1_h = ROOT.TList()
-        casks5_h = ROOT.TList()
-        casks10_h = ROOT.TList()
-        casks20_h = ROOT.TList()
-        for i in range(len(removal_times)):
-            casks0_h.Add(
-                get_total_spec(
-                    cask_name="Hartlepool0",
-                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i],
-                )
-            )
-
-        sum0 = add_spec(casks0_h)
-        sum0.SetTitle("Total spectrum for all casks")
-
-        for i in range(len(removal_times)):
-            casks1_h.Add(
-                get_total_spec(
-                    cask_name="Hartlepool1",
-                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[0],
-                )
-            )
-
-        sum1 = add_spec(casks1_h)
-        sum1.SetTitle("Total spectrum for all casks")
-
-        for i in range(len(removal_times)):
-            casks5_h.Add(
-                get_total_spec(
-                    cask_name="Hartlepool2",
-                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[1],
-                )
-            )
-
-        sum5 = add_spec(casks5_h)
-        sum5.SetTitle("Total spectrum for all casks")
-
-        for i in range(len(removal_times)):
-            casks10_h.Add(
-                get_total_spec(
-                    cask_name="Hartlepool3",
-                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[2],
-                )
-            )
-
-        sum10 = add_spec(casks10_h)
-        sum10.SetTitle("Total spectrum for all casks")
-
-        for i in range(len(removal_times)):
-            casks20_h.Add(
-                get_total_spec(
-                    cask_name="Hartlepool4",
-                    isotope_proportions=HARTLEPOOL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[3],
-                )
-            )
-
-        sum20 = add_spec(casks20_h)
-        sum20.SetTitle("Total spectrum for all casks")
-
-        sums_h = ROOT.TList()
-        sums_h.Add(sum0)
-        sums_h.Add(sum1)
-        sums_h.Add(sum5)
-        sums_h.Add(sum10)
-        sums_h.Add(sum20)
-        return sums_h
-
-    # for sizewell
-    else:
+    elif reactor == "sizewell":
         removal_times = [0.5, 5, 10, 20]
-        casks0_s = ROOT.TList()
-        casks1_s = ROOT.TList()
-        casks5_s = ROOT.TList()
-        casks10_s = ROOT.TList()
-        casks20_s = ROOT.TList()
+    else:
+        raise ValueError("Reactor must be either 'sizewell' or 'hartlepool'")
+    if reactor not in REACTOR_PROPORTIONS:
+        msg = f"Reactor '{reactor}' not recognized."
+        msg += f" Available reactors: {list(REACTOR_PROPORTIONS.keys())}"
+        raise ValueError(msg)
+    proportions = REACTOR_PROPORTIONS[reactor]
 
-        for i in range(len(removal_times)):
-            casks0_s.Add(
-                get_total_spec(
-                    cask_name="Sizewell0",
-                    isotope_proportions=SIZEWELL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i],
-                )
-            )
+    casks0 = ROOT.TList()
+    casks1 = ROOT.TList()
+    casks5 = ROOT.TList()
+    casks10 = ROOT.TList()
+    casks20 = ROOT.TList()
 
-        sum0_s = add_spec(casks0_s)
-        sum0_s.SetTitle("Total spectrum for all casks")
+    for i in range(len(removal_times)):
+        casks0.Add(
+            get_total_spec(
+                cask_name=f"{reactor.capitalize()}0",
+                isotope_proportions=proportions,
+                total_mass=100000,
+                removal_time=removal_times[i],
+            ),
+        )
 
-        for i in range(len(removal_times)):
-            casks1_s.Add(
-                get_total_spec(
-                    cask_name="Sizewell1",
-                    isotope_proportions=SIZEWELL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[0],
-                )
-            )
+    sum0 = add_spec(casks0)
+    sum0.SetTitle("Total spectrum for all casks")
 
-        sum1_s = add_spec(casks1_s)
-        sum1_s.SetTitle("Total spectrum for all casks")
+    for i in range(len(removal_times)):
+        casks1.Add(
+            get_total_spec(
+                cask_name=f"{reactor.capitalize()}1",
+                isotope_proportions=proportions,
+                total_mass=100000,
+                removal_time=removal_times[i] + extra_times[0],
+            ),
+        )
 
-        for i in range(len(removal_times)):
-            casks5_s.Add(
-                get_total_spec(
-                    cask_name="Sizewell2",
-                    isotope_proportions=SIZEWELL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[1],
-                )
-            )
+    sum1 = add_spec(casks1)
+    sum1.SetTitle("Total spectrum for all casks")
 
-        sum5_s = add_spec(casks5_s)
-        sum5_s.SetTitle("Total spectrum for all casks")
+    for i in range(len(removal_times)):
+        casks5.Add(
+            get_total_spec(
+                cask_name=f"{reactor.capitalize()}2",
+                isotope_proportions=proportions,
+                total_mass=100000,
+                removal_time=removal_times[i] + extra_times[1],
+            ),
+        )
 
-        for i in range(len(removal_times)):
-            casks10_s.Add(
-                get_total_spec(
-                    cask_name="Sizewell3",
-                    isotope_proportions=SIZEWELL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[2],
-                )
-            )
+    sum5 = add_spec(casks5)
+    sum5.SetTitle("Total spectrum for all casks")
 
-        sum10_s = add_spec(casks10_s)
-        sum10_s.SetTitle("Total spectrum for all casks")
+    for i in range(len(removal_times)):
+        casks10.Add(
+            get_total_spec(
+                cask_name=f"{reactor.capitalize()}3",
+                isotope_proportions=proportions,
+                total_mass=100000,
+                removal_time=removal_times[i] + extra_times[2],
+            ),
+        )
 
-        for i in range(len(removal_times)):
-            casks20_s.Add(
-                get_total_spec(
-                    cask_name="Sizewell4",
-                    isotope_proportions=SIZEWELL_PROPORTIONS,
-                    total_mass=100000,
-                    removal_time=removal_times[i] + extra_times[3],
-                )
-            )
+    sum10 = add_spec(casks10)
+    sum10.SetTitle("Total spectrum for all casks")
 
-        sum20_s = add_spec(casks20_s)
-        sum20_s.SetTitle("Total spectrum for all casks")
+    for i in range(len(removal_times)):
+        casks20.Add(
+            get_total_spec(
+                cask_name=f"{reactor.capitalize()}4",
+                isotope_proportions=proportions,
+                total_mass=100000,
+                removal_time=removal_times[i] + extra_times[3],
+            ),
+        )
 
-        sums_s = ROOT.TList()
-        sums_s.Add(sum0_s)
-        sums_s.Add(sum1_s)
-        sums_s.Add(sum5_s)
-        sums_s.Add(sum10_s)
-        sums_s.Add(sum20_s)
-        return sums_s
+    sum20 = add_spec(casks20)
+    sum20.SetTitle("Total spectrum for all casks")
 
+    sums = ROOT.TList()
+    sums.Add(sum0)
+    sums.Add(sum1)
+    sums.Add(sum5)
+    sums.Add(sum10)
+    sums.Add(sum20)
+    return sums
 
 
 # plotting separately to avoid graphics errors
 
 
-def plot_multiple(multiple):
-    # if Hartlepool == True:
-    #     reactor = "Hartlepool"
-    # if Sizewell == True:
-    #     reactor == "Sizewell"
-
+def plot_multiple(multiple, reactor):
     c = ROOT.TCanvas("c", "Total Spectrum", 1200, 600)
     c.SetLogy()
 
@@ -389,15 +287,10 @@ def plot_multiple(multiple):
     c.Update()
     input("exit")
 
-    c.SaveAs("Sizewell_MultipleCasks.pdf")
+    c.SaveAs(f"{reactor.capitalize()}_MultipleCasks.pdf")
 
 
-def plot_sample(total_spec):
-    # if Hartlepool == True:
-    #     reactor = "Hartlepool"
-    # if Sizewell == True:
-    #     reactor == "Sizewell"
-
+def plot_sample(total_spec, reactor):
     h = ROOT.TH1D("sample", "", 6000, 0, 6000)
     sampled = sample(total_spec, N=1000000)
 
@@ -419,4 +312,4 @@ def plot_sample(total_spec):
 
     c.Update()
     input("exit")
-    c.SaveAs("Sizewell_Sampled.pdf")
+    c.SaveAs(f"{reactor.capitalize()}_Sampled.pdf")

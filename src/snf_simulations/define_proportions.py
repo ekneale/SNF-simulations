@@ -45,6 +45,10 @@ HARTLEPOOL_PROPORTIONS = {
     "Rh106": 5.7428e-11,
     "Ru106": 6.1306e-5,
 }
+REACTOR_PROPORTIONS = {
+    "sizewell": SIZEWELL_PROPORTIONS,
+    "hartlepool": HARTLEPOOL_PROPORTIONS,
+}
 
 
 class DecayChain(NamedTuple):
