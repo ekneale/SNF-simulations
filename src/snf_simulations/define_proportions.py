@@ -1,3 +1,7 @@
+"""Define proportions of isotopes in SNF and calculate total antineutrino spectrum."""
+
+from typing import NamedTuple
+
 import numpy as np
 import ROOT
 
@@ -5,28 +9,51 @@ from .load_data import load_antineutrino_data, load_isotope_data
 from .spec import add_spec, load_spec
 
 
-def AddDecays(
-    t,
-    parent_prop0,
-    parent_half_life,
-    daughter_half_life,
-    total_mass=1000,
-    BR=1,
-):
-    # calculation of additional contributing isotopes that have been created from the decay of their parent isotope
+class DecayChain(NamedTuple):
+    """Class to represent a decay chain from parent to daughter isotope."""
 
-    parent_mass = total_mass * parent_prop0
+    parent: str
+    daughter: str
+    branching_ratio: float = 1.0
 
-    lambdaA = np.log(2) / parent_half_life
-    lambdaB = np.log(2) / daughter_half_life
 
+def get_decay_mass(
+    time_elapsed: float,
+    parent_mass: float,
+    parent_half_life: float,
+    daughter_half_life: float,
+    branching_ratio: float = 1,
+) -> float:
+    """Calculate the mass of a daughter isotope created from parent decay.
+
+    Computes the mass of a daughter isotope that has been created from the
+    radioactive decay of its parent isotope using first-order decay equations.
+
+    Args:
+        time_elapsed: Time elapsed since initial measurement (years).
+        parent_mass: Initial mass of parent isotope (kg).
+        parent_half_life: Half-life of parent isotope (years).
+        daughter_half_life: Half-life of daughter isotope (years).
+        branching_ratio: Branching ratio for this decay chainway. Defaults to 1.
+
+    Returns:
+        Mass of the daughter isotope (kg).
+
+    """
+    # Decay constants (natural log of 2 divided by half-life)
+    parent_decay_constant = np.log(2) / parent_half_life
+    daughter_decay_constant = np.log(2) / daughter_half_life
+
+    # Bateman equation for daughter isotope mass
     daughter_mass = (
-        BR
-        * (lambdaA / (lambdaB - lambdaA))
+        branching_ratio
+        * (parent_decay_constant / (daughter_decay_constant - parent_decay_constant))
         * parent_mass
-        * (np.exp(-lambdaA * t) - np.exp(-lambdaB * t))
+        * (
+            np.exp(-parent_decay_constant * time_elapsed)
+            - np.exp(-daughter_decay_constant * time_elapsed)
+        )
     )
-
     return daughter_mass
 
 
@@ -83,246 +110,55 @@ def TotSpec(
     # Calculate the mass of each isotope from the input proportions of the total mass
     masses = {isotope: prop * total_mass for isotope, prop in proportions.items()}
 
-    # Create the scaled spectra of each isotope
+    # Create the scaled spectra of each isotope and add them to a ROOT TList
     spectra = ROOT.TList()
-    spectra.Add(
-        load_spec(
-            isotope_data["Sr90"],
-            ("Sr90" + str(removal_time) + str(cask_name)),
-            masses["Sr90"],
-            molar_masses["Sr90"],
-            half_lives["Sr90"],
+    for isotope in isotopes:
+        name = f"{isotope}{removal_time}{cask_name}"
+        spec = load_spec(
+            isotope_data[isotope],
+            name,
+            masses[isotope],
+            molar_masses[isotope],
+            half_lives[isotope],
             removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Y90"],
-            ("Y90" + str(removal_time) + str(cask_name)),
-            masses["Y90"],
-            molar_masses["Y90"],
-            half_lives["Y90"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Pu241"],
-            ("Pu241" + str(removal_time) + str(cask_name)),
-            masses["Pu241"],
-            molar_masses["Pu241"],
-            half_lives["Pu241"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Cs137"],
-            ("Cs137" + str(removal_time) + str(cask_name)),
-            masses["Cs137"],
-            molar_masses["Cs137"],
-            half_lives["Cs137"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Am242"],
-            ("Am242" + str(removal_time) + str(cask_name)),
-            masses["Am242"],
-            molar_masses["Am242"],
-            half_lives["Am242"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Cs135"],
-            ("Cs135" + str(removal_time) + str(cask_name)),
-            masses["Cs135"],
-            molar_masses["Cs135"],
-            half_lives["Cs135"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["I129"],
-            ("I129" + str(removal_time) + str(cask_name)),
-            masses["I129"],
-            molar_masses["I129"],
-            half_lives["I129"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Np239"],
-            ("Np239" + str(removal_time) + str(cask_name)),
-            masses["Np239"],
-            molar_masses["Np239"],
-            half_lives["Np239"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Tc99"],
-            ("Tc99" + str(removal_time) + str(cask_name)),
-            masses["Tc99"],
-            molar_masses["Tc99"],
-            half_lives["Tc99"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Zr93"],
-            ("Zr93" + str(removal_time) + str(cask_name)),
-            masses["Zr93"],
-            molar_masses["Zr93"],
-            half_lives["Zr93"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Ce144"],
-            ("Ce144" + str(removal_time) + str(cask_name)),
-            masses["Ce144"],
-            molar_masses["Ce144"],
-            half_lives["Ce144"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Kr88"],
-            ("Kr88" + str(removal_time) + str(cask_name)),
-            masses["Kr88"],
-            molar_masses["Kr88"],
-            half_lives["Kr88"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Pr144"],
-            ("Pr144" + str(removal_time) + str(cask_name)),
-            masses["Pr144"],
-            molar_masses["Pr144"],
-            half_lives["Pr144"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Rb88"],
-            ("Rb88" + str(removal_time) + str(cask_name)),
-            masses["Rb88"],
-            molar_masses["Rb88"],
-            half_lives["Rb88"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Rh106"],
-            ("Rh106" + str(removal_time) + str(cask_name)),
-            masses["Rh106"],
-            molar_masses["Rh106"],
-            half_lives["Rh106"],
-            removal_time,
-        ),
-    )
-    spectra.Add(
-        load_spec(
-            isotope_data["Ru106"],
-            ("Ru106" + str(removal_time) + str(cask_name)),
-            masses["Ru106"],
-            molar_masses["Ru106"],
-            half_lives["Ru106"],
-            removal_time,
-        ),
-    )
+        )
+        spectra.Add(spec)
 
-    # adding on the spectrum of any newly created isotopes from previous decays
-    # all of these decay chains have a branching ratio of 1
-    # if any additional isotopes were to be added with decay chains involving more beta emitting isotopes then they can be added here
-
+    # Add any extra newly-created isotopes from decays.
     if removal_time != 0:
-        extra_Y90 = AddDecays(
-            t=removal_time,
-            parent_prop0=Sr90_prop,
-            parent_half_life=half_lives["Sr90"],
-            daughter_half_life=half_lives["Y90"],
-            total_mass=total_mass,
-        )
-        spectra.Add(
-            load_spec(
-                isotope_data["Y90"],
-                "additional Y90" + str(removal_time) + str(cask_name),
-                extra_Y90,
-                molar_masses["Y90"],
-                half_lives["Y90"],
-                0,
-            ),
+        # All of these decay chains have a branching ratio of 1.
+        # If any additional isotopes were to be added with decay chains
+        # involving more beta emitting isotopes then they can be added here.
+        decay_chains = (
+            DecayChain("Sr90", "Y90"),
+            DecayChain("Ce144", "Pr144"),
+            DecayChain("Kr88", "Rb88"),
+            DecayChain("Ru106", "Rh106"),
         )
 
-        extra_Pr144 = AddDecays(
-            t=removal_time,
-            parent_prop0=Ce144_prop,
-            parent_half_life=half_lives["Ce144"],
-            daughter_half_life=half_lives["Pr144"],
-            total_mass=total_mass,
-        )
-        spectra.Add(
-            load_spec(
-                isotope_data["Pr144"],
-                "additional Pr144" + str(removal_time) + str(cask_name),
-                extra_Pr144,
-                molar_masses["Pr144"],
-                half_lives["Pr144"],
-                0,
-            ),
-        )
+        for chain in decay_chains:
+            if chain.parent not in masses or chain.daughter not in isotope_data:
+                continue  # Skip if the isotope data is absent
 
-        extra_Rb88 = AddDecays(
-            t=removal_time,
-            parent_prop0=Kr88_prop,
-            parent_half_life=half_lives["Kr88"],
-            daughter_half_life=half_lives["Rb88"],
-            total_mass=total_mass,
-        )
-        spectra.Add(
-            load_spec(
-                isotope_data["Rb88"],
-                "additional Rb88" + str(removal_time) + str(cask_name),
-                extra_Rb88,
-                molar_masses["Rb88"],
-                half_lives["Rb88"],
+            name = f"additional {chain.daughter}{removal_time}{cask_name}"
+            daughter_mass = get_decay_mass(
+                time_elapsed=removal_time,
+                parent_mass=masses[chain.parent],
+                parent_half_life=half_lives[chain.parent],
+                daughter_half_life=half_lives[chain.daughter],
+                branching_ratio=chain.branching_ratio,
+            )
+            spec = load_spec(
+                isotope_data[chain.daughter],
+                name,
+                daughter_mass,
+                molar_masses[chain.daughter],
+                half_lives[chain.daughter],
                 0,
-            ),
-        )
+            )
+            spectra.Add(spec)
 
-        extra_Rh106 = AddDecays(
-            t=removal_time,
-            parent_prop0=Ru106_prop,
-            parent_half_life=half_lives["Ru106"],
-            daughter_half_life=half_lives["Rh106"],
-            total_mass=total_mass,
-        )
-        spectra.Add(
-            load_spec(
-                isotope_data["Rh106"],
-                "additional Rh106" + str(removal_time) + str(cask_name),
-                extra_Rh106,
-                molar_masses["Rh106"],
-                half_lives["Rh106"],
-                0,
-            ),
-        )
-
+    # Sum all the spectra to get the total spectrum
     total_spec = add_spec(spectra)
     total_spec.SetTitle("Total Spectrum")
     total_spec.GetXaxis().SetRangeUser(0, max_E)
