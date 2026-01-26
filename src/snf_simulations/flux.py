@@ -4,33 +4,60 @@ import numpy as np
 import ROOT
 
 
-def flux_calc(
-    total_spec,
-    distance_m,
-):
-    total_flux_above_threshold = total_spec.Integral(
-        1801,
-        6000,
-    )  # total flux per second above threshold
+def calculate_flux(spec, distance):
+    """Calculate the antineutrino flux at a given distance from the source.
 
-    print(total_flux_above_threshold, "per second")
+    Args:
+        spec (ROOT.TH1D): The total antineutrino spectrum histogram.
+        distance (float): Distance from the source in meters.
 
-    flux = (1 / (4 * np.pi * (distance_m * 100) ** 2)) * (total_flux_above_threshold)
+    Returns:
+        flux (float): Antineutrino flux at the given distance in cm^{-2} s^{-1}.
 
-    print(flux, "cm^-2 s^-1")
-    print(flux * 60 * 60 * 24, "cm^-2 days^-1")
+    """
+    # The IBD reaction threshold is 1800 keV, so we integrate above this energy.
+    # This gives the total flux of antineutrinos per second above the threshold.
+    total_flux = spec.Integral(1801, 6000)
 
-    N_p = (1.52 * 1.52 * 0.7) * 1e6 * 4.6 * 1e23
-
-    # calulcating event rate for lower limit and upper limit on efficiency
-    Rate_lower = N_p * 1e-44 * flux * 0.2
-
-    Rate_upper = N_p * 1e-44 * flux * 0.4
-
-    print(Rate_lower, Rate_upper, "per s")
-    print(Rate_lower * 60 * 60 * 24, Rate_upper * 60**2 * 24, "per day")
-
+    # Calculate the flux at the given distance, assuming it's a point source emitting
+    # isotropically in all directions.
+    # Note we convert to cm, to get the flux is in cm^-2 s^-1
+    flux = (1 / (4 * np.pi * (distance * 100) ** 2)) * (total_flux)
     return flux
+
+
+def calculate_event_rate(
+    flux,
+    lower_efficiency=0.2,
+    upper_efficiency=0.4,
+):
+    """Calculate the expected event rate in the VIDARR detector for a given flux.
+
+    Args:
+        flux (float): Antineutrino flux in cm^-2 s^-1.
+        lower_efficiency (float): Lower limit on detection efficiency. Default is 0.2.
+        upper_efficiency (float): Upper limit on detection efficiency. Default is 0.4
+
+    Returns:
+        rate_lower, rate_upper (tuple of floats): event rates in s^{-1}
+            for the lower and upper efficiency limits.
+
+    """
+    # Calculate the number of target protons in the detector
+    # VIDARR is a plastic scintillator detector with a volume of (1.52 x 1.52 x 0.7) m^3
+    detector_volume = 1.52 * 1.52 * 0.7  # m^3
+    detector_volume = detector_volume * 1e6  # convert to cm^3
+    proton_density = 4.6e22  # number density of protons in cm^-3
+    number_of_protons = detector_volume * proton_density
+
+    # Calculate the event rate using the flux and number of target protons
+    cross_section = 1e-44  # cm^2, approximate IBD cross-section
+    event_rate = number_of_protons * cross_section * flux
+
+    # Apply detection efficiency
+    rate_lower = event_rate * lower_efficiency
+    rate_upper = event_rate * upper_efficiency
+    return rate_lower, rate_upper
 
 
 def write_spec(spec, output_filename):

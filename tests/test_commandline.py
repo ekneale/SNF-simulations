@@ -18,8 +18,9 @@ from snf_simulations import flux, plotting
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
-# Suppress assert warnings from ruff
-# ruff: noqa: S101
+# Suppress warnings from ruff
+# ruff: noqa: S101  # asserts
+# ruff: noqa: T201  # prints
 
 
 def _load_output(filename):
@@ -160,7 +161,7 @@ def _test_multiple_casks(reactor="sizewell"):
     print("--- Multiple tests passed ---")
 
 
-def _test_flux_calc(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
+def _test_calculate_flux(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     """Test flux calculation at a given distance."""
     print(f"--- Testing flux calculation for {reactor.capitalize()} ---")
 
@@ -177,7 +178,7 @@ def _test_flux_calc(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # Returns a single value of flux cm^-2 s^-1
     # The function will also print out different conversions and rate limits,
     # but they don't get returned.
-    flux_single_40 = flux.flux_calc(spec_single, distance_m=40)
+    flux_single_40 = flux.calculate_flux(spec_single, distance=40)
     assert isinstance(flux_single_40, float), "Single flux is not a float"
     if reactor == "sizewell":
         assert flux_single_40 == 11992567783.00658, "Single flux value does not match"
@@ -185,7 +186,7 @@ def _test_flux_calc(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
         assert flux_single_40 == 4942443091.633026, "Single flux value does not match"
 
     # Calculate the multiple cask flux at 40m
-    flux_multiple_40 = flux.flux_calc(spec_multiple, distance_m=40)
+    flux_multiple_40 = flux.calculate_flux(spec_multiple, distance=40)
     assert isinstance(flux_multiple_40, float), "Multiple flux is not a float"
     if reactor == "sizewell":
         assert flux_multiple_40 == 13067897209.144945, (
@@ -267,7 +268,7 @@ def _test_multiple_fluxes(reactor="sizewell"):
     # Calculate the flux at 40m for each spectrum
     if reactor == "sizewell":
         fluxes = [
-            13067897209.144945,  # NOTE this one is the same as in _test_flux_calc
+            13067897209.144945,  # NOTE this one is the same as in _test_calculate_flux
             6381971926.645747,
             1168957368.2360244,
             836003017.479554,
@@ -275,14 +276,14 @@ def _test_multiple_fluxes(reactor="sizewell"):
         ]
     elif reactor == "hartlepool":
         fluxes = [
-            1443268305.2325196,  # NOTE this one is the same as in _test_flux_calc
+            1443268305.2325196,  # NOTE this one is the same as in _test_calculate_flux
             1072427745.6884356,
             723865499.2550066,
             630534707.9926968,
             495842436.63382983,
         ]
     for spec, flux_ref in zip(sums, fluxes):
-        flux_40 = flux.flux_calc(spec, distance_m=40)
+        flux_40 = flux.calculate_flux(spec, distance=40)
         assert isinstance(flux_40, float), "Flux is not a float"
         assert flux_40 == flux_ref, "Flux value does not match"
 
@@ -334,7 +335,7 @@ def test_sizewell_commandline():
     """Run all tests for Sizewell reactor."""
     _test_single_cask(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
     _test_multiple_casks(reactor="sizewell")
-    _test_flux_calc(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
+    _test_calculate_flux(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
     _test_multiple_plot(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
     _test_multiple_fluxes(reactor="sizewell")
     _test_sampling(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
@@ -344,7 +345,7 @@ def test_hartlepool_commandline():
     """Run all tests for Hartlepool reactor."""
     _test_single_cask(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
     _test_multiple_casks(reactor="hartlepool")
-    _test_flux_calc(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
+    _test_calculate_flux(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
     _test_multiple_plot(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
     _test_multiple_fluxes(reactor="hartlepool")
     _test_sampling(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
