@@ -1,9 +1,9 @@
-"""Define proportions of isotopes in SNF and calculate total antineutrino spectrum."""
+"""Calculate antineutrino spectra for spent nuclear fuel casks."""
 
 import ROOT
 
-from .flux import DecayChain, get_decay_mass
-from .load_data import load_antineutrino_data, load_isotope_data
+from .data import load_antineutrino_data, load_isotope_data
+from .physics import DecayChain, get_decay_mass
 from .spec import add_spec, load_spec
 
 

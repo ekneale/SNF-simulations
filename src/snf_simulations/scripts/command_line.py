@@ -1,5 +1,7 @@
-from .flux import calculate_event_rate, calculate_flux
-from .plotting import (
+"""Command line script to run SNF simulations and generate plots."""
+
+from snf_simulations.physics import calculate_event_rate, calculate_flux
+from snf_simulations.plotting import (
     multiple_fluxes,
     multiple_single_plot,
     plot_multiple,
@@ -8,7 +10,7 @@ from .plotting import (
     plot_sample,
     plot_single_cask,
 )
-from .spec import write_spec
+from snf_simulations.spec import write_spec
 
 # from ROOT import TFile
 

@@ -15,7 +15,7 @@ import numpy as np
 import ROOT
 
 from snf_simulations import plotting
-from snf_simulations.flux import calculate_flux
+from snf_simulations.physics import calculate_flux
 from snf_simulations.spec import write_spec
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory

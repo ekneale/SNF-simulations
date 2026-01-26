@@ -1,4 +1,4 @@
-"""Load in data for antineutrino spectra from IAEA files."""
+"""Load in data for antineutrino spectra calculations."""
 
 from importlib.resources import files
 

@@ -3,7 +3,7 @@
 import numpy as np
 import ROOT
 
-from snf_simulations.load_data import load_antineutrino_data, load_isotope_data
+from snf_simulations.data import load_antineutrino_data, load_isotope_data
 from snf_simulations.spec import (
     add_spec,
     create_spec,

@@ -2,8 +2,8 @@ from array import array
 
 import ROOT
 
-from .define_proportions import get_total_spec
-from .load_data import load_reactor_data
+from .cask import get_total_spec
+from .data import load_reactor_data
 from .sample import sample
 from .spec import add_spec
 
