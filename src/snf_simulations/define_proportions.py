@@ -1,60 +1,10 @@
 """Define proportions of isotopes in SNF and calculate total antineutrino spectrum."""
 
-from typing import NamedTuple
-
-import numpy as np
 import ROOT
 
+from .flux import DecayChain, get_decay_mass
 from .load_data import load_antineutrino_data, load_isotope_data
 from .spec import add_spec, load_spec
-
-
-class DecayChain(NamedTuple):
-    """Class to represent a decay chain from parent to daughter isotope."""
-
-    parent: str
-    daughter: str
-    branching_ratio: float = 1.0
-
-
-def get_decay_mass(
-    time_elapsed: float,
-    parent_mass: float,
-    parent_half_life: float,
-    daughter_half_life: float,
-    branching_ratio: float = 1,
-) -> float:
-    """Calculate the mass of a daughter isotope created from parent decay.
-
-    Computes the mass of a daughter isotope that has been created from the
-    radioactive decay of its parent isotope using first-order decay equations.
-
-    Args:
-        time_elapsed: Time elapsed since initial measurement (years).
-        parent_mass: Initial mass of parent isotope (kg).
-        parent_half_life: Half-life of parent isotope (years).
-        daughter_half_life: Half-life of daughter isotope (years).
-        branching_ratio: Branching ratio for this decay chainway. Defaults to 1.
-
-    Returns:
-        Mass of the daughter isotope (kg).
-
-    """
-    # Decay constants (natural log of 2 divided by half-life)
-    parent_decay_constant = np.log(2) / parent_half_life
-    daughter_decay_constant = np.log(2) / daughter_half_life
-
-    # Bateman equation for daughter isotope mass
-    daughter_mass = (
-        branching_ratio
-        * (parent_decay_constant / (daughter_decay_constant - parent_decay_constant))
-        * parent_mass
-        * (
-            np.exp(-parent_decay_constant * time_elapsed)
-            - np.exp(-daughter_decay_constant * time_elapsed)
-        )
-    )
-    return daughter_mass
 
 
 def get_total_spec(

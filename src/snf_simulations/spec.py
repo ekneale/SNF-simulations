@@ -198,3 +198,35 @@ def add_spec(spectra):
     total_spec.Reset()
     total_spec.Merge(spectra)
     return total_spec
+
+
+def write_spec(spec, output_filename):
+    """Output energy and flux data to CSV file.
+
+    Args:
+        spec (ROOT.TH1D): The flux spectrum histogram.
+        output_filename (str): The name of the output CSV file.
+
+    Returns:
+        data: A 2D numpy array with energy (keV) and flux (keV^{-1} s^{-1}) columns.
+
+    """
+    # Extract energy and flux data from the histogram
+    n_bins = spec.GetNbinsX()
+    energy = np.array([spec.GetBinCenter(i) for i in range(1, n_bins + 1)])
+    flux = np.array([spec.GetBinContent(i) for i in range(1, n_bins + 1)])
+    data = np.column_stack((energy, flux))
+
+    # Save energy and flux data as a csv file
+    if not output_filename.endswith(".csv"):
+        output_filename += ".csv"
+    np.savetxt(
+        output_filename,
+        data,
+        fmt=("%.1f", "%.6e"),
+        delimiter=",",
+        header="energy,flux",
+        comments="",
+    )
+
+    return data

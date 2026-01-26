@@ -1,7 +1,55 @@
-from array import array
+"""Module for atomic physics calculations."""
+from typing import NamedTuple
 
 import numpy as np
-import ROOT
+
+
+class DecayChain(NamedTuple):
+    """Class to represent a decay chain from parent to daughter isotope."""
+
+    parent: str
+    daughter: str
+    branching_ratio: float = 1.0
+
+
+def get_decay_mass(
+    time_elapsed: float,
+    parent_mass: float,
+    parent_half_life: float,
+    daughter_half_life: float,
+    branching_ratio: float = 1,
+) -> float:
+    """Calculate the mass of a daughter isotope created from parent decay.
+
+    Computes the mass of a daughter isotope that has been created from the
+    radioactive decay of its parent isotope using first-order decay equations.
+
+    Args:
+        time_elapsed: Time elapsed since initial measurement (years).
+        parent_mass: Initial mass of parent isotope (kg).
+        parent_half_life: Half-life of parent isotope (years).
+        daughter_half_life: Half-life of daughter isotope (years).
+        branching_ratio: Branching ratio for this decay chainway. Defaults to 1.
+
+    Returns:
+        Mass of the daughter isotope (kg).
+
+    """
+    # Decay constants (natural log of 2 divided by half-life)
+    parent_decay_constant = np.log(2) / parent_half_life
+    daughter_decay_constant = np.log(2) / daughter_half_life
+
+    # Bateman equation for daughter isotope mass
+    daughter_mass = (
+        branching_ratio
+        * (parent_decay_constant / (daughter_decay_constant - parent_decay_constant))
+        * parent_mass
+        * (
+            np.exp(-parent_decay_constant * time_elapsed)
+            - np.exp(-daughter_decay_constant * time_elapsed)
+        )
+    )
+    return daughter_mass
 
 
 def calculate_flux(spec, distance):
@@ -58,73 +106,3 @@ def calculate_event_rate(
     rate_lower = event_rate * lower_efficiency
     rate_upper = event_rate * upper_efficiency
     return rate_lower, rate_upper
-
-
-def write_spec(spec, output_filename):
-    """Output energy and flux data to CSV file.
-
-    Args:
-        spec (ROOT.TH1D): The flux spectrum histogram.
-        output_filename (str): The name of the output CSV file.
-
-    Returns:
-        data: A 2D numpy array with energy (keV) and flux (keV^{-1} s^{-1}) columns.
-
-    """
-    # Extract energy and flux data from the histogram
-    n_bins = spec.GetNbinsX()
-    energy = np.array([spec.GetBinCenter(i) for i in range(1, n_bins + 1)])
-    flux = np.array([spec.GetBinContent(i) for i in range(1, n_bins + 1)])
-    data = np.column_stack((energy, flux))
-
-    # Save energy and flux data as a csv file
-    if not output_filename.endswith(".csv"):
-        output_filename += ".csv"
-    np.savetxt(
-        output_filename,
-        data,
-        fmt=("%.1f", "%.6e"),
-        delimiter=",",
-        header="energy,flux",
-        comments="",
-    )
-
-    return data
-
-
-def multiple_single_plot(
-    energy_single,
-    flux_single,
-    energy_multiple,
-    flux_multiple,
-    reactor,
-):
-    c = ROOT.TCanvas("c", "true_neutrino_energy", 1200, 600)
-    c.SetLogy()
-    # c.SetLogx()
-    legend = ROOT.TLegend(0.7, 0.15, 0.9, 0.3)
-    graph_single = ROOT.TGraph(
-        len(energy_single),
-        array("d", energy_single),
-        array("d", flux_single),
-    )
-    graph_single.SetLineColor(ROOT.kBlue)
-
-    graph_multiple = ROOT.TGraph(
-        len(energy_multiple),
-        array("d", energy_multiple),
-        array("d", flux_multiple),
-    )
-    graph_multiple.SetLineColor(ROOT.kRed)
-    graph_single.Draw("APL")
-    graph_multiple.Draw("same L")
-
-    legend.AddEntry(graph_single, f"Single cask {reactor.capitalize()} 0.5 yrs")
-    legend.AddEntry(graph_multiple, f"{reactor.capitalize()} multiple casks")
-    legend.SetBorderSize(0)
-    legend.SetFillStyle(0)
-    legend.Draw()
-
-    c.Update()
-    c.SaveAs(f"Multiple_Single_comp_{reactor.capitalize()}_0.5.png")
-    input("press enter to exit")

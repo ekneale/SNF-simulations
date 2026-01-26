@@ -14,7 +14,9 @@ import os
 import numpy as np
 import ROOT
 
-from snf_simulations import flux, plotting
+from snf_simulations import plotting
+from snf_simulations.flux import calculate_flux
+from snf_simulations.spec import write_spec
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
@@ -26,8 +28,8 @@ ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 def _load_output(filename):
     """Load data from an output file.
 
-    The 'CSV' files written by the old `flix.write_spec_single` and
-    `flix.write_spec_multiple` functions are not really proper CSV files,
+    The 'CSV' files written by the old `flux.write_spec_single` and
+    `flux.write_spec_multiple` functions are not really proper CSV files,
     so we have to do a bit of manual parsing here to get the data out.
     """
     with open(filename) as f:
@@ -78,7 +80,7 @@ def _test_single_cask(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
 
     # Write the spectrum to a file and get back the energy and flux arrays
     filename = f"{reactor.capitalize()}_single_0.5.csv"
-    data = flux.write_spec(spec_single, filename)
+    data = write_spec(spec_single, filename)
     energy_single, flux_single = data[:, 0], data[:, 1]
 
     # Check the returned arrays
@@ -132,7 +134,7 @@ def _test_multiple_casks(reactor="sizewell"):
 
     # Write the spectrum to a file and get back the energy and flux arrays
     filename = f"{reactor.capitalize()}_multiple.csv"
-    data = flux.write_spec(spec_multiple, filename)
+    data = write_spec(spec_multiple, filename)
     energy_multiple, flux_multiple = data[:, 0], data[:, 1]
 
     # Check the returned arrays
@@ -178,7 +180,7 @@ def _test_calculate_flux(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # Returns a single value of flux cm^-2 s^-1
     # The function will also print out different conversions and rate limits,
     # but they don't get returned.
-    flux_single_40 = flux.calculate_flux(spec_single, distance=40)
+    flux_single_40 = calculate_flux(spec_single, distance=40)
     assert isinstance(flux_single_40, float), "Single flux is not a float"
     if reactor == "sizewell":
         assert flux_single_40 == 11992567783.00658, "Single flux value does not match"
@@ -186,7 +188,7 @@ def _test_calculate_flux(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
         assert flux_single_40 == 4942443091.633026, "Single flux value does not match"
 
     # Calculate the multiple cask flux at 40m
-    flux_multiple_40 = flux.calculate_flux(spec_multiple, distance=40)
+    flux_multiple_40 = calculate_flux(spec_multiple, distance=40)
     assert isinstance(flux_multiple_40, float), "Multiple flux is not a float"
     if reactor == "sizewell":
         assert flux_multiple_40 == 13067897209.144945, (
@@ -215,11 +217,11 @@ def _test_multiple_plot(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
 
     # Write out the single and multiple spectra to get energy and flux arrays
     # And this will write out the csv files, so we have to remove them again...
-    data_single = flux.write_spec(
+    data_single = write_spec(
         spec_single,
         output_filename=f"{reactor.capitalize()}_single_0.5.csv")
     energy_single, flux_single = data_single[:, 0], data_single[:, 1]
-    data_multiple = flux.write_spec(
+    data_multiple = write_spec(
         spec_multiple,
         output_filename=f"{reactor.capitalize()}_multiple.csv")
     energy_multiple, flux_multiple = data_multiple[:, 0], data_multiple[:, 1]
@@ -228,7 +230,7 @@ def _test_multiple_plot(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
 
     # Plot both flux spectra on one graph
     # This will save the plot to a PNG file, and doesn't return anything.
-    flux.multiple_single_plot(
+    plotting.multiple_single_plot(
         energy_single,
         flux_single,
         energy_multiple,
@@ -283,7 +285,7 @@ def _test_multiple_fluxes(reactor="sizewell"):
             495842436.63382983,
         ]
     for spec, flux_ref in zip(sums, fluxes):
-        flux_40 = flux.calculate_flux(spec, distance=40)
+        flux_40 = calculate_flux(spec, distance=40)
         assert isinstance(flux_40, float), "Flux is not a float"
         assert flux_40 == flux_ref, "Flux value does not match"
 

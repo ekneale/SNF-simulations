@@ -1,3 +1,5 @@
+from array import array
+
 import ROOT
 
 from .define_proportions import get_total_spec
@@ -307,3 +309,41 @@ def plot_sample(total_spec, reactor):
     c.Update()
     input("exit")
     c.SaveAs(f"{reactor.capitalize()}_Sampled.pdf")
+
+
+def multiple_single_plot(
+    energy_single,
+    flux_single,
+    energy_multiple,
+    flux_multiple,
+    reactor,
+):
+    c = ROOT.TCanvas("c", "true_neutrino_energy", 1200, 600)
+    c.SetLogy()
+    # c.SetLogx()
+    legend = ROOT.TLegend(0.7, 0.15, 0.9, 0.3)
+    graph_single = ROOT.TGraph(
+        len(energy_single),
+        array("d", energy_single),
+        array("d", flux_single),
+    )
+    graph_single.SetLineColor(ROOT.kBlue)
+
+    graph_multiple = ROOT.TGraph(
+        len(energy_multiple),
+        array("d", energy_multiple),
+        array("d", flux_multiple),
+    )
+    graph_multiple.SetLineColor(ROOT.kRed)
+    graph_single.Draw("APL")
+    graph_multiple.Draw("same L")
+
+    legend.AddEntry(graph_single, f"Single cask {reactor.capitalize()} 0.5 yrs")
+    legend.AddEntry(graph_multiple, f"{reactor.capitalize()} multiple casks")
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    legend.Draw()
+
+    c.Update()
+    c.SaveAs(f"Multiple_Single_comp_{reactor.capitalize()}_0.5.png")
+    input("press enter to exit")

@@ -1,12 +1,14 @@
-from .flux import calculate_event_rate, calculate_flux, multiple_single_plot, write_spec
+from .flux import calculate_event_rate, calculate_flux
 from .plotting import (
     multiple_fluxes,
+    multiple_single_plot,
     plot_multiple,
     plot_multiple_casks_hartlepool,
     plot_multiple_casks_sizewell,
     plot_sample,
     plot_single_cask,
 )
+from .spec import write_spec
 
 # from ROOT import TFile
 
