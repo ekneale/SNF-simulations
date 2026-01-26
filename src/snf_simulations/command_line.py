@@ -5,21 +5,23 @@ from . import flux, plotting
 # creating root file in order to export to simulation
 # hfile = TFile("Sizewell_Spectra.root", "RECREATE")
 
-# plotting the spectrum for a single dry cask of fuel for either Hartlepool or Sizewell, depending which is set to True/False
+# plotting the spectrum for a single dry cask of fuel for either Hartlepool or Sizewell,
+# depending which is set to True/False
 spec_single = plotting.plot_single_cask(
     reactor="sizewell",
     removal_times=[0.5, 1, 5, 10, 20],
 )
-energy_single, flux_single = flux.write_spec_single(spec_single, reactor="sizewell")
-
+data = flux.write_spec(spec_single, output_filename="sizewell_single.csv")
+energy_single, flux_single = data[:, 0], data[:, 1]
 
 # multiple casks
 spec_multiple_sizewell = plotting.plot_multiple_casks_sizewell([0.5, 5, 10, 20])
 spec_multiple_hartlepool = plotting.plot_multiple_casks_hartlepool([3, 7, 15, 19])
-energy_multiple, flux_multiple = flux.write_spec_multiple(
+data = flux.write_spec(
     spec_multiple_sizewell,
-    reactor="sizewell",
+    output_filename="sizewell_multiple.csv",
 )  # change for sizewell or hartlepool
+energy_multiple, flux_multiple = data[:, 0], data[:, 1]
 
 
 # calculation of flux at the detector located 40 m from the dry casks
@@ -33,6 +35,7 @@ flux.multiple_single_plot(
     flux_single,
     energy_multiple,
     flux_multiple,
+    reactor="sizewell",
 )
 
 lots_of_graphs = plotting.multiple_fluxes(reactor="sizewell")

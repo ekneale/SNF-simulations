@@ -33,45 +33,36 @@ def flux_calc(
     return flux
 
 
-def write_spec_multiple(spec_multiple, reactor):
-    energy_multiple = []
-    flux_multiple = []
-    n_bins = spec_multiple.GetNbinsX()
+def write_spec(spec, output_filename):
+    """Output energy and flux data to CSV file.
 
-    for i in range(1, n_bins + 1):
-        energy1 = spec_multiple.GetBinCenter(i) / 1e3
-        flux1 = spec_multiple.GetBinContent(i)
-        energy_multiple.append(energy1)
-        flux_multiple.append(flux1)
-        # saving energy and flux data as a csv file
+    Args:
+        spec (ROOT.TH1D): The flux spectrum histogram.
+        output_filename (str): The name of the output CSV file.
 
-    with open(f"{reactor.capitalize()}_multiple.csv", mode="w", newline="") as file:
-        file.write('"energy": ' + str(energy_multiple) + ",\n")
-        file.write('"(flux)": ' + str(flux_multiple) + ",\n")
-        print("Energy and Flux saved to csv")
+    Returns:
+        data: A 2D numpy array with energy (keV) and flux (keV^{-1} s^{-1}) columns.
 
-        return energy_multiple, flux_multiple
+    """
+    # Extract energy and flux data from the histogram
+    n_bins = spec.GetNbinsX()
+    energy = np.array([spec.GetBinCenter(i) for i in range(1, n_bins + 1)])
+    flux = np.array([spec.GetBinContent(i) for i in range(1, n_bins + 1)])
+    data = np.column_stack((energy, flux))
 
+    # Save energy and flux data as a csv file
+    if not output_filename.endswith(".csv"):
+        output_filename += ".csv"
+    np.savetxt(
+        output_filename,
+        data,
+        fmt=("%.1f", "%.6e"),
+        delimiter=",",
+        header="energy,flux",
+        comments="",
+    )
 
-def write_spec_single(total_spec, reactor):
-    energy_single = []
-    flux_single = []
-    n_bins = total_spec.GetNbinsX()
-
-    for i in range(1, n_bins + 1):
-        energy1 = total_spec.GetBinCenter(i) / 1e3
-        flux1 = total_spec.GetBinContent(i)
-        energy_single.append(energy1)
-        flux_single.append(flux1)
-        # saving energy and flux data as a csv file
-
-    # change name for what cooling time has been chosen
-    with open(f"{reactor.capitalize()}_single_0.5.csv", mode="w", newline="") as file:
-        file.write('"energy": ' + str(energy_single) + ",\n")
-        file.write('"(flux)": ' + str(flux_single) + ",\n")
-        print("Energy and Flux saved to csv")
-
-        return energy_single, flux_single
+    return data
 
 
 def multiple_single_plot(

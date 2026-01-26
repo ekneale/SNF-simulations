@@ -25,7 +25,7 @@ ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 def _load_output(filename):
     """Load data from an output file.
 
-    The 'CSV' files written by the `flix.write_spec_single` and
+    The 'CSV' files written by the old `flix.write_spec_single` and
     `flix.write_spec_multiple` functions are not really proper CSV files,
     so we have to do a bit of manual parsing here to get the data out.
     """
@@ -36,9 +36,24 @@ def _load_output(filename):
     # Line format is:
     # "energy": [0.0005, 0.0015, ... 5.2995, 5.3005],\n
     # "(flux)": [58875835323384.055, ... 0.0, 0.0],\n
-    energy = [float(e) for e in energy_line[11:-3].split(", ")]
-    flux = [float(fx) for fx in flux_line[11:-3].split(", ")]
+    energy = np.array([float(e) for e in energy_line[11:-3].split(", ")])
+    flux = np.array([float(fx) for fx in flux_line[11:-3].split(", ")])
 
+    # Energy was saved in MeV, convert to keV
+    energy *= 1e3
+
+    return energy, flux
+
+
+def _load_output_new(filename):
+    """Load data from a proper CSV output file."""
+    data = np.loadtxt(
+        filename,
+        delimiter=",",
+        skiprows=1,
+    )
+    energy = data[:, 0].tolist()
+    flux = data[:, 1].tolist()
     return energy, flux
 
 
@@ -61,26 +76,31 @@ def _test_single_cask(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     assert len(counts) == len(values) == 5312, "Data has wrong length"
 
     # Write the spectrum to a file and get back the energy and flux arrays
-    energy_single, flux_single = flux.write_spec_single(spec_single, reactor)
+    filename = f"{reactor.capitalize()}_single_0.5.csv"
+    data = flux.write_spec(spec_single, filename)
+    energy_single, flux_single = data[:, 0], data[:, 1]
 
     # Check the returned arrays
-    assert isinstance(energy_single, list), "Energy is not a list"
-    assert isinstance(flux_single, list), "Flux is not a list"
+    assert isinstance(data, np.ndarray), "Spec data is not a numpy array"
+    assert data.shape == (5312, 2), "Spec data has wrong shape"
+    assert isinstance(energy_single, np.ndarray), "Energy is not a numpy array"
+    assert isinstance(flux_single, np.ndarray), "Flux is not a numpy array"
     assert len(energy_single) == len(flux_single) == 5312, "Data has wrong length"
 
     # Load the data back from the output file
     # (this assumes the file has been written in the current working directory)
-    filename = f"{reactor.capitalize()}_single_0.5.csv"
-    energy_loaded, flux_loaded = _load_output(filename)
-    assert energy_loaded == energy_single, "Loaded energy does not match"
-    assert flux_loaded == flux_single, "Loaded flux does not match"
+    # Note we have to use the new loader here as the output is now a proper CSV file.
+    # Also when saving some precision is lost, so we use np.allclose for the comparison.
+    energy_loaded, flux_loaded = _load_output_new(filename)
+    assert np.allclose(energy_loaded, energy_single), "Loaded energy does not match"
+    assert np.allclose(flux_loaded, flux_single), "Loaded flux does not match"
 
     # Compare to the reference data file
     # (this again assumes we're in the main package directory)
     ref_filename = f"../../tests/test_data/{reactor.capitalize()}_single_0.5.csv"
     energy_ref, flux_ref = _load_output(ref_filename)
-    assert energy_ref == energy_single, "Reference energy does not match"
-    assert flux_ref == flux_single, "Reference flux does not match"
+    assert np.allclose(energy_ref, energy_single), "Reference energy does not match"
+    assert np.allclose(flux_ref, flux_single), "Reference flux does not match"
 
     # Delete the output files
     os.remove(filename)
@@ -110,26 +130,29 @@ def _test_multiple_casks(reactor="sizewell"):
     assert len(counts) == len(values) == 5312, "Data has wrong length"
 
     # Write the spectrum to a file and get back the energy and flux arrays
-    energy_multiple, flux_multiple = flux.write_spec_multiple(spec_multiple, reactor)
+    filename = f"{reactor.capitalize()}_multiple.csv"
+    data = flux.write_spec(spec_multiple, filename)
+    energy_multiple, flux_multiple = data[:, 0], data[:, 1]
 
     # Check the returned arrays
-    assert isinstance(energy_multiple, list), "Energy is not a list"
-    assert isinstance(flux_multiple, list), "Flux is not a list"
+    assert isinstance(data, np.ndarray), "Spec data is not a numpy array"
+    assert data.shape == (5312, 2), "Spec data has wrong shape"
+    assert isinstance(energy_multiple, np.ndarray), "Energy is not a numpy array"
+    assert isinstance(flux_multiple, np.ndarray), "Flux is not a numpy array"
     assert len(energy_multiple) == len(flux_multiple) == 5312, "Data has wrong length"
 
     # Load the data back from the output file
     # (this assumes the file has been written in the current working directory)
-    filename = f"{reactor.capitalize()}_multiple.csv"
-    energy_loaded, flux_loaded = _load_output(filename)
-    assert energy_loaded == energy_multiple, "Loaded energy does not match"
-    assert flux_loaded == flux_multiple, "Loaded flux does not match"
+    energy_loaded, flux_loaded = _load_output_new(filename)
+    assert np.allclose(energy_loaded, energy_multiple), "Loaded energy does not match"
+    assert np.allclose(flux_loaded, flux_multiple), "Loaded flux does not match"
 
     # Compare to the reference data file
     # (this again assumes we're in the main package directory)
     ref_filename = f"../../tests/test_data/{reactor.capitalize()}_multiple.csv"
     energy_ref, flux_ref = _load_output(ref_filename)
-    assert energy_ref == energy_multiple, "Reference energy does not match"
-    assert flux_ref == flux_multiple, "Reference flux does not match"
+    assert np.allclose(energy_ref, energy_multiple), "Reference energy does not match"
+    assert np.allclose(flux_ref, flux_multiple), "Reference flux does not match"
 
     # Delete the output file
     os.remove(filename)
@@ -191,8 +214,14 @@ def _test_multiple_plot(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
 
     # Write out the single and multiple spectra to get energy and flux arrays
     # And this will write out the csv files, so we have to remove them again...
-    energy_single, flux_single = flux.write_spec_single(spec_single, reactor)
-    energy_multiple, flux_multiple = flux.write_spec_multiple(spec_multiple, reactor)
+    data_single = flux.write_spec(
+        spec_single,
+        output_filename=f"{reactor.capitalize()}_single_0.5.csv")
+    energy_single, flux_single = data_single[:, 0], data_single[:, 1]
+    data_multiple = flux.write_spec(
+        spec_multiple,
+        output_filename=f"{reactor.capitalize()}_multiple.csv")
+    energy_multiple, flux_multiple = data_multiple[:, 0], data_multiple[:, 1]
     os.remove(f"{reactor.capitalize()}_single_0.5.csv")
     os.remove(f"{reactor.capitalize()}_multiple.csv")
 
