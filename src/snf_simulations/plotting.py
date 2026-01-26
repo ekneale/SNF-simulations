@@ -1,9 +1,7 @@
 import ROOT
 
-from .define_proportions import (
-    REACTOR_PROPORTIONS,
-    get_total_spec,
-)
+from .define_proportions import get_total_spec
+from .load_data import load_reactor_data
 from .sample import sample
 from .spec import add_spec
 
@@ -26,11 +24,9 @@ def plot_single_cask(reactor, removal_times):
         ROOT.TH1D: The first spectrum in the list for further use.
 
     """
-    if reactor not in REACTOR_PROPORTIONS:
-        msg = f"Reactor '{reactor}' not recognized."
-        msg += f" Available reactors: {list(REACTOR_PROPORTIONS.keys())}"
-        raise ValueError(msg)
-    proportions = REACTOR_PROPORTIONS[reactor]
+    # Load the isotope proportions for the specified reactor
+    # This will raise a ValueError if the reactor name is invalid
+    proportions = load_reactor_data(reactor)
 
     # Create canvas and legend
     c = ROOT.TCanvas("c", "Total Spectrum", 1200, 600)
@@ -87,6 +83,7 @@ def plot_single_cask(reactor, removal_times):
 
 def plot_multiple_casks_sizewell(removal_times):
     # plotting 10 dry casks x 10tonnes  x 4 cooling times for Sizewell PWR
+    proportions = load_reactor_data("sizewell")
     removal_times = [0.5, 5, 10, 20]
     casks = ROOT.TList()
 
@@ -94,7 +91,7 @@ def plot_multiple_casks_sizewell(removal_times):
         casks.Add(
             get_total_spec(
                 cask_name="Sizewell",
-                isotope_proportions=REACTOR_PROPORTIONS["sizewell"],
+                isotope_proportions=proportions,
                 total_mass=100000,
                 removal_time=removal_times[i],
             ),
@@ -109,6 +106,7 @@ def plot_multiple_casks_sizewell(removal_times):
 
 
 def plot_multiple_casks_hartlepool(removal_times):
+    proportions = load_reactor_data("hartlepool")
     removal_times = [3, 7, 15, 19]
     casks = ROOT.TList()
 
@@ -116,7 +114,7 @@ def plot_multiple_casks_hartlepool(removal_times):
         casks.Add(
             get_total_spec(
                 cask_name="Hartlepool",
-                isotope_proportions=REACTOR_PROPORTIONS["hartlepool"],
+                isotope_proportions=proportions,
                 total_mass=100000,
                 removal_time=removal_times[i],
             ),
@@ -168,11 +166,7 @@ def multiple_fluxes(reactor):
         removal_times = [0.5, 5, 10, 20]
     else:
         raise ValueError("Reactor must be either 'sizewell' or 'hartlepool'")
-    if reactor not in REACTOR_PROPORTIONS:
-        msg = f"Reactor '{reactor}' not recognized."
-        msg += f" Available reactors: {list(REACTOR_PROPORTIONS.keys())}"
-        raise ValueError(msg)
-    proportions = REACTOR_PROPORTIONS[reactor]
+    proportions = load_reactor_data(reactor)
 
     casks0 = ROOT.TList()
     casks1 = ROOT.TList()

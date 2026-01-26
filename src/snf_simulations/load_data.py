@@ -5,6 +5,45 @@ from importlib.resources import files
 import numpy as np
 
 
+def get_reactors():
+    """Get a list of available reactors from the database.
+
+    Returns:
+        list of str: List of reactor names.
+
+    """
+    data_files = files("snf_simulations.data.reactor_data")
+    return [file.stem for file in data_files.iterdir() if file.suffix == ".csv"]
+
+
+def load_reactor_data(reactor):
+    """Load in reactor isotope proportions from the database.
+
+    Args:
+        reactor (str): Name of the reactor to load data for.
+
+    Returns:
+        dict of str to float: Dictionary of isotope proportions in the fuel,
+            e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
+
+    """
+    data_files = files("snf_simulations.data.reactor_data")
+    filename = data_files.joinpath(f"{reactor}.csv")
+    if not filename.is_file():
+        msg = f"Reactor {reactor} data file not found."
+        valid_reactors = ", ".join(get_reactors())
+        msg += f" Valid reactors are: {valid_reactors}."
+        raise ValueError(msg)
+
+    data = np.genfromtxt(
+        filename,
+        delimiter=",",
+        skip_header=1,
+        dtype=str,
+    )
+    return {str(d[0]): float(d[1]) for d in data}
+
+
 def load_isotope_data(isotopes=None):
     """Load in isotope parameters from the database.
 

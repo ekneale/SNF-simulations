@@ -8,48 +8,6 @@ import ROOT
 from .load_data import load_antineutrino_data, load_isotope_data
 from .spec import add_spec, load_spec
 
-# TODO: these proportions could be loaded from a data file instead
-SIZEWELL_PROPORTIONS = {
-    "Sr90": 5.356e-4,
-    "Y90": 1.3922e-7,
-    "Pu241": 1.316e-3,
-    "Cs137": 1.212e-3,
-    "Am242": 3.554e-8,
-    "Cs135": 3.1282e-4,
-    "I129": 1.7535e-4,
-    "Np239": 7.5852e-5,
-    "Tc99": 7.9742e-4,
-    "Zr93": 1.7681e-6,
-    "Ce144": 4.0111e-4,
-    "Kr88": 1.427e-10,
-    "Pr144": 1.6896e-8,
-    "Rb88": 1.6645e-11,
-    "Rh106": 1.6389e-10,
-    "Ru106": 1.7496e-4,
-}
-HARTLEPOOL_PROPORTIONS = {
-    "Sr90": 4.2912e-4,
-    "Y90": 1.0953e-7,
-    "Pu241": 5.3075e-4,
-    "Cs137": 8.6117e-4,
-    "Am242": 1.3708e-8,
-    "Cs135": 3.8379e-4,
-    "I129": 1.2097e-4,
-    "Np239": 2.0904e-5,
-    "Tc99": 6.12e-4,
-    "Zr93": 5.5068e-4,
-    "Ce144": 1.7271e-4,
-    "Kr88": 6.4374e-11,
-    "Pr144": 7.2749e-9,
-    "Rb88": 7.5089e-11,
-    "Rh106": 5.7428e-11,
-    "Ru106": 6.1306e-5,
-}
-REACTOR_PROPORTIONS = {
-    "sizewell": SIZEWELL_PROPORTIONS,
-    "hartlepool": HARTLEPOOL_PROPORTIONS,
-}
-
 
 class DecayChain(NamedTuple):
     """Class to represent a decay chain from parent to daughter isotope."""
