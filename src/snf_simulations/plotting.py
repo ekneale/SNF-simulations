@@ -4,7 +4,7 @@ import ROOT
 
 from .cask import get_total_spec
 from .data import load_reactor_data
-from .sample import sample
+from .sample import sample_spec
 from .spec import add_spec
 
 # the things that have been changed so far:
@@ -288,7 +288,11 @@ def plot_multiple(multiple, reactor):
 
 def plot_sample(total_spec, reactor):
     h = ROOT.TH1D("sample", "", 6000, 0, 6000)
-    sampled = sample(total_spec, N=1000000)
+    sampled = sample_spec(
+        total_spec,
+        samples=1000000,
+        output_filename=f"{reactor.capitalize()}_sampled_spectrum.csv",
+    )
 
     for i in range(1000000):
         h.Fill(sampled[i])

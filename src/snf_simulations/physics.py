@@ -1,4 +1,5 @@
 """Module for atomic physics calculations."""
+
 from typing import NamedTuple
 
 import numpy as np

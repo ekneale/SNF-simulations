@@ -218,12 +218,12 @@ def _test_multiple_plot(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     # Write out the single and multiple spectra to get energy and flux arrays
     # And this will write out the csv files, so we have to remove them again...
     data_single = write_spec(
-        spec_single,
-        output_filename=f"{reactor.capitalize()}_single_0.5.csv")
+        spec_single, output_filename=f"{reactor.capitalize()}_single_0.5.csv",
+    )
     energy_single, flux_single = data_single[:, 0], data_single[:, 1]
     data_multiple = write_spec(
-        spec_multiple,
-        output_filename=f"{reactor.capitalize()}_multiple.csv")
+        spec_multiple, output_filename=f"{reactor.capitalize()}_multiple.csv",
+    )
     energy_multiple, flux_multiple = data_multiple[:, 0], data_multiple[:, 1]
     os.remove(f"{reactor.capitalize()}_single_0.5.csv")
     os.remove(f"{reactor.capitalize()}_multiple.csv")
@@ -310,7 +310,7 @@ def _test_sampling(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
 
     # Open the sample file and check the contents
     # Note 1 million samples is hardcoded in plot_sample
-    with open("sampled_spectrum.csv") as f:
+    with open(f"{reactor.capitalize()}_sampled_spectrum.csv") as f:
         lines = f.readlines()
         samples = [float(line.strip()) for line in lines]
     assert len(samples) == 1000000, "Wrong number of samples in CSV"
@@ -327,7 +327,7 @@ def _test_sampling(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
     assert samples == samples_ref, "Sampled spectrum does not match reference"
 
     # Delete the output file
-    os.remove("sampled_spectrum.csv")
+    os.remove(f"{reactor.capitalize()}_sampled_spectrum.csv")
     os.remove(f"{reactor.capitalize()}_Sampled.pdf")
 
     print("--- Sampling test passed ---")
