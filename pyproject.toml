@@ -25,6 +25,9 @@ dependencies = [
     "numpy",
 ]
 
+[project.scripts]
+snf-sim = "snf_simulations.scripts.command_line:main"
+
 [project.urls]
 source = "https://github.com/ekneale/SNF-simulations"
 
