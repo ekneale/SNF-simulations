@@ -1,5 +1,7 @@
 """Unit tests for loading antineutrino spectra data."""
 
+import os
+
 import numpy as np
 import ROOT
 
@@ -11,7 +13,10 @@ from snf_simulations.spec import (
     equalise_spec,
     load_spec,
     scale_spec,
+    write_spec,
 )
+
+from .test_commandline import _spec_to_arrays
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101
@@ -483,8 +488,8 @@ def _test_load_and_scale(
         molar_mass,
         half_life,
         removal_time,
-        max_energy,
-        min_energy,
+        max_energy=None,
+        min_energy=0,
     )
     # Use the individual functions for comparison
     spec = create_spec(
@@ -610,3 +615,40 @@ def test_add_spec_mock():
         assert np.isclose(combined_spec.GetBinError(nbin), expected_errors[i]), (
             f"Combined mock spectrum bin {nbin} error mismatch"
         )
+
+
+def test_write_spec():
+    """Test that spectra can be written to a ROOT file and read back correctly."""
+    # Create a fake spectrum
+    energy = np.array([0, 1, 2, 3, 4, 5, 6], dtype=float)
+    dn_de = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
+    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    spec = create_spec(
+        energy=energy,
+        dn_de=dn_de,
+        errors=errors,
+        name="test_isotope",
+    )
+
+    # Write the spectrum to a CSV
+    filename = "test_spectrum"
+    write_spec(spec, filename)
+    energy, flux = _spec_to_arrays(spec)
+
+    # Check that the file was created and contents are correct
+    # (note that .csv extension is added automatically by sample_spec)
+    csv_file = filename + ".csv"
+    data_loaded = np.loadtxt(
+        csv_file,
+        delimiter=",",
+        skiprows=1,
+    )
+    energy_loaded = data_loaded[:, 0]
+    flux_loaded = data_loaded[:, 1]
+    assert np.array_equal(energy, energy_loaded), (
+        "Loaded energy does not match original"
+    )
+    assert np.array_equal(flux, flux_loaded), "Loaded flux does not match original"
+
+    # Clean up the file after testing
+    os.remove(csv_file)

@@ -20,7 +20,7 @@ from snf_simulations.sample import sample_spec
 from snf_simulations.scripts.command_line import _get_spectra
 from snf_simulations.spec import add_spec
 
-from . import test_data
+from . import data
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
@@ -43,7 +43,7 @@ def _load_output(filename):
     `flux.write_spec_multiple` functions are not really proper CSV files,
     so we have to do a bit of manual parsing here to get the data out.
     """
-    with importlib.resources.path(test_data, filename) as path, open(path) as f:
+    with importlib.resources.path(data, filename) as path, open(path) as f:
         energy_line = f.readline()
         flux_line = f.readline()
 
@@ -61,7 +61,7 @@ def _load_output(filename):
 
 def _load_output_new(filename):
     """Load data from a proper CSV output file."""
-    with importlib.resources.path(test_data, filename) as path:
+    with importlib.resources.path(data, filename) as path:
         data = np.loadtxt(
             path,
             delimiter=",",
@@ -212,7 +212,7 @@ def test_sampling(reactor):
     # sample.sample() uses GetRandom(), but the output seems to be deterministic.
     # So we can compare to a reference file.
     filename = f"{reactor.capitalize()}_sampled_spectrum.csv"
-    with importlib.resources.path(test_data, filename) as path, open(path) as f:
+    with importlib.resources.path(data, filename) as path, open(path) as f:
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]
     assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"
