@@ -186,7 +186,23 @@ def load_spec(
 ):
     """Load, equalise and scale a spectrum from data.
 
-    Combines the create_spec, equalise_spec and scale_spec functions.
+    Combines the create_spec, equalise_spec and scale_spec functions to load
+    raw spectrum data, convert it to equal bin widths, and scale by isotope activity.
+
+    Args:
+        data (np.ndarray): Array of spectrum data with columns [energy, dN/dE, uncertainty].
+        name (str): Name of the histogram.
+        mass (float): Mass of the isotope in kg.
+        molar_mass (float): Molar mass of the isotope in g/mol.
+        half_life (float): Half-life of the isotope in years.
+        removal_time (float): Time since removal from reactor in years.
+        max_energy (float or None): Maximum energy for the new histogram (keV).
+            If None, uses the maximum energy from the data.
+        min_energy (float): Minimum energy for the new histogram (keV). Default is 0.
+
+    Returns:
+        ROOT.TH1D: Loaded, equalised and scaled spectrum histogram.
+
     """
     spec = create_spec(data[:, 0], data[:, 1], data[:, 2], name)
     if max_energy is None:
@@ -198,7 +214,18 @@ def load_spec(
 
 
 def add_spec(spectra):
-    """Combine a ROOT.TList of spectra into one total spectrum."""
+    """Combine a ROOT.TList of spectra into one total spectrum.
+
+    Merges multiple ROOT histograms into a single combined spectrum by summing
+    the bin contents across all input histograms.
+
+    Args:
+        spectra (ROOT.TList): A ROOT TList containing ROOT.TH1D spectrum histograms.
+
+    Returns:
+        ROOT.TH1D: Combined spectrum with summed bin contents from all input spectra.
+
+    """
     total_spec = spectra[0].Clone("combined")
     total_spec.Reset()
     total_spec.Merge(spectra)

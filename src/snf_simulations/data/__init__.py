@@ -1,4 +1,8 @@
-"""Load in data for antineutrino spectra calculations."""
+"""Data loading module for antineutrino spectra calculations.
+
+Provides functions to load isotope data, reactor fuel composition data, and
+antineutrino spectrum data from the built-in database files.
+"""
 
 from importlib.resources import files
 

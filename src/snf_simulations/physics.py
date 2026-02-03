@@ -14,7 +14,10 @@ class DecayChain(NamedTuple):
 
 
 def get_isotope_activity(mass, molar_mass, half_life, removal_time):
-    """Calculate the activity of an isotope spectrum after a given time.
+    """Calculate the activity of an isotope after a given time since removal.
+
+    Calculates the current activity of an isotope given its initial mass and the
+    time elapsed since removal from the reactor, accounting for radioactive decay.
 
     Args:
         mass (float): Mass of the isotope in kg.
@@ -23,7 +26,7 @@ def get_isotope_activity(mass, molar_mass, half_life, removal_time):
         removal_time (float): Time since removal from reactor in years.
 
     Returns:
-        Activity (float): Activity of the isotope in decays per second (Becquerels)
+        float: Activity of the isotope in decays per second (Becquerels)
             after the given removal time.
 
     """

@@ -29,7 +29,7 @@ def _get_spectra(cask_mass=10000, removal_times=None, reactor="sizewell"):
         reactor (str): Reactor name. Default is "sizewell".
 
     Returns:
-        ROOT.TH1D: Spectrum for the last removal time in the list.
+        ROOT.TList: List of spectra, one for each removal time in removal_times.
 
     """
     if removal_times is None:
@@ -54,7 +54,17 @@ def _get_spectra(cask_mass=10000, removal_times=None, reactor="sizewell"):
 
 
 def run(reactor="sizewell", cask_mass=10000):
-    """Run SNF simulations and generate plots."""
+    """Run SNF simulations and calculate antineutrino fluxes and event rates.
+
+    Performs calculations for single and multiple dry casks of spent nuclear fuel
+    at various cooling times, calculating antineutrino flux and expected detector
+    event rates at 40 meters distance.
+
+    Args:
+        reactor (str): Reactor name ('sizewell' or 'hartlepool'). Default is 'sizewell'.
+        cask_mass (float): Total mass of SNF in each cask (kg). Default is 10,000 kg.
+
+    """
     ################################################
     # 1) Plot the spectrum for a single dry cask of fuel at different removal times.
     #    One 10 tonne cask, removal times of 0, 0.5, 1, 5, 10, 20 years.
