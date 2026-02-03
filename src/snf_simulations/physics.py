@@ -13,6 +13,32 @@ class DecayChain(NamedTuple):
     branching_ratio: float = 1.0
 
 
+def get_isotope_activity(mass, molar_mass, half_life, removal_time):
+    """Calculate the activity of an isotope spectrum after a given time.
+
+    Args:
+        mass (float): Mass of the isotope in kg.
+        molar_mass (float): Molar mass of the isotope in g/mol.
+        half_life (float): Half-life of the isotope in years.
+        removal_time (float): Time since removal from reactor in years.
+
+    Returns:
+        Activity (float): Activity of the isotope in decays per second (Becquerels)
+            after the given removal time.
+
+    """
+    # Convert mass to number of atoms (kg to g, then to moles, then to atoms)
+    number_of_atoms = (mass * 1000 / molar_mass) * 6.022e23
+    # Calculate initial activity (in decays per second aka Becquerels)
+    lambda_ = np.log(2) / (half_life * 365 * 24 * 60 * 60)
+    initial_activity = number_of_atoms * lambda_
+    # Calculate activity after removal time (still in decays per second)
+    activity = initial_activity * np.exp(
+        -1 * lambda_ * removal_time * 365 * 24 * 60 * 60,
+    )
+    return activity
+
+
 def get_decay_mass(
     time_elapsed: float,
     parent_mass: float,

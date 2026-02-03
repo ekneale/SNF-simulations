@@ -3,6 +3,8 @@
 import numpy as np
 import ROOT
 
+from .physics import get_isotope_activity
+
 
 def create_spec(energy, dn_de, errors, name):
     """Load spectrum data into a ROOT TH1D histogram.
@@ -152,12 +154,15 @@ def scale_spec(spec, mass, molar_mass, half_life, removal_time):
 
     """
     # Calculate the activity of the isotope
-    N0 = (mass * 1000 / molar_mass) * 6.022e23
-    A0 = N0 * (np.log(2) / (half_life * 365 * 24 * 60**2))
-    A = A0 * np.exp(-1 * (np.log(2) / half_life) * removal_time)
+    activity = get_isotope_activity(
+        mass,
+        molar_mass,
+        half_life,
+        removal_time,
+    )
 
     # Scale the spectrum
-    spec.Scale(A)
+    spec.Scale(activity)
 
     # Formatting for display
     spec.SetStats(0)

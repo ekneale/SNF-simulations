@@ -8,6 +8,7 @@ from snf_simulations.physics import (
     calculate_event_rate,
     calculate_flux,
     get_decay_mass,
+    get_isotope_activity,
 )
 
 # Suppress assert warnings from ruff
@@ -16,10 +17,32 @@ from snf_simulations.physics import (
 
 def test_decay_chain_defaults():
     """Test DecayChain default branching ratio."""
-    chain = DecayChain("U235", "Th231")
-    assert chain.parent == "U235", "Parent isotope should be U235"
-    assert chain.daughter == "Th231", "Daughter isotope should be Th231"
+    chain = DecayChain("Sr90", "Y90")
+    assert chain.parent == "Sr90", "Parent isotope should be Sr90"
+    assert chain.daughter == "Y90", "Daughter isotope should be Y90"
     assert chain.branching_ratio == 1.0, "Default branching ratio should be 1.0"
+
+
+def test_get_isotope_activity():
+    """Test isotope activity calculation."""
+    mass = 1.0  # kg
+    molar_mass = 90  # g/mol for Sr90
+    half_life = 28.91  # years for Sr90
+    removal_time = 10  # years
+
+    activity = get_isotope_activity(mass, molar_mass, half_life, removal_time)
+
+    # Manually compute expected activity
+    number_of_atoms = (mass * 1000 / molar_mass) * 6.022e23
+    lambda_ = np.log(2) / (half_life * 365 * 24 * 60 * 60)
+    initial_activity = number_of_atoms * lambda_
+    activity_ref = initial_activity * np.exp(
+        -1 * lambda_ * removal_time * 365 * 24 * 60 * 60,
+    )
+
+    assert np.isclose(activity, activity_ref), (
+        "Calculated activity does not match expected value"
+    )
 
 
 def test_get_decay_mass_zero_time():

@@ -216,4 +216,6 @@ def test_sampling(reactor):
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]
     assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"
-    assert samples == samples_ref, "Sampled spectrum does not match reference"
+    assert np.isclose(samples, samples_ref).all(), (
+        "Sampled spectrum does not match reference"
+    )

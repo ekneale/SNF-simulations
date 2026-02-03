@@ -4,6 +4,7 @@ import numpy as np
 import ROOT
 
 from snf_simulations.data import load_antineutrino_data, load_isotope_data
+from snf_simulations.physics import get_isotope_activity
 from snf_simulations.spec import (
     add_spec,
     create_spec,
@@ -399,21 +400,6 @@ def test_equalise_spec_real():
         _test_equalise_spec(isotope_data, isotope_name=isotope)
 
 
-def _isotope_activity(mass, molar_mass, half_life, removal_time):
-    """Calculate the activity of an isotope spectrum after a given time."""
-    # NOTE: Taken from scale.scale (and cleaned up a bit)
-    # TODO: Move this to scale.py and reuse in both places,
-    #       Then add unit tests for this function too.
-    # Convert mass to number of atoms (kg to g, then to moles, then to atoms)
-    N0 = (mass * 1000 / molar_mass) * 6.022e23
-    # Calculate initial activity (in decays per second aka Becquerels)
-    lambda_ = np.log(2) / (half_life * 365 * 24 * 60 * 60)
-    A0 = N0 * lambda_
-    # Calculate activity after removal time (still in decays per second)
-    A = A0 * np.exp(-1 * lambda_ * removal_time * 365 * 24 * 60 * 60)
-    return A
-
-
 def _test_scale_spec(spec, mass, molar_mass, half_life, removal_time):
     """Test that scaling spectra works as expected."""
     # Scale the spectrum
@@ -427,7 +413,7 @@ def _test_scale_spec(spec, mass, molar_mass, half_life, removal_time):
     )
 
     # Test that each bin content and error has been scaled correctly
-    expected_activity = _isotope_activity(mass, molar_mass, half_life, removal_time)
+    expected_activity = get_isotope_activity(mass, molar_mass, half_life, removal_time)
     for nbin in range(1, spec.GetNbinsX() + 1):
         original_content = spec.GetBinContent(nbin)
         scaled_content = scaled_spec.GetBinContent(nbin)
