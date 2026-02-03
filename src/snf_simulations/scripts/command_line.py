@@ -1,5 +1,6 @@
 """Command line script to run SNF simulations and generate plots."""
 
+import argparse
 from array import array
 
 import numpy as np
@@ -52,7 +53,7 @@ def _get_spectra(cask_mass=10000, removal_times=None, reactor="sizewell"):
     return spectra
 
 
-def main(reactor="sizewell", cask_mass=10000):
+def run(reactor="sizewell", cask_mass=10000):
     """Run SNF simulations and generate plots."""
     ################################################
     # 1) Plot the spectrum for a single dry cask of fuel at different removal times.
@@ -320,6 +321,22 @@ def main(reactor="sizewell", cask_mass=10000):
 
     # Save the plot as a PDF
     c.SaveAs(f"{reactor.capitalize()}_Sampled.pdf")
+
+
+def main():
+    """Parse command line arguments and run the simulation."""
+    parser = argparse.ArgumentParser(
+        description="Run SNF simulations and generate plots",
+    )
+    parser.add_argument(
+        "--reactor",
+        type=str,
+        choices=["sizewell", "hartlepool"],
+        default="sizewell",
+        help="Reactor name: 'sizewell' or 'hartlepool' (default: sizewell)",
+    )
+    args = parser.parse_args()
+    run(reactor=args.reactor.lower())
 
 
 if __name__ == "__main__":
