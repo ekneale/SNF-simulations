@@ -9,20 +9,31 @@ But at least it should check that the output from the command line script hasn't
 and give a baseline for future tests.
 """
 
-import os
+import importlib.resources
 
 import numpy as np
+import pytest
 import ROOT
 
-from snf_simulations import plotting
-from snf_simulations.physics import calculate_flux
-from snf_simulations.spec import write_spec
+from snf_simulations.physics import calculate_event_rate, calculate_flux
+from snf_simulations.sample import sample_spec
+from snf_simulations.scripts.command_line import _get_spectra
+from snf_simulations.spec import add_spec
+
+from . import test_data
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
 # Suppress warnings from ruff
 # ruff: noqa: S101  # asserts
-# ruff: noqa: T201  # prints
+
+
+def _spec_to_arrays(spec):
+    """Convert a ROOT.TH1D spectrum to energy and flux numpy arrays."""
+    n_bins = spec.GetNbinsX()
+    energy = np.array([spec.GetBinCenter(i) for i in range(1, n_bins + 1)])
+    flux = np.array([spec.GetBinContent(i) for i in range(1, n_bins + 1)])
+    return energy, flux
 
 
 def _load_output(filename):
@@ -32,7 +43,7 @@ def _load_output(filename):
     `flux.write_spec_multiple` functions are not really proper CSV files,
     so we have to do a bit of manual parsing here to get the data out.
     """
-    with open(filename) as f:
+    with importlib.resources.path(test_data, filename) as path, open(path) as f:
         energy_line = f.readline()
         flux_line = f.readline()
 
@@ -50,315 +61,159 @@ def _load_output(filename):
 
 def _load_output_new(filename):
     """Load data from a proper CSV output file."""
-    data = np.loadtxt(
-        filename,
-        delimiter=",",
-        skiprows=1,
-    )
+    with importlib.resources.path(test_data, filename) as path:
+        data = np.loadtxt(
+            path,
+            delimiter=",",
+            skiprows=1,
+        )
     energy = data[:, 0].tolist()
     flux = data[:, 1].tolist()
     return energy, flux
 
 
-def _test_single_cask(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
+@pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
+def test_single_cask(reactor):
     """Test single cask spectrum output."""
-    print(f"--- Testing single cask for {reactor.capitalize()} ---")
+    cask_mass = 100000  # test data is for a 100 tonne cask (not 10 tonnes)
+    removal_times = [0, 0.5, 1, 5, 10, 20]
 
-    # Create the spectrum plot
-    # This function will pop up a ROOT window, then save the plot to a pdf.
-    # What we really need though is the returned spectrum data, which will
-    # be a single TH1D object. It's currently hardcoded to return the first from
-    # the list of removal times, i.e. 0.5 years by default.
-    spec_single = plotting.plot_single_cask(reactor, removal_times)
+    # Create the spectra for the given removal times
+    spectra = _get_spectra(
+        cask_mass=cask_mass,
+        removal_times=removal_times,
+        reactor=reactor,
+    )
 
-    # We can't easily check the output plot, but we can check the basics of the returned spectrum.
-    assert isinstance(spec_single, ROOT.TH1D), "Returned spectrum is not a TH1D"
-    counts, values = spec_single.counts(), spec_single.values()
-    assert isinstance(counts, np.ndarray), "Counts are not a numpy array"
-    assert isinstance(values, np.ndarray), "Values are not a numpy array"
-    assert len(counts) == len(values) == 5312, "Data has wrong length"
+    # Check the returned list of spectra
+    assert isinstance(spectra, ROOT.TList), "Returned object is not a TList"
+    assert len(spectra) == len(removal_times), "Returned list has wrong length"
+    assert all(isinstance(spec, ROOT.TH1D) for spec in spectra), (
+        "Not all items in list are TH1D"
+    )
 
-    # Write the spectrum to a file and get back the energy and flux arrays
-    filename = f"{reactor.capitalize()}_single_0.5.csv"
-    data = write_spec(spec_single, filename)
-    energy_single, flux_single = data[:, 0], data[:, 1]
-
-    # Check the returned arrays
-    assert isinstance(data, np.ndarray), "Spec data is not a numpy array"
-    assert data.shape == (5312, 2), "Spec data has wrong shape"
-    assert isinstance(energy_single, np.ndarray), "Energy is not a numpy array"
-    assert isinstance(flux_single, np.ndarray), "Flux is not a numpy array"
-    assert len(energy_single) == len(flux_single) == 5312, "Data has wrong length"
-
-    # Load the data back from the output file
-    # (this assumes the file has been written in the current working directory)
-    # Note we have to use the new loader here as the output is now a proper CSV file.
-    # Also when saving some precision is lost, so we use np.allclose for the comparison.
-    energy_loaded, flux_loaded = _load_output_new(filename)
-    assert np.allclose(energy_loaded, energy_single), "Loaded energy does not match"
-    assert np.allclose(flux_loaded, flux_single), "Loaded flux does not match"
+    # Check the basic properties of each of the spectra
+    for spec in spectra:
+        assert isinstance(spec, ROOT.TH1D), "Returned spectrum is not a TH1D"
+        counts, values = spec.counts(), spec.values()
+        assert isinstance(counts, np.ndarray), "Counts are not a numpy array"
+        assert isinstance(values, np.ndarray), "Values are not a numpy array"
+        assert len(counts) == len(values) == 5312, "Data has wrong length"
 
     # Compare to the reference data file
-    # (this again assumes we're in the main package directory)
-    ref_filename = f"../../tests/test_data/{reactor.capitalize()}_single_0.5.csv"
-    energy_ref, flux_ref = _load_output(ref_filename)
+    # The reference data we have (saved by command_line.py) is for the
+    # 0.5 year removal time only, and saved in a non-standard format.
+    spec = spectra[1]
+    energy_single, flux_single = _spec_to_arrays(spec)
+    energy_ref, flux_ref = _load_output(f"{reactor.capitalize()}_single_0.5.csv")
     assert np.allclose(energy_ref, energy_single), "Reference energy does not match"
     assert np.allclose(flux_ref, flux_single), "Reference flux does not match"
 
-    # Delete the output files
-    os.remove(filename)
-    os.remove(f"{reactor.capitalize()}_Spectra_0.5.pdf")
-
-    print("--- Single tests passed ---")
-
-
-def _test_multiple_casks(reactor="sizewell"):
-    """Test multiple cask spectrum output."""
-    print(f"--- Testing multiple casks for {reactor.capitalize()} ---")
-
-    # Create the spectrum plot
-    # This function actually doesn't create a plot, it just returns the
-    # combined spectrum.
-    # Also both functions have the removal times hardcoded, so we pass None for now.
+    # Calculate the single cask flux at 40m
+    # Returns a single value of flux cm^-2 s^-1
+    flux = calculate_flux(spec, distance=40)
+    assert isinstance(flux, float), "Single flux is not a float"
     if reactor == "sizewell":
-        spec_multiple = plotting.plot_multiple_casks_sizewell(removal_times=None)
-    elif reactor == "hartlepool":
-        spec_multiple = plotting.plot_multiple_casks_hartlepool(removal_times=None)
+        assert flux == 11992567783.00658, "Single flux value does not match"
+    else:
+        assert flux == 4942443091.633026, "Single flux value does not match"
 
-    # Check the returned spectrum.
-    assert isinstance(spec_multiple, ROOT.TH1D), "Returned spectrum is not a TH1D"
+    # Calculate event rates in a detector at 40m using the flux spectrum
+    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    assert isinstance(rate_lower, float), "Lower event rate is not a float"
+    assert isinstance(rate_upper, float), "Upper event rate is not a float"
+    if reactor == "sizewell":
+        assert rate_lower == 1.7843712822172811e-06, "Lower event rate does not match"
+        assert rate_upper == 3.5687425644345623e-06, "Upper event rate does not match"
+    else:
+        assert rate_lower == 7.353849214177359e-07, "Lower event rate does not match"
+        assert rate_upper == 1.4707698428354718e-06, "Upper event rate does not match"
+
+
+@pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
+def test_multiple_casks(reactor):
+    """Test multiple cask spectrum output."""
+    cask_mass = 10000  # 10 tonne casks
+    casks_per_removal = 10
+    if reactor == "sizewell":
+        removal_times = [0.5, 5, 10, 20]
+    elif reactor == "hartlepool":
+        removal_times = [3, 7, 15, 19]
+
+    # Create the spectra and combine them
+    spectra = _get_spectra(
+        cask_mass=cask_mass * casks_per_removal,
+        removal_times=removal_times,
+        reactor=reactor,
+    )
+    spec_multiple = add_spec(spectra)
+
+    # Check the combined spectrum
+    assert isinstance(spec_multiple, ROOT.TH1D), "Combined spectrum is not a TH1D"
     counts, values = spec_multiple.counts(), spec_multiple.values()
     assert isinstance(counts, np.ndarray), "Counts are not a numpy array"
     assert isinstance(values, np.ndarray), "Values are not a numpy array"
     assert len(counts) == len(values) == 5312, "Data has wrong length"
 
-    # Write the spectrum to a file and get back the energy and flux arrays
-    filename = f"{reactor.capitalize()}_multiple.csv"
-    data = write_spec(spec_multiple, filename)
-    energy_multiple, flux_multiple = data[:, 0], data[:, 1]
-
-    # Check the returned arrays
-    assert isinstance(data, np.ndarray), "Spec data is not a numpy array"
-    assert data.shape == (5312, 2), "Spec data has wrong shape"
-    assert isinstance(energy_multiple, np.ndarray), "Energy is not a numpy array"
-    assert isinstance(flux_multiple, np.ndarray), "Flux is not a numpy array"
-    assert len(energy_multiple) == len(flux_multiple) == 5312, "Data has wrong length"
-
-    # Load the data back from the output file
-    # (this assumes the file has been written in the current working directory)
-    energy_loaded, flux_loaded = _load_output_new(filename)
-    assert np.allclose(energy_loaded, energy_multiple), "Loaded energy does not match"
-    assert np.allclose(flux_loaded, flux_multiple), "Loaded flux does not match"
-
     # Compare to the reference data file
-    # (this again assumes we're in the main package directory)
-    ref_filename = f"../../tests/test_data/{reactor.capitalize()}_multiple.csv"
-    energy_ref, flux_ref = _load_output(ref_filename)
+    energy_multiple, flux_multiple = _spec_to_arrays(spec_multiple)
+    energy_ref, flux_ref = _load_output(f"{reactor.capitalize()}_multiple.csv")
     assert np.allclose(energy_ref, energy_multiple), "Reference energy does not match"
     assert np.allclose(flux_ref, flux_multiple), "Reference flux does not match"
 
-    # Delete the output file
-    os.remove(filename)
-
-    print("--- Multiple tests passed ---")
-
-
-def _test_calculate_flux(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
-    """Test flux calculation at a given distance."""
-    print(f"--- Testing flux calculation for {reactor.capitalize()} ---")
-
-    # Get the single and multiple cask spectra
-    # Annoyingly this will pop up the ROOT window and save the pdf again.
-    spec_single = plotting.plot_single_cask(reactor, removal_times)
+    # Calculate the total cask flux at 40m
+    flux = calculate_flux(spec_multiple, distance=40)
+    assert isinstance(flux, float), "Total flux is not a float"
     if reactor == "sizewell":
-        spec_multiple = plotting.plot_multiple_casks_sizewell(removal_times=None)
-    elif reactor == "hartlepool":
-        spec_multiple = plotting.plot_multiple_casks_hartlepool(removal_times=None)
-    os.remove(f"{reactor.capitalize()}_Spectra_0.5.pdf")
-
-    # Calculate the single cask flux at 40m
-    # Returns a single value of flux cm^-2 s^-1
-    # The function will also print out different conversions and rate limits,
-    # but they don't get returned.
-    flux_single_40 = calculate_flux(spec_single, distance=40)
-    assert isinstance(flux_single_40, float), "Single flux is not a float"
-    if reactor == "sizewell":
-        assert flux_single_40 == 11992567783.00658, "Single flux value does not match"
+        assert flux == 13067897209.144945, "Total flux value does not match"
     else:
-        assert flux_single_40 == 4942443091.633026, "Single flux value does not match"
+        assert flux == 1443268305.2325196, "Total flux value does not match"
 
-    # Calculate the multiple cask flux at 40m
-    flux_multiple_40 = calculate_flux(spec_multiple, distance=40)
-    assert isinstance(flux_multiple_40, float), "Multiple flux is not a float"
+    # Calculate event rates in a detector at 40m using the flux spectrum
+    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    assert isinstance(rate_lower, float), "Lower event rate is not a float"
+    assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        assert flux_multiple_40 == 13067897209.144945, (
-            "Multiple flux value does not match"
-        )
+        assert rate_lower == 1.9443692894533463e-06, "Lower event rate does not match"
+        assert rate_upper == 3.8887385789066926e-06, "Upper event rate does not match"
     else:
-        assert flux_multiple_40 == 1443268305.2325196, (
-            "Multiple flux value does not match"
-        )
-
-    print("--- Flux calculation tests passed ---")
+        assert rate_lower == 2.1474354475115334e-07, "Lower event rate does not match"
+        assert rate_upper == 4.294870895023067e-07, "Upper event rate does not match"
 
 
-def _test_multiple_plot(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
-    """Test plotting multiple flux spectra on one graph."""
-    print(f"--- Testing multiple flux plot for {reactor.capitalize()} ---")
-
-    # Get the single and multiple cask spectra
-    # Annoyingly this will pop up the ROOT window and save the pdf again.
-    spec_single = plotting.plot_single_cask(reactor, removal_times)
-    if reactor == "sizewell":
-        spec_multiple = plotting.plot_multiple_casks_sizewell(removal_times=None)
-    elif reactor == "hartlepool":
-        spec_multiple = plotting.plot_multiple_casks_hartlepool(removal_times=None)
-    os.remove(f"{reactor.capitalize()}_Spectra_0.5.pdf")
-
-    # Write out the single and multiple spectra to get energy and flux arrays
-    # And this will write out the csv files, so we have to remove them again...
-    data_single = write_spec(
-        spec_single, output_filename=f"{reactor.capitalize()}_single_0.5.csv",
-    )
-    energy_single, flux_single = data_single[:, 0], data_single[:, 1]
-    data_multiple = write_spec(
-        spec_multiple, output_filename=f"{reactor.capitalize()}_multiple.csv",
-    )
-    energy_multiple, flux_multiple = data_multiple[:, 0], data_multiple[:, 1]
-    os.remove(f"{reactor.capitalize()}_single_0.5.csv")
-    os.remove(f"{reactor.capitalize()}_multiple.csv")
-
-    # Plot both flux spectra on one graph
-    # This will save the plot to a PNG file, and doesn't return anything.
-    plotting.multiple_single_plot(
-        energy_single,
-        flux_single,
-        energy_multiple,
-        flux_multiple,
-        reactor,
-    )
-
-    # Delete the output file
-    os.remove(f"Multiple_Single_comp_{reactor.capitalize()}_0.5.png")
-
-    print("--- Multiple flux plot test passed ---")
-
-
-def _test_multiple_fluxes(reactor="sizewell"):
-    """Test plotting multiple flux spectra for different removal times."""
-    print(f"--- Testing multiple fluxes for {reactor.capitalize()} ---")
-
-    # Create the multiple flux spectra plots
-    # This function doesn't actually plot, it just returns a list of spectra.
-    # All the removal times are hardcoded in the function.
-    sums = plotting.multiple_fluxes(reactor)
-
-    # Check the returned list of spectra
-    assert isinstance(sums, ROOT.TList), "Returned object is not a TList"
-    assert len(sums) == 5, "Returned list has wrong length"
-    assert all(isinstance(spec, ROOT.TH1D) for spec in sums), (
-        "Not all items in list are TH1D"
-    )
-
-    # Now plot the multiple spectra
-    # This will pop up the ROOT window and save the plot to a pdf, but doesn't return anything.
-    plotting.plot_multiple(sums, reactor=reactor)
-
-    # Delete the output file
-    os.remove(f"{reactor.capitalize()}_MultipleCasks.pdf")
-
-    # Calculate the flux at 40m for each spectrum
-    if reactor == "sizewell":
-        fluxes = [
-            13067897209.144945,  # NOTE this one is the same as in _test_calculate_flux
-            6381971926.645747,
-            1168957368.2360244,
-            836003017.479554,
-            653307209.876354,
-        ]
-    elif reactor == "hartlepool":
-        fluxes = [
-            1443268305.2325196,  # NOTE this one is the same as in _test_calculate_flux
-            1072427745.6884356,
-            723865499.2550066,
-            630534707.9926968,
-            495842436.63382983,
-        ]
-    for spec, flux_ref in zip(sums, fluxes):
-        flux_40 = calculate_flux(spec, distance=40)
-        assert isinstance(flux_40, float), "Flux is not a float"
-        assert flux_40 == flux_ref, "Flux value does not match"
-
-    print("--- Multiple fluxes test passed ---")
-
-
-def _test_sampling(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20]):
+@pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
+def test_sampling(reactor):
     """Test plotting a sample spectrum for given removal times."""
-    print(f"--- Testing sampling for {reactor.capitalize()} ---")
-
-    # Create the multiple cask spectrum
+    cask_mass = 10000  # 10 tonne casks
+    casks_per_removal = 10
     if reactor == "sizewell":
-        spec_multiple = plotting.plot_multiple_casks_sizewell(removal_times=None)
+        removal_times = [0.5, 5, 10, 20]
     elif reactor == "hartlepool":
-        spec_multiple = plotting.plot_multiple_casks_hartlepool(removal_times=None)
+        removal_times = [3, 7, 15, 19]
 
-    # Plot a sample of the spectrum
-    # This will pop up the ROOT window and save the plot to a pdf, but doesn't return anything.
-    # It will also save the spectrum to a CSV file, but again it's not really a proper CSV
-    # just a list of randomly sampled values.
-    plotting.plot_sample(spec_multiple, reactor=reactor)
+    # Create the spectra and combine them
+    spectra = _get_spectra(
+        cask_mass=cask_mass * casks_per_removal,
+        removal_times=removal_times,
+        reactor=reactor,
+    )
+    spec_multiple = add_spec(spectra)
 
-    # Open the sample file and check the contents
-    # Note 1 million samples is hardcoded in plot_sample
-    with open(f"{reactor.capitalize()}_sampled_spectrum.csv") as f:
-        lines = f.readlines()
-        samples = [float(line.strip()) for line in lines]
+    # Sample the spectrum
+    samples = sample_spec(
+        spec_multiple,
+        samples=1000000,
+    )
+
+    # Check the samples
     assert len(samples) == 1000000, "Wrong number of samples in CSV"
 
     # Compare to reference file
     # sample.sample() uses GetRandom(), but the output seems to be deterministic.
     # So we can compare to a reference file.
-    with open(
-        f"../../tests/test_data/{reactor.capitalize()}_sampled_spectrum.csv",
-    ) as f:
+    filename = f"{reactor.capitalize()}_sampled_spectrum.csv"
+    with importlib.resources.path(test_data, filename) as path, open(path) as f:
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]
     assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"
     assert samples == samples_ref, "Sampled spectrum does not match reference"
-
-    # Delete the output file
-    os.remove(f"{reactor.capitalize()}_sampled_spectrum.csv")
-    os.remove(f"{reactor.capitalize()}_Sampled.pdf")
-
-    print("--- Sampling test passed ---")
-
-
-def test_sizewell_commandline():
-    """Run all tests for Sizewell reactor."""
-    _test_single_cask(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
-    _test_multiple_casks(reactor="sizewell")
-    _test_calculate_flux(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
-    _test_multiple_plot(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
-    _test_multiple_fluxes(reactor="sizewell")
-    _test_sampling(reactor="sizewell", removal_times=[0.5, 1, 5, 10, 20])
-
-
-def test_hartlepool_commandline():
-    """Run all tests for Hartlepool reactor."""
-    _test_single_cask(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
-    _test_multiple_casks(reactor="hartlepool")
-    _test_calculate_flux(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
-    _test_multiple_plot(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
-    _test_multiple_fluxes(reactor="hartlepool")
-    _test_sampling(reactor="hartlepool", removal_times=[0.5, 1, 5, 10, 20])
-
-
-if __name__ == "__main__":
-    # Run the tests using the same inputs as the command line script
-    test_sizewell_commandline()
-
-    # Now run for Hartlepool as well
-    test_hartlepool_commandline()
-
-    print()
-    print("All tests passed!")
