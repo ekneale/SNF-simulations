@@ -3,6 +3,7 @@
 from typing import NamedTuple
 
 import numpy as np
+import ROOT
 
 
 class DecayChain(NamedTuple):
@@ -13,21 +14,26 @@ class DecayChain(NamedTuple):
     branching_ratio: float = 1.0
 
 
-def get_isotope_activity(mass, molar_mass, half_life, removal_time):
+def get_isotope_activity(
+    mass: float,
+    molar_mass: float,
+    half_life: float,
+    removal_time: float,
+) -> float:
     """Calculate the activity of an isotope after a given time since removal.
 
     Calculates the current activity of an isotope given its initial mass and the
     time elapsed since removal from the reactor, accounting for radioactive decay.
 
     Args:
-        mass (float): Mass of the isotope in kg.
-        molar_mass (float): Molar mass of the isotope in g/mol.
-        half_life (float): Half-life of the isotope in years.
-        removal_time (float): Time since removal from reactor in years.
+        mass: Mass of the isotope in kg.
+        molar_mass: Molar mass of the isotope in g/mol.
+        half_life: Half-life of the isotope in years.
+        removal_time: Time since removal from reactor in years.
 
     Returns:
-        float: Activity of the isotope in decays per second (Becquerels)
-            after the given removal time.
+        Activity of the isotope in decays per second (Becquerels)
+        after the given removal time.
 
     """
     # Convert mass to number of atoms (kg to g, then to moles, then to atoms)
@@ -59,7 +65,7 @@ def get_decay_mass(
         parent_mass: Initial mass of parent isotope (kg).
         parent_half_life: Half-life of parent isotope (years).
         daughter_half_life: Half-life of daughter isotope (years).
-        branching_ratio: Branching ratio for this decay chainway. Defaults to 1.
+        branching_ratio: Branching ratio for this decay chain.
 
     Returns:
         Mass of the daughter isotope (kg).
@@ -82,15 +88,15 @@ def get_decay_mass(
     return daughter_mass
 
 
-def calculate_flux(spec, distance):
+def calculate_flux(spec: ROOT.TH1D, distance: float) -> float:
     """Calculate the antineutrino flux at a given distance from the source.
 
     Args:
-        spec (ROOT.TH1D): The total antineutrino spectrum histogram.
-        distance (float): Distance from the source in meters.
+        spec: The total antineutrino spectrum histogram.
+        distance: Distance from the source in meters.
 
     Returns:
-        flux (float): Antineutrino flux at the given distance in cm^{-2} s^{-1}.
+        Antineutrino flux at the given distance in cm^{-2} s^{-1}.
 
     """
     # The IBD reaction threshold is 1800 keV, so we integrate above this energy.
@@ -105,20 +111,19 @@ def calculate_flux(spec, distance):
 
 
 def calculate_event_rate(
-    flux,
-    lower_efficiency=0.2,
-    upper_efficiency=0.4,
-):
+    flux: float,
+    lower_efficiency: float = 0.2,
+    upper_efficiency: float = 0.4,
+) -> tuple[float, float]:
     """Calculate the expected event rate in the VIDARR detector for a given flux.
 
     Args:
-        flux (float): Antineutrino flux in cm^-2 s^-1.
-        lower_efficiency (float): Lower limit on detection efficiency. Default is 0.2.
-        upper_efficiency (float): Upper limit on detection efficiency. Default is 0.4
+        flux: Antineutrino flux in cm^-2 s^-1.
+        lower_efficiency: Lower limit on detection efficiency.
+        upper_efficiency: Upper limit on detection efficiency.
 
     Returns:
-        rate_lower, rate_upper (tuple of floats): event rates in s^{-1}
-            for the lower and upper efficiency limits.
+        Tuple of lower and upper event rates in s^-1.
 
     """
     # Calculate the number of target protons in the detector

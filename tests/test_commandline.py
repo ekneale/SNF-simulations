@@ -1,13 +1,4 @@
-"""Basic functional tests to check the output of examples from the command line script.
-
-These aren't 'real' tests yet, there area few issues like relative paths to data files
-that need to be resolved before they can be fully integrated into a test suite.
-
-For now this script has to be run from within the snf_simulations directory.
-
-But at least it should check that the output from the command line script hasn't changed,
-and give a baseline for future tests.
-"""
+"""Unit tests for command line script functions."""
 
 import importlib.resources
 
@@ -26,9 +17,10 @@ ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
 # Suppress warnings from ruff
 # ruff: noqa: S101  # asserts
+# ruff: noqa: PLR2004  # magic numbers
 
 
-def _spec_to_arrays(spec):
+def _spec_to_arrays(spec: ROOT.TH1D) -> tuple[np.ndarray, np.ndarray]:
     """Convert a ROOT.TH1D spectrum to energy and flux numpy arrays."""
     n_bins = spec.GetNbinsX()
     energy = np.array([spec.GetBinCenter(i) for i in range(1, n_bins + 1)])
@@ -36,7 +28,7 @@ def _spec_to_arrays(spec):
     return energy, flux
 
 
-def _load_output(filename):
+def _load_output(filename: str) -> tuple[np.ndarray, np.ndarray]:
     """Load data from an output file.
 
     The 'CSV' files written by the old `flux.write_spec_single` and
@@ -59,21 +51,21 @@ def _load_output(filename):
     return energy, flux
 
 
-def _load_output_new(filename):
+def _load_output_new(filename: str) -> tuple[list[float], list[float]]:
     """Load data from a proper CSV output file."""
     with importlib.resources.path(data, filename) as path:
-        data = np.loadtxt(
+        spec_data = np.loadtxt(
             path,
             delimiter=",",
             skiprows=1,
         )
-    energy = data[:, 0].tolist()
-    flux = data[:, 1].tolist()
+    energy = spec_data[:, 0].tolist()
+    flux = spec_data[:, 1].tolist()
     return energy, flux
 
 
 @pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
-def test_single_cask(reactor):
+def test_single_cask(reactor: str) -> None:
     """Test single cask spectrum output."""
     cask_mass = 100000  # test data is for a 100 tonne cask (not 10 tonnes)
     removal_times = [0, 0.5, 1, 5, 10, 20]
@@ -131,7 +123,7 @@ def test_single_cask(reactor):
 
 
 @pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
-def test_multiple_casks(reactor):
+def test_multiple_casks(reactor: str) -> None:
     """Test multiple cask spectrum output."""
     cask_mass = 10000  # 10 tonne casks
     casks_per_removal = 10
@@ -182,7 +174,7 @@ def test_multiple_casks(reactor):
 
 
 @pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
-def test_sampling(reactor):
+def test_sampling(reactor: str) -> None:
     """Test plotting a sample spectrum for given removal times."""
     cask_mass = 10000  # 10 tonne casks
     casks_per_removal = 10

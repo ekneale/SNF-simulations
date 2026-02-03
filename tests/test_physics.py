@@ -15,7 +15,7 @@ from snf_simulations.physics import (
 # ruff: noqa: S101  # asserts
 
 
-def test_decay_chain_defaults():
+def test_decay_chain_defaults() -> None:
     """Test DecayChain default branching ratio."""
     chain = DecayChain("Sr90", "Y90")
     assert chain.parent == "Sr90", "Parent isotope should be Sr90"
@@ -23,7 +23,7 @@ def test_decay_chain_defaults():
     assert chain.branching_ratio == 1.0, "Default branching ratio should be 1.0"
 
 
-def test_get_isotope_activity():
+def test_get_isotope_activity() -> None:
     """Test isotope activity calculation."""
     mass = 1.0  # kg
     molar_mass = 90  # g/mol for Sr90
@@ -45,7 +45,7 @@ def test_get_isotope_activity():
     )
 
 
-def test_get_decay_mass_zero_time():
+def test_get_decay_mass_zero_time() -> None:
     """Test that decay mass is zero at time zero."""
     daughter_mass = get_decay_mass(
         time_elapsed=0,
@@ -57,7 +57,7 @@ def test_get_decay_mass_zero_time():
     assert np.isclose(daughter_mass, 0.0), "Daughter mass should be zero at time zero"
 
 
-def test_get_decay_mass_positive_time():
+def test_get_decay_mass_positive_time() -> None:
     """Test decay mass against a manually computed value."""
     time_elapsed = 5.0
     parent_mass = 10.0
@@ -90,7 +90,7 @@ def test_get_decay_mass_positive_time():
     )
 
 
-def test_calculate_flux():
+def test_calculate_flux() -> None:
     """Test flux calculation against expected value."""
     integral_value = 8.0e9
     spec = ROOT.TH1D("spec", "", 6000, 0, 6000)
@@ -101,7 +101,7 @@ def test_calculate_flux():
     assert np.isclose(flux, flux_ref), "Calculated flux does not match reference value"
 
 
-def test_calculate_event_rate():
+def test_calculate_event_rate() -> None:
     """Test event rate calculation with default efficiency bounds."""
     flux = 2.0e9
     rate_lower, rate_upper = calculate_event_rate(flux)

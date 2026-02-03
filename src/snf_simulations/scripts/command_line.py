@@ -18,18 +18,21 @@ ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 # ruff: noqa: T201  # prints
 
 
-def _get_spectra(cask_mass=10000, removal_times=None, reactor="sizewell"):
+def _get_spectra(
+    cask_mass: float = 10000,
+    removal_times: list[float] | None = None,
+    reactor: str = "sizewell",
+) -> ROOT.TList:
     """Create spectra for a single dry cask of fuel at multiple removal times.
 
     Args:
-        cask_mass (float): Total mass of SNF in the cask (kg).
-            Default is 10 tonnes (10,000 kg).
-        removal_times (list or None): List of removal times to plot (years).
+        cask_mass: Total mass of SNF in the cask (kg).
+        removal_times: List of removal times to plot (years).
             If None, only plot time 0.
-        reactor (str): Reactor name. Default is "sizewell".
+        reactor: Reactor name.
 
     Returns:
-        ROOT.TList: List of spectra, one for each removal time in removal_times.
+        List of spectra, one for each removal time in removal_times.
 
     """
     if removal_times is None:
@@ -53,7 +56,7 @@ def _get_spectra(cask_mass=10000, removal_times=None, reactor="sizewell"):
     return spectra
 
 
-def run(reactor="sizewell", cask_mass=10000):
+def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
     """Run SNF simulations and calculate antineutrino fluxes and event rates.
 
     Performs calculations for single and multiple dry casks of spent nuclear fuel
@@ -61,8 +64,8 @@ def run(reactor="sizewell", cask_mass=10000):
     event rates at 40 meters distance.
 
     Args:
-        reactor (str): Reactor name ('sizewell' or 'hartlepool'). Default is 'sizewell'.
-        cask_mass (float): Total mass of SNF in each cask (kg). Default is 10,000 kg.
+        reactor: Reactor name ('sizewell' or 'hartlepool').
+        cask_mass: Total mass of SNF in each cask (kg).
 
     """
     ################################################
@@ -88,7 +91,8 @@ def run(reactor="sizewell", cask_mass=10000):
     rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
     print(f"Event rate: {rate_lower:.3e} to {rate_upper:.3e} per s")
     print(
-        f"Event rate: {rate_lower * 60 * 60 * 24:.3f} to {rate_upper * 60**2 * 24:.3f} per day",
+        f"Event rate: {rate_lower * 60 * 60 * 24:.3f}"
+        f" to {rate_upper * 60**2 * 24:.3f} per day",
     )
 
     # Save 0.5 year spectrum to CSV
@@ -333,7 +337,7 @@ def run(reactor="sizewell", cask_mass=10000):
     c.SaveAs(f"{reactor.capitalize()}_Sampled.pdf")
 
 
-def main():
+def main() -> None:
     """Parse command line arguments and run the simulation."""
     parser = argparse.ArgumentParser(
         description="Run SNF simulations and generate plots",

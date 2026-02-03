@@ -6,17 +6,22 @@ import ROOT
 from .physics import get_isotope_activity
 
 
-def create_spec(energy, dn_de, errors, name):
+def create_spec(
+    energy: np.ndarray,
+    dn_de: np.ndarray,
+    errors: np.ndarray,
+    name: str,
+) -> ROOT.TH1D:
     """Load spectrum data into a ROOT TH1D histogram.
 
     Args:
-        energy (array-like): Array of energy bin edges (keV).
-        dn_de (array-like): Array of dN/dE values corresponding to each energy bin.
-        errors (array-like): Array of errors for each dN/dE value.
-        name (str): Name of the histogram.
+        energy: Array of energy bin edges (keV).
+        dn_de: Array of dN/dE values corresponding to each energy bin.
+        errors: Array of errors for each dN/dE value.
+        name: Name of the histogram.
 
     Returns:
-        ROOT.TH1D: Histogram representing the spectrum.
+        Histogram representing the spectrum.
 
     """
     # Create a histogram, using the energies as the bin edges.
@@ -47,18 +52,22 @@ def create_spec(energy, dn_de, errors, name):
     return spec
 
 
-def equalise_spec(spec, max_energy, min_energy=0):
+def equalise_spec(
+    spec: ROOT.TH1D,
+    max_energy: float,
+    min_energy: float = 0,
+) -> ROOT.TH1D:
     """Convert a ROOT TH1D histogram to have equal bin widths.
 
     Each bin will be 1 keV wide, spaced from min_energy to max_energy.
 
     Args:
-        spec (ROOT.TH1D): Original histogram with variable bin widths.
-        max_energy (float): Maximum energy for the new histogram.
-        min_energy (float, default=0): Minimum energy for the new histogram.
+        spec: Original histogram with variable bin widths.
+        max_energy: Maximum energy for the new histogram.
+        min_energy: Minimum energy for the new histogram.
 
     Returns:
-        ROOT.TH1D: New histogram with equal bin widths.
+        New histogram with equal bin widths.
 
     """
     # Create new bin edges and new bin centres.
@@ -139,18 +148,24 @@ def equalise_spec(spec, max_energy, min_energy=0):
     return spec_equal
 
 
-def scale_spec(spec, mass, molar_mass, half_life, removal_time):
+def scale_spec(
+    spec: ROOT.TH1D,
+    mass: float,
+    molar_mass: float,
+    half_life: float,
+    removal_time: float,
+) -> ROOT.TH1D:
     """Scale a ROOT TH1D histogram spectrum by the activity of the isotope.
 
     Args:
-        spec (ROOT.TH1D): Histogram representing the spectrum to be scaled.
-        mass (float): Mass of the isotope in kg.
-        molar_mass (float): Molar mass of the isotope in g/mol.
-        half_life (float): Half-life of the isotope in years.
-        removal_time (float): Time since removal from reactor in years.
+        spec: Histogram representing the spectrum to be scaled.
+        mass: Mass of the isotope in kg.
+        molar_mass: Molar mass of the isotope in g/mol.
+        half_life: Half-life of the isotope in years.
+        removal_time: Time since removal from reactor in years.
 
     Returns:
-        ROOT.TH1D: Scaled histogram.
+        Scaled histogram.
 
     """
     # Calculate the activity of the isotope
@@ -175,33 +190,33 @@ def scale_spec(spec, mass, molar_mass, half_life, removal_time):
 
 
 def load_spec(
-    data,
-    name,
-    mass,
-    molar_mass,
-    half_life,
-    removal_time,
-    max_energy=None,
-    min_energy=0,
-):
+    data: np.ndarray,
+    name: str,
+    mass: float,
+    molar_mass: float,
+    half_life: float,
+    removal_time: float,
+    max_energy: float | None = None,
+    min_energy: float = 0,
+) -> ROOT.TH1D:
     """Load, equalise and scale a spectrum from data.
 
     Combines the create_spec, equalise_spec and scale_spec functions to load
     raw spectrum data, convert it to equal bin widths, and scale by isotope activity.
 
     Args:
-        data (np.ndarray): Array of spectrum data with columns [energy, dN/dE, uncertainty].
-        name (str): Name of the histogram.
-        mass (float): Mass of the isotope in kg.
-        molar_mass (float): Molar mass of the isotope in g/mol.
-        half_life (float): Half-life of the isotope in years.
-        removal_time (float): Time since removal from reactor in years.
-        max_energy (float or None): Maximum energy for the new histogram (keV).
-            If None, uses the maximum energy from the data.
-        min_energy (float): Minimum energy for the new histogram (keV). Default is 0.
+        data: Array of spectrum data with columns [energy, dN/dE, uncertainty].
+        name: Name of the histogram.
+        mass: Mass of the isotope in kg.
+        molar_mass: Molar mass of the isotope in g/mol.
+        half_life: Half-life of the isotope in years.
+        removal_time: Time since removal from reactor in years.
+        max_energy: Maximum energy for the new histogram (keV).
+            If None, uses the maximum energy from the input data.
+        min_energy: Minimum energy for the new histogram (keV).
 
     Returns:
-        ROOT.TH1D: Loaded, equalised and scaled spectrum histogram.
+        Loaded, equalised and scaled spectrum histogram.
 
     """
     spec = create_spec(data[:, 0], data[:, 1], data[:, 2], name)
@@ -213,17 +228,17 @@ def load_spec(
     return spec_scaled
 
 
-def add_spec(spectra):
+def add_spec(spectra: ROOT.TList) -> ROOT.TH1D:
     """Combine a ROOT.TList of spectra into one total spectrum.
 
     Merges multiple ROOT histograms into a single combined spectrum by summing
     the bin contents across all input histograms.
 
     Args:
-        spectra (ROOT.TList): A ROOT TList containing ROOT.TH1D spectrum histograms.
+        spectra: A ROOT TList containing ROOT.TH1D spectrum histograms.
 
     Returns:
-        ROOT.TH1D: Combined spectrum with summed bin contents from all input spectra.
+        Combined spectrum with summed bin contents from all input spectra.
 
     """
     total_spec = spectra[0].Clone("combined")
@@ -232,15 +247,18 @@ def add_spec(spectra):
     return total_spec
 
 
-def write_spec(spec, output_filename):
+def write_spec(
+    spec: ROOT.TH1D,
+    output_filename: str,
+) -> np.ndarray:
     """Output energy and flux data to CSV file.
 
     Args:
-        spec (ROOT.TH1D): The flux spectrum histogram.
-        output_filename (str): The name of the output CSV file.
+        spec: The flux spectrum histogram.
+        output_filename: The name of the output CSV file.
 
     Returns:
-        data: A 2D numpy array with energy (keV) and flux (keV^{-1} s^{-1}) columns.
+        A 2D numpy array with energy (keV) and flux (keV^{-1} s^{-1}) columns.
 
     """
     # Extract energy and flux data from the histogram

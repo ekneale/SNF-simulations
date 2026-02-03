@@ -19,12 +19,12 @@ def get_total_spec(
     Args:
         cask_name: Name of the SNF cask.
         isotope_proportions: Dictionary of isotope proportions of the total mass.
-        total_mass: Total mass of SNF (kg). Default is 1000 kg.
-        removal_time: Time since removal from reactor (years). Default is 0.
-        max_energy: Maximum energy to consider (keV). Default is 6000 keV.
+        total_mass: Total mass of SNF (kg).
+        removal_time: Time since removal from reactor (years).
+        max_energy: Maximum energy to consider (keV).
 
     Returns:
-        ROOT.TH1D: Total combined antineutrino spectrum as a ROOT histogram.
+        Total combined antineutrino spectrum as a ROOT histogram.
 
     """
     # Load the isotope data dicts

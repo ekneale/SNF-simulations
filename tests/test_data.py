@@ -13,9 +13,10 @@ from snf_simulations.data import (
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
+# ruff: noqa: PLR2004  # magic numbers
 
 
-def test_get_reactors():
+def test_get_reactors() -> None:
     """Test that reactor list can be retrieved."""
     reactors = get_reactors()
     assert isinstance(reactors, list), "Reactors should be a list"
@@ -25,7 +26,7 @@ def test_get_reactors():
     assert "hartlepool" in reactors, "Hartlepool should be in reactor list"
 
 
-def test_load_reactor_data_sizewell():
+def test_load_reactor_data_sizewell() -> None:
     """Test loading reactor data for Sizewell."""
     data = load_reactor_data("sizewell")
     assert isinstance(data, dict), "Loaded data should be a dictionary"
@@ -37,20 +38,20 @@ def test_load_reactor_data_sizewell():
     assert all(v >= 0 for v in data.values()), "All proportions should be non-negative"
 
 
-def test_load_reactor_data_hartlepool():
+def test_load_reactor_data_hartlepool() -> None:
     """Test loading reactor data for Hartlepool."""
     data = load_reactor_data("hartlepool")
     assert isinstance(data, dict), "Loaded data should be a dictionary"
     assert len(data) > 0, "Should have loaded isotope data"
 
 
-def test_load_reactor_data_invalid():
+def test_load_reactor_data_invalid() -> None:
     """Test that loading invalid reactor raises ValueError."""
     with pytest.raises(ValueError, match=r"Reactor.*data file not found"):
         load_reactor_data("invalid_reactor")
 
 
-def test_load_isotope_data_all():
+def test_load_isotope_data_all() -> None:
     """Test loading all isotope data."""
     molar_masses, half_lives = load_isotope_data()
     assert isinstance(molar_masses, dict), "Molar masses should be a dictionary"
@@ -81,7 +82,7 @@ def test_load_isotope_data_all():
     assert all(v > 0 for v in half_lives.values()), "All half lives should be positive"
 
 
-def test_load_isotope_data():
+def test_load_isotope_data() -> None:
     """Test loading specific isotopes."""
     isotopes = ["Sr90", "Y90"]
     molar_masses, half_lives = load_isotope_data(isotopes)
@@ -101,7 +102,7 @@ def test_load_isotope_data():
     )
 
 
-def test_load_spectrum():
+def test_load_spectrum() -> None:
     """Test loading spectrum data for a valid isotope."""
     spectrum = load_spectrum("Sr90")
     assert isinstance(spectrum, np.ndarray), "Spectrum should be a numpy array"
@@ -124,13 +125,13 @@ def test_load_spectrum():
     assert np.all(uncertainty >= 0), "Uncertainty values should be non-negative"
 
 
-def test_load_spectrum_invalid():
+def test_load_spectrum_invalid() -> None:
     """Test that loading invalid isotope raises ValueError."""
-    with pytest.raises(ValueError, match="Spectrum data file.*not found"):
+    with pytest.raises(ValueError, match=r"Spectrum data file.*not found"):
         load_spectrum("InvalidIsotope")
 
 
-def test_load_antineutrino_data():
+def test_load_antineutrino_data() -> None:
     """Test loading antineutrino data for multiple isotopes."""
     isotopes = ["Sr90", "Y90"]
     data = load_antineutrino_data(isotopes)

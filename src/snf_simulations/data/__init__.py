@@ -9,26 +9,26 @@ from importlib.resources import files
 import numpy as np
 
 
-def get_reactors():
+def get_reactors() -> list[str]:
     """Get a list of available reactors from the database.
 
     Returns:
-        list of str: List of reactor names.
+        List of reactor names.
 
     """
     data_files = files("snf_simulations.data.reactor_data")
     return [file.stem for file in data_files.iterdir() if file.suffix == ".csv"]
 
 
-def load_reactor_data(reactor):
+def load_reactor_data(reactor: str) -> dict[str, float]:
     """Load in reactor isotope proportions from the database.
 
     Args:
-        reactor (str): Name of the reactor to load data for.
+        reactor: Name of the reactor to load data for.
 
     Returns:
-        dict of str to float: Dictionary of isotope proportions in the fuel,
-            e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
+        Dictionary of isotope proportions in the fuel,
+        e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
 
     """
     data_files = files("snf_simulations.data.reactor_data")
@@ -48,17 +48,19 @@ def load_reactor_data(reactor):
     return {str(d[0]): float(d[1]) for d in data}
 
 
-def load_isotope_data(isotopes=None):
+def load_isotope_data(
+    isotopes: list[str] | None = None,
+) -> tuple[dict[str, int], dict[str, float]]:
     """Load in isotope parameters from the database.
 
     Args:
-        isotopes (list of str, optional): List of isotope names to load data for.
+        isotopes: List of isotope names to load data for.
             If None, load data for all isotopes in the database.
 
     Returns:
-        tuple: Two dictionaries:
-            - molar_masses: Dictionary of molar masses (g/mol) for each isotope.
-            - half_lives: Dictionary of half-lives (years) for each isotope.
+        Tuple of two dictionaries:
+        - molar_masses: Dictionary of molar masses (g/mol) for each isotope.
+        - half_lives: Dictionary of half-lives (years) for each isotope.
 
     """
     data_files = files("snf_simulations.data")
@@ -80,14 +82,14 @@ def load_isotope_data(isotopes=None):
     return molar_masses, half_lives
 
 
-def load_spectrum(isotope_name):
+def load_spectrum(isotope_name: str) -> np.ndarray:
     """Load in antineutrino spectrum data from text files.
 
     Args:
-        isotope_name (str): Name of the isotope to load data for.
+        isotope_name: Name of the isotope to load data for.
 
     Returns:
-        np.ndarray: Array containing energy, dN/dE, and uncertainty.
+        Array containing energy, dN/dE, and uncertainty.
 
     """
     # TODO: download spectra from IAEA database, and cache locally
@@ -106,15 +108,14 @@ def load_spectrum(isotope_name):
     return data[:, [7, 10, 11]]  # energy, dN/dE, uncertainty
 
 
-def load_antineutrino_data(isotopes):
+def load_antineutrino_data(isotopes: list[str]) -> dict[str, np.ndarray]:
     """Load in antineutrino spectrum data from the IAEA.
 
     Args:
-        isotopes (list of str): List of isotope names to load data for.
+        isotopes: List of isotope names to load data for.
 
     Returns:
-        dict of np.ndarray: Dictionary of arrays containing spectrum data
-        for each isotope.
+        Dictionary of arrays containing spectrum data for each isotope.
         Data arrays contain energy, dN/dE, and uncertainty.
 
     """

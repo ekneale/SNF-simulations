@@ -11,7 +11,7 @@ from snf_simulations.sample import sample_spec
 # ruff: noqa: S101  # asserts
 
 
-def _make_spec():
+def _make_spec() -> ROOT.TH1D:
     spec = ROOT.TH1D("spec", "", 3, 0, 3)
     spec.SetBinContent(1, 1.0)
     spec.SetBinContent(2, 2.0)
@@ -19,7 +19,7 @@ def _make_spec():
     return spec
 
 
-def test_sample_spec_returns_samples():
+def test_sample_spec_returns_samples() -> None:
     """Test sample size and bounds from a ROOT spectrum."""
     ROOT.gRandom.SetSeed(1234)  # Set seed for reproducibility
     spec = _make_spec()
@@ -36,7 +36,7 @@ def test_sample_spec_returns_samples():
     assert samples == samples_ref, "Sampled values do not match reference"
 
 
-def test_sample_spec_writes_csv():
+def test_sample_spec_writes_csv() -> None:
     """Test CSV output writing when a filename is provided."""
     ROOT.gRandom.SetSeed(1234)  # Set seed for reproducibility
     spec = _make_spec()
