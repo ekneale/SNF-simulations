@@ -15,6 +15,22 @@ authors = [
 maintainers = [
     {name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk"},
 ]
+keywords = [
+    "nuclear",
+    "antineutrino",
+    "spectrum",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Physics",
+    ]
 readme = "README.md"
 license = "BSD-3-Clause"
 license-files = [
@@ -23,13 +39,16 @@ license-files = [
 requires-python = ">=3.10"
 dependencies = [
     "numpy",
+    # "ROOT" not on PyPI, so not listed here, but is required
 ]
 
 [project.scripts]
-snf-sim = "snf_simulations.scripts.command_line:main"
+snf-sim = "snf_simulations.scripts.command_line:run"
 
 [project.urls]
-source = "https://github.com/ekneale/SNF-simulations"
+homepage = "https://github.com/ekneale/SNF-simulations"
+documentation = "https://github.com/ekneale/SNF-simulations"  # TODO
+repository = "https://github.com/ekneale/SNF-simulations"
 
 [tool.setuptools]
 include-package-data = true
