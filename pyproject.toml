@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snf_simulations"
+version = "0.1.0"
+description = "Simulate antineutrino spectra for different compositions of spent nuclear fuel."
+authors = [
+    {name = "Zuzanna Leliwa", email = "zleliwa1@sheffield.ac.uk"},
+    {name = "Abigail Power", email = "apower3@sheffield.ac.uk"},
+    {name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk"},
+    {name = "Martin Dyer", email = "martin.dyer@sheffield.ac.uk"},
+]
+maintainers = [
+    {name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk"},
+]
+keywords = [
+    "nuclear",
+    "antineutrino",
+    "spectrum",
+]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Physics",
+    ]
+readme = "README.md"
+license = "BSD-3-Clause"
+license-files = [
+    'LICENSE.txt'
+]
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    # "ROOT" not on PyPI, so not listed here, but is required
+]
+
+[project.scripts]
+snf-sim = "snf_simulations.scripts.command_line:run"
+
+[project.urls]
+homepage = "https://github.com/ekneale/SNF-simulations"
+documentation = "https://github.com/ekneale/SNF-simulations"  # TODO
+repository = "https://github.com/ekneale/SNF-simulations"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+namespaces = true
+where = ["src"]
+
+[tool.setuptools.package-data]
+"snf_simulations.data.spec_data" = ["*.txt"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle (errors)
+    "F", # Pyflakes
+    "PL", # pylint
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "S", # flake8-bandit
+    "SIM", # flake8-simplify
+    "I", # isort
+    "ANN",  # Type annotation rules
+    "D", # pydocstyle
+]
+ignore = [
+    "D203",  # Ignored for Google style docstrings
+    "D213",  # Ignored for Google style docstrings
+    ]
+
+# [tool.ty.rules]
+# Too many errors from ROOT, I think https://github.com/astral-sh/ruff/pull/23122
+# should fix it once it's released.
+# See also https://github.com/astral-sh/ty/issues/487.
