@@ -7,9 +7,8 @@ import pytest
 import ROOT
 
 from snf_simulations.physics import calculate_event_rate, calculate_flux
-from snf_simulations.sample import sample_spec
 from snf_simulations.scripts.command_line import _get_spectra
-from snf_simulations.spec import add_spec
+from snf_simulations.spec import add_spec, sample_spec
 
 from . import data
 

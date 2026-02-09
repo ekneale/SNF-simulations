@@ -9,8 +9,7 @@ import ROOT
 from snf_simulations.cask import get_total_spec
 from snf_simulations.data import load_reactor_data
 from snf_simulations.physics import calculate_event_rate, calculate_flux
-from snf_simulations.sample import sample_spec
-from snf_simulations.spec import add_spec, write_spec
+from snf_simulations.spec import add_spec, sample_spec, write_spec
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
