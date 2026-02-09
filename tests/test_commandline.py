@@ -35,7 +35,7 @@ def _load_output(filename: str) -> tuple[np.ndarray, np.ndarray]:
     `flux.write_spec_multiple` functions are not really proper CSV files,
     so we have to do a bit of manual parsing here to get the data out.
     """
-    with importlib.resources.path(data, filename) as path, open(path) as f:
+    with importlib.resources.path(data, filename) as path, path.open() as f:
         energy_line = f.readline()
         flux_line = f.readline()
 
@@ -204,7 +204,7 @@ def test_sampling(reactor: str) -> None:
     # sample.sample() uses GetRandom(), but the output seems to be deterministic.
     # So we can compare to a reference file.
     filename = f"{reactor.capitalize()}_sampled_spectrum.csv"
-    with importlib.resources.path(data, filename) as path, open(path) as f:
+    with importlib.resources.path(data, filename) as path, path.open() as f:
         lines = f.readlines()
         samples_ref = [float(line.strip()) for line in lines]
     assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"

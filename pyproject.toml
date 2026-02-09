@@ -40,3 +40,29 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "snf_simulations.data.spec_data" = ["*.txt"]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle (errors)
+    "F", # Pyflakes
+    "PL", # pylint
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "S", # flake8-bandit
+    "SIM", # flake8-simplify
+    "I", # isort
+    "ANN",  # Type annotation rules
+    "D", # pydocstyle
+]
+ignore = [
+    "D203",  # Ignored for Google style docstrings
+    "D213",  # Ignored for Google style docstrings
+    ]
+
+# [tool.ty.rules]
+# Too many errors from ROOT, I think https://github.com/astral-sh/ruff/pull/23122
+# should fix it once it's released.
+# See also https://github.com/astral-sh/ty/issues/487.

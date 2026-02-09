@@ -1,6 +1,6 @@
 """Unit tests for sampling spectra."""
 
-import os
+from pathlib import Path
 
 import numpy as np
 import ROOT
@@ -40,14 +40,14 @@ def test_sample_spec_writes_csv() -> None:
     """Test CSV output writing when a filename is provided."""
     ROOT.gRandom.SetSeed(1234)  # Set seed for reproducibility
     spec = _make_spec()
-    filename = "samples"
-    samples = sample_spec(spec, samples=3, output_filename=str(filename))
+    filename = Path("samples")
+    samples = sample_spec(spec, samples=3, output_filename=filename)
 
     # Check that the file was created and contents are correct
     # (note that .csv extension is added automatically by sample_spec)
-    csv_file = filename + ".csv"
-    saved = np.loadtxt(str(csv_file), delimiter=",")
+    csv_file = filename.with_suffix(".csv")
+    saved = np.loadtxt(csv_file, delimiter=",")
     assert saved.tolist() == samples, "Saved samples do not match returned samples"
 
     # Clean up the file after testing
-    os.remove(csv_file)
+    csv_file.unlink()

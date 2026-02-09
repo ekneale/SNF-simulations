@@ -1,5 +1,7 @@
 """Functions for loading and manipulating spectra."""
 
+from pathlib import Path
+
 import numpy as np
 import ROOT
 
@@ -39,7 +41,7 @@ def create_spec(
     # For spec.Fill this doesn't matter, as it fills each bin sequentially.
     # But for spec.SetBinError we loop starting at bin 1, so need the error from [i-1].
     # Using enumerate() with start=1 will handle this nicely.
-    for e, dn in zip(energy, dn_de):
+    for e, dn in zip(energy, dn_de, strict=True):
         spec.Fill(e, dn)
     for i, err in enumerate(errors, start=1):
         spec.SetBinError(i, err)
@@ -54,8 +56,8 @@ def create_spec(
 
 def equalise_spec(
     spec: ROOT.TH1D,
-    max_energy: float,
-    min_energy: float = 0,
+    max_energy: int,
+    min_energy: int = 0,
 ) -> ROOT.TH1D:
     """Convert a ROOT TH1D histogram to have equal bin widths.
 
@@ -131,7 +133,7 @@ def equalise_spec(
     )
 
     # Fill the new histogram with the interpolated content
-    for centre, content in zip(new_centres, new_content):
+    for centre, content in zip(new_centres, new_content, strict=True):
         spec_equal.Fill(centre, content)
     for i, err in enumerate(new_errors, start=1):
         spec_equal.SetBinError(i, err)
@@ -189,15 +191,15 @@ def scale_spec(
     return spec
 
 
-def load_spec(
+def load_spec(  # noqa: PLR0913
     data: np.ndarray,
     name: str,
     mass: float,
     molar_mass: float,
     half_life: float,
     removal_time: float,
-    max_energy: float | None = None,
-    min_energy: float = 0,
+    max_energy: int | None = None,
+    min_energy: int = 0,
 ) -> ROOT.TH1D:
     """Load, equalise and scale a spectrum from data.
 
@@ -219,6 +221,9 @@ def load_spec(
         Loaded, equalised and scaled spectrum histogram.
 
     """
+    # TODO: there are too many arguments to this function, but if ROOT is removed
+    # and atomic properties can be fetched through mendeleev then it can
+    # be simplified a lot.
     spec = create_spec(data[:, 0], data[:, 1], data[:, 2], name)
     if max_energy is None:
         max_energy = int(np.floor(max(data[:, 0])))
@@ -249,7 +254,7 @@ def add_spec(spectra: ROOT.TList) -> ROOT.TH1D:
 
 def write_spec(
     spec: ROOT.TH1D,
-    output_filename: str,
+    output_filename: Path | str,
 ) -> np.ndarray:
     """Output energy and flux data to CSV file.
 
@@ -268,8 +273,10 @@ def write_spec(
     data = np.column_stack((energy, flux))
 
     # Save energy and flux data as a csv file
-    if not output_filename.endswith(".csv"):
+    if isinstance(output_filename, str) and not output_filename.endswith(".csv"):
         output_filename += ".csv"
+    elif isinstance(output_filename, Path) and output_filename.suffix != ".csv":
+        output_filename = output_filename.with_suffix(".csv")
     np.savetxt(
         output_filename,
         data,

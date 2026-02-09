@@ -4,7 +4,7 @@ Provides functions to load isotope data, reactor fuel composition data, and
 antineutrino spectrum data from the built-in database files.
 """
 
-from importlib.resources import files
+from importlib.resources import as_file, files
 
 import numpy as np
 
@@ -17,7 +17,8 @@ def get_reactors() -> list[str]:
 
     """
     data_files = files("snf_simulations.data.reactor_data")
-    return [file.stem for file in data_files.iterdir() if file.suffix == ".csv"]
+    with as_file(data_files) as path:
+        return [file.stem for file in path.iterdir() if file.suffix == ".csv"]
 
 
 def load_reactor_data(reactor: str) -> dict[str, float]:
@@ -32,19 +33,23 @@ def load_reactor_data(reactor: str) -> dict[str, float]:
 
     """
     data_files = files("snf_simulations.data.reactor_data")
-    filename = data_files.joinpath(f"{reactor}.csv")
-    if not filename.is_file():
-        msg = f"Reactor {reactor} data file not found."
-        valid_reactors = ", ".join(get_reactors())
-        msg += f" Valid reactors are: {valid_reactors}."
-        raise ValueError(msg)
+    filename = data_files / f"{reactor}.csv"
 
-    data = np.genfromtxt(
-        filename,
-        delimiter=",",
-        skip_header=1,
-        dtype=str,
-    )
+    # Check if file exists
+    with as_file(filename) as filepath:
+        if not filepath.is_file():
+            msg = f"Reactor {reactor} data file not found."
+            valid_reactors = ", ".join(get_reactors())
+            msg += f" Valid reactors are: {valid_reactors}."
+            raise ValueError(msg)
+
+        data = np.genfromtxt(
+            filepath,
+            delimiter=",",
+            skip_header=1,
+            dtype=str,
+        )
+
     return {str(d[0]): float(d[1]) for d in data}
 
 
@@ -64,17 +69,20 @@ def load_isotope_data(
 
     """
     data_files = files("snf_simulations.data")
-    filename = data_files.joinpath("isotopes.csv")
-    if not filename.is_file():
-        msg = "Isotope CSV file not found."
-        raise ValueError(msg)
+    filename = data_files / "isotopes.csv"
 
-    data = np.genfromtxt(
-        filename,
-        delimiter=",",
-        skip_header=1,
-        dtype=str,
-    )
+    with as_file(filename) as filepath:
+        if not filepath.is_file():
+            msg = "Isotope CSV file not found."
+            raise ValueError(msg)
+
+        data = np.genfromtxt(
+            filepath,
+            delimiter=",",
+            skip_header=1,
+            dtype=str,
+        )
+
     if isotopes is not None:
         data = data[np.isin(data[:, 0], isotopes)]
     molar_masses = {str(d[0]): int(d[1]) for d in data}
@@ -94,12 +102,14 @@ def load_spectrum(isotope_name: str) -> np.ndarray:
     """
     # TODO: download spectra from IAEA database, and cache locally
     spec_files = files("snf_simulations.data.spec_data")
-    filename = spec_files.joinpath(f"{isotope_name}_an.txt")
-    if not filename.is_file():
-        msg = f"Spectrum data file for {isotope_name} not found."
-        raise ValueError(msg)
+    filename = spec_files / f"{isotope_name}_an.txt"
 
-    data = np.genfromtxt(spec_files.joinpath(filename), skip_header=1)
+    with as_file(filename) as filepath:
+        if not filepath.is_file():
+            msg = f"Spectrum data file for {isotope_name} not found."
+            raise ValueError(msg)
+
+        data = np.genfromtxt(filepath, skip_header=1)
 
     # Some isotopes have multiple decay chains, so cut off where the
     # main decay chain ends based on the p_energy column.

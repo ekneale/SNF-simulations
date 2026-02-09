@@ -14,20 +14,17 @@ from snf_simulations.spec import add_spec, write_spec
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
-# Suppress warnings from ruff
-# ruff: noqa: T201  # prints
-
 
 def _get_spectra(
     cask_mass: float = 10000,
-    removal_times: list[float] | None = None,
+    removal_times: list[float] | np.ndarray | None = None,
     reactor: str = "sizewell",
 ) -> ROOT.TList:
     """Create spectra for a single dry cask of fuel at multiple removal times.
 
     Args:
         cask_mass: Total mass of SNF in the cask (kg).
-        removal_times: List of removal times to plot (years).
+        removal_times: List or array of removal times to plot (years).
             If None, only plot time 0.
         reactor: Reactor name.
 
@@ -56,20 +53,8 @@ def _get_spectra(
     return spectra
 
 
-def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
-    """Run SNF simulations and calculate antineutrino fluxes and event rates.
-
-    Performs calculations for single and multiple dry casks of spent nuclear fuel
-    at various cooling times, calculating antineutrino flux and expected detector
-    event rates at 40 meters distance.
-
-    Args:
-        reactor: Reactor name ('sizewell' or 'hartlepool').
-        cask_mass: Total mass of SNF in each cask (kg).
-
-    """
-    ################################################
-    # 1) Plot the spectrum for a single dry cask of fuel at different removal times.
+def run_single(reactor: str = "sizewell", cask_mass: float = 10000) -> np.ndarray:
+    """Plot the spectrum for a single dry cask of fuel at different removal times."""
     #    One 10 tonne cask, removal times of 0, 0.5, 1, 5, 10, 20 years.
     print("Generating single cask spectra at different cooling times...")
     removal_times = [0, 0.5, 1, 5, 10, 20]
@@ -141,14 +126,20 @@ def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
     # Save the plot as a PDF
     c.SaveAs(f"{reactor.capitalize()}_single.pdf")
 
-    ################################################
-    # 2) Calculate total spectra for multiple casks
-    #    40 casks in total, each 10 tonnes, split between 4 different removal times.
-    #    Since we're combining the spectra at the end, instead of ten 10-tonne casks
-    #    at each removal time, we just simulate one 100-tonne cask.
+    return data_single_05
+
+
+def run_multiple(
+    reactor: str = "sizewell",
+    cask_mass: float = 10000,
+    casks_per_removal: int = 10,
+) -> tuple[np.ndarray, ROOT.TH1D]:
+    """Calculate total spectra for multiple casks."""
+    # 40 casks in total, each 10 tonnes, split between 4 different removal times.
+    # Since we're combining the spectra at the end, instead of ten 10-tonne casks
+    # at each removal time, we just simulate one 100-tonne cask.
     print()
     print("Generating multiple cask spectra...")
-    casks_per_removal = 10
     if reactor == "sizewell":
         removal_times = [0.5, 5, 10, 20]
     elif reactor == "hartlepool":
@@ -165,7 +156,7 @@ def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
 
     # Save to CSV
     print()
-    print("Writing single cask spectrum data to CSV...")
+    print("Writing multiple cask spectrum data to CSV...")
     filename = f"{reactor}_multiple.csv"
     data_multiple = write_spec(spec_multiple, output_filename=filename)
     print(f"Saved to {filename}")
@@ -183,14 +174,21 @@ def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
         f" to {rate_upper * 60**2 * 24:.3f} per day",
     )
 
-    ################################################
-    # 3) Plot both flux spectra on one graph
+    return data_multiple, spec_multiple
+
+
+def run_compare(
+    data_single: np.ndarray,
+    data_multiple: np.ndarray,
+    reactor: str = "sizewell",
+) -> None:
+    """Plot both single and multiple flux spectra on one graph."""
     # Create ROOT canvas and legend
     c = ROOT.TCanvas("multiple_single", "true_neutrino_energy", 1200, 600)
     legend = ROOT.TLegend(0.7, 0.15, 0.9, 0.3)
 
     # Add data to the canvas
-    energy_single, flux_single = data_single_05[:, 0], data_single_05[:, 1]
+    energy_single, flux_single = data_single[:, 0], data_single[:, 1]
     graph_single = ROOT.TGraph(
         len(energy_single),
         array("d", energy_single),
@@ -221,15 +219,19 @@ def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
     input("Displaying plot...")  # pause to view plot
 
     # Save the plot as a PDF
-    c.SaveAs(f"Multiple_Single_comp_{reactor.capitalize()}_0.5.png")
+    c.SaveAs(f"{reactor.capitalize()}_Multiple_Single_comp.png")
 
-    ################################################
-    # 4) Plot multiple flux spectra for different cooling times.
-    # As in part 2, but now we add extra cooling times to see how the spectrum evolves.
+
+def run_multiple_full(
+    reactor: str = "sizewell",
+    cask_mass: float = 10000,
+    casks_per_removal: int = 10,
+) -> None:
+    """Plot multiple flux spectra for different cooling times."""
+    # This is the same setup as run_multi, but now we add extra cooling times
+    # to see how the spectrum evolves.
     print()
     print("Generating multiple cask spectra for different cooling times...")
-    cask_mass = 10000
-    casks_per_removal = 10
     if reactor == "sizewell":
         removal_times = [0.5, 5, 10, 20]
     elif reactor == "hartlepool":
@@ -239,9 +241,10 @@ def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
     # Create the combined spectra from all casks for each cooling time
     spectra = ROOT.TList()
     for cooling_time in cooling_times:
+        new_ages = np.array(removal_times) + cooling_time
         time_spectra = _get_spectra(
             cask_mass=cask_mass * casks_per_removal,
-            removal_times=np.array(removal_times) + cooling_time,
+            removal_times=new_ages,
             reactor=reactor,
         )
         total_spec = add_spec(time_spectra)
@@ -297,14 +300,18 @@ def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
     # Save the plot as a PDF
     c.SaveAs(f"{reactor.capitalize()}_MultipleCasks.pdf")
 
-    ################################################
-    # 5) Sample the multiple cask spectrum to simulate detector observations
-    print()
-    print("Sampling multiple cask spectrum...")
 
-    # Take 1 million samples from the multiple cask spectrum, and save to CSV
+def run_sample(
+    spec: ROOT.TH1D,
+    reactor: str = "sizewell",
+) -> None:
+    """Sample the cask spectrum to simulate detector observations."""
+    print()
+    print("Sampling cask spectrum...")
+
+    # Take 1 million samples from the cask spectrum, and save to CSV
     sampled = sample_spec(
-        spec_multiple,
+        spec,
         samples=1000000,
         output_filename=f"{reactor.capitalize()}_sampled_spectrum.csv",
     )
@@ -335,6 +342,26 @@ def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
 
     # Save the plot as a PDF
     c.SaveAs(f"{reactor.capitalize()}_Sampled.pdf")
+
+
+def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:
+    """Run SNF simulations and calculate antineutrino fluxes and event rates.
+
+    Performs calculations for single and multiple dry casks of spent nuclear fuel
+    at various cooling times, calculating antineutrino flux and expected detector
+    event rates at 40 meters distance.
+
+    Args:
+        reactor: Reactor name ('sizewell' or 'hartlepool').
+        cask_mass: Total mass of SNF in each cask (kg).
+
+    """
+    # Run each of the test cases
+    data_single = run_single(reactor=reactor, cask_mass=cask_mass)
+    data_multiple, spec_multiple = run_multiple(reactor=reactor, cask_mass=cask_mass)
+    run_compare(data_single, data_multiple, reactor=reactor)
+    run_multiple_full(reactor=reactor, cask_mass=cask_mass)
+    run_sample(spec_multiple, reactor=reactor)
 
 
 def main() -> None:

@@ -1,5 +1,7 @@
 """Module for sampling a spectrum histogram to simulate detector observations."""
 
+from pathlib import Path
+
 import numpy as np
 import ROOT
 
@@ -7,7 +9,7 @@ import ROOT
 def sample_spec(
     spec: ROOT.TH1D,
     samples: int = 100,
-    output_filename: str | None = None,
+    output_filename: Path | str | None = None,
 ) -> list[float]:
     """Sample the total spectrum to simulate what a detector could observe.
 
@@ -27,8 +29,10 @@ def sample_spec(
 
     if output_filename:
         # Save samples as a CSV file
-        if not output_filename.endswith(".csv"):
+        if isinstance(output_filename, str) and not output_filename.endswith(".csv"):
             output_filename += ".csv"
+        elif isinstance(output_filename, Path) and output_filename.suffix != ".csv":
+            output_filename = output_filename.with_suffix(".csv")
         np.savetxt(
             output_filename,
             sampled_flux,

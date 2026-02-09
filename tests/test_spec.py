@@ -1,6 +1,6 @@
 """Unit tests for loading antineutrino spectra data."""
 
-import os
+from pathlib import Path
 
 import numpy as np
 import ROOT
@@ -19,7 +19,7 @@ from snf_simulations.spec import (
 from .test_commandline import _spec_to_arrays
 
 # Suppress assert warnings from ruff
-# ruff: noqa: S101
+# ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
 
 
@@ -66,7 +66,8 @@ def test_load_antineutrino_data() -> None:
 
 
 def _test_create_spec(
-    isotope_data: np.ndarray, isotope_name: str = "test_isotope",
+    isotope_data: np.ndarray,
+    isotope_name: str = "test_isotope",
 ) -> ROOT.TH1D:
     """Test that spectra histograms can be created and have the correct properties."""
     # Create the spectrum
@@ -484,17 +485,18 @@ def test_scale_mock() -> None:
         )
 
 
-def _test_load_and_scale(
+def _test_load_and_scale(  # noqa: PLR0913
     data: np.ndarray,
     name: str,
     mass: float,
     molar_mass: float,
     half_life: float,
     removal_time: float,
-    max_energy: float,
-    min_energy: float = 0,
+    max_energy: int,
+    min_energy: int = 0,
 ) -> ROOT.TH1D:
     """Test that loading and scaling spectra works as expected."""
+    # TODO: This has too many arguments but it mirrors load_spec, see it for details.
     # Use the combined function
     ls_spec = load_spec(
         data,
@@ -646,13 +648,13 @@ def test_write_spec() -> None:
     )
 
     # Write the spectrum to a CSV
-    filename = "test_spectrum"
+    filename = Path("test_spectrum")
     write_spec(spec, filename)
     energy, flux = _spec_to_arrays(spec)
 
     # Check that the file was created and contents are correct
     # (note that .csv extension is added automatically by sample_spec)
-    csv_file = filename + ".csv"
+    csv_file = filename.with_suffix(".csv")
     data_loaded = np.loadtxt(
         csv_file,
         delimiter=",",
@@ -666,4 +668,4 @@ def test_write_spec() -> None:
     assert np.array_equal(flux, flux_loaded), "Loaded flux does not match original"
 
     # Clean up the file after testing
-    os.remove(csv_file)
+    csv_file.unlink()

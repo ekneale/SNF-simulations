@@ -88,12 +88,21 @@ def get_decay_mass(
     return daughter_mass
 
 
-def calculate_flux(spec: ROOT.TH1D, distance: float) -> float:
+def calculate_flux(
+    spec: ROOT.TH1D,
+    distance: float,
+    lower_energy: float = 1801,
+    upper_energy: float = 6000,
+) -> float:
     """Calculate the antineutrino flux at a given distance from the source.
 
     Args:
         spec: The total antineutrino spectrum histogram.
         distance: Distance from the source in meters.
+        lower_energy: Lower energy threshold for integration (keV).
+            The default of 1801 keV is just above the inverse beta decay reaction
+            threshold of 1800 keV.
+        upper_energy: Upper energy threshold for integration (keV).
 
     Returns:
         Antineutrino flux at the given distance in cm^{-2} s^{-1}.
@@ -101,7 +110,8 @@ def calculate_flux(spec: ROOT.TH1D, distance: float) -> float:
     """
     # The IBD reaction threshold is 1800 keV, so we integrate above this energy.
     # This gives the total flux of antineutrinos per second above the threshold.
-    total_flux = spec.Integral(1801, 6000)
+    # TODO: It's apparently 1.806 MeV, to be precise.
+    total_flux = spec.Integral(lower_energy, upper_energy)
 
     # Calculate the flux at the given distance, assuming it's a point source emitting
     # isotropically in all directions.
@@ -128,6 +138,8 @@ def calculate_event_rate(
     """
     # Calculate the number of target protons in the detector
     # VIDARR is a plastic scintillator detector with a volume of (1.52 x 1.52 x 0.7) m^3
+    # TODO: these are all currently hardcoded, ideally they should be input parameters
+    # or read from a detector config file.
     detector_volume = 1.52 * 1.52 * 0.7  # m^3
     detector_volume = detector_volume * 1e6  # convert to cm^3
     proton_density = 4.6e22  # number density of protons in cm^-3
