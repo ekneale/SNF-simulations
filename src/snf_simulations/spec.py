@@ -5,7 +5,338 @@ from pathlib import Path
 import numpy as np
 import ROOT
 
+from .data import load_spectrum
 from .physics import get_isotope_activity
+
+
+def linear_interpolate_with_errors(
+    original_centres: np.ndarray,
+    original_content: np.ndarray,
+    original_errors: np.ndarray,
+    new_centres: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Linearly interpolate content and propagate errors to new bin centers."""
+    # Interpolate new content values
+    new_content = np.interp(new_centres, original_centres, original_content)
+
+    # Propagate errors
+    new_errors = np.zeros_like(new_centres)
+    for i, centre in enumerate(new_centres):
+        # Check for extrapolation cases
+        if centre < original_centres[0]:
+            # Extrapolation below the first bin centre - use first error
+            new_errors[i] = original_errors[0]
+            continue
+        if centre >= original_centres[-1]:
+            # Extrapolation above the last bin centre - use last error
+            new_errors[i] = original_errors[-1]
+            continue
+
+        # Find the two closest original bin centers.
+        # Using np.searchsorted finds the "insertion point" for the new centre,
+        # i.e. the index of where it would go to keep the array sorted.
+        # So if the original_centres are [1, 2, 3] and centre is 2.5, idx will be 2
+        # as it would fit between 2 (index 1) and 3 (index 2).
+        # Therefore the surrounding bins are at idx-1 and idx.
+        idx = np.searchsorted(original_centres, centre)
+        lower_idx = idx - 1
+        upper_idx = idx
+
+        # Calculate new error by propagating errors from the two surrounding bins,
+        # weighted by distance to the new centre.
+        c_lower = original_centres[lower_idx]
+        c_upper = original_centres[upper_idx]
+        err_lower = original_errors[lower_idx]
+        err_upper = original_errors[upper_idx]
+        weight_lower = (c_upper - centre) / (c_upper - c_lower)
+        weight_upper = (centre - c_lower) / (c_upper - c_lower)
+        new_errors[i] = np.sqrt(
+            weight_lower**2 * err_lower**2 + weight_upper**2 * err_upper**2,
+        )
+
+    return new_content, new_errors
+
+
+def sample_histogram(
+    bin_edges: np.ndarray,
+    bin_contents: np.ndarray,
+    samples: int = 100,
+    seed: int | None = None,
+) -> np.ndarray:
+    """Sample x values from histogram bins, similar to ROOT TH1::GetRandom.
+
+    Args:
+        bin_edges: 1D array of bin edges with length N+1.
+        bin_contents: 1D array of bin contents with length N.
+        samples: Number of samples to draw.
+        seed: Seed for reproducible random sampling.
+
+    Returns:
+        Array of sampled x values.
+
+    """
+    if bin_edges.ndim != 1 or bin_contents.ndim != 1:
+        msg = "bin_edges and bin_contents must be 1D arrays"
+        raise ValueError(msg)
+    if len(bin_edges) != len(bin_contents) + 1:
+        msg = "bin_edges must have length len(bin_contents) + 1"
+        raise ValueError(msg)
+    widths = np.diff(bin_edges)
+    if np.any(widths <= 0):
+        msg = "bin_edges must be strictly increasing"
+        raise ValueError(msg)
+    if np.any(bin_contents < 0):
+        msg = "bin_contents must be non-negative"
+        raise ValueError(msg)
+
+    # Match ROOT TH1::GetRandom behaviour: bin selection probability is
+    # proportional to bin content, then sample uniformly within the selected bin.
+    weights = bin_contents
+    total_weight = np.sum(weights)
+    if total_weight <= 0:  # Avoid division by zero errors
+        msg = "Histogram has zero total area; cannot sample"
+        raise ValueError(msg)
+    probabilities = weights / total_weight
+
+    # Use numpy's random choice to select X bins according to their probabilities,
+    # for the requested number of samples.
+    rng = np.random.default_rng(seed)
+    sampled_indices = rng.choice(len(bin_contents), size=samples, p=probabilities)
+
+    # Finally, for each bin take a uniform sample between the upper and lower edges.
+    # This gives a continuous distribution of sampled x values from within the bins.
+    lower = bin_edges[sampled_indices]
+    upper = bin_edges[sampled_indices + 1]
+    return rng.uniform(lower, upper)
+
+
+class Spectrum:
+    """Class to represent an antineutrino spectrum.
+
+    Attributes:
+        energy: Array of energy values (keV), representing histogram bin edges.
+        flux: Array of antineutrino flux values (keV^-1) for each energy bin.
+            Note for N energy bin edges there should be N-1 flux values,
+            with each pair of adjacent energy values defining the upper and lower
+            edges of each bin.
+        errors: Array of uncertainties for the flux values.
+            Array length should be the same as flux.
+        name: Name of the spectrum.
+
+    """
+
+    def __init__(
+        self,
+        energy: np.ndarray,
+        flux: np.ndarray,
+        errors: np.ndarray,
+        name: str = "Spectrum",
+    ) -> None:
+        """Initialize the Spectrum object."""
+        # Check that energy, flux and errors arrays have compatible shapes
+        if energy.ndim != 1 or flux.ndim != 1 or errors.ndim != 1:
+            msg = "Energy, flux and errors must be 1D arrays"
+            raise ValueError(msg)
+        if len(flux) != len(energy) - 1:
+            msg = "Flux array must have length len(energy) - 1"
+            raise ValueError(msg)
+        if len(flux) != len(errors):
+            msg = "Flux and errors arrays must have the same length"
+            raise ValueError(msg)
+
+        self.energy = energy
+        self.flux = flux
+        self.errors = errors
+        self.name = name
+
+    def __repr__(self) -> str:
+        """Return a string representation of the Spectrum object."""
+        repr_str = f"<Spectrum {self.name}, "
+        repr_str += f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
+        return repr_str
+
+    @classmethod
+    def from_isotope(
+        cls,
+        name: str,
+    ) -> "Spectrum":
+        """Create a Spectrum object from an isotope name."""
+        # The IAEA data files give equal arrays of energy, flux, and uncertainty.
+        data = load_spectrum(name)
+        energy_points, flux_points, error_points = data[:, 0], data[:, 1], data[:, 2]
+
+        # Histogram representation requires N+1 edges for N bins.
+        # The last energy point is used as the upper edge of the final bin,
+        # so the last flux/error value is discarded.
+        energy = energy_points
+        flux = flux_points[:-1]
+        errors = error_points[:-1]
+        return cls(
+            energy,
+            flux,
+            errors,
+            name=name,
+        )
+
+    def equalise(
+        self,
+        width: float = 1,
+        min_energy: float | None = None,
+        max_energy: float | None = None,
+    ) -> None:
+        """Convert the spectrum to have equal bin widths.
+
+        Bins are spaced from min_energy to max_energy with the requested width.
+
+        Args:
+            width: Target bin width (keV). Must be positive.
+            min_energy: Minimum energy for the new spectrum (keV).
+                If None, uses the current minimum energy edge.
+            max_energy: Maximum energy for the new spectrum (keV).
+                If None, uses the current maximum energy edge.
+
+        """
+        if width <= 0:
+            msg = "width must be a positive value"
+            raise ValueError(msg)
+        if min_energy is None:
+            min_energy = float(self.energy[0])
+        if max_energy is None:
+            max_energy = float(self.energy[-1])
+        if max_energy <= min_energy:
+            msg = "max_energy must be greater than min_energy"
+            raise ValueError(msg)
+
+        # Interpolate to the new bin centres and propagate errors
+        original_centres = (self.energy[:-1] + self.energy[1:]) / 2
+        new_edges = np.arange(min_energy, max_energy + width, width)
+        new_centres = (new_edges[:-1] + new_edges[1:]) / 2
+        new_flux, new_errors = linear_interpolate_with_errors(
+            original_centres,
+            self.flux,
+            self.errors,
+            new_centres,
+        )
+
+        # Apply the new values to this Spectrum instance in place
+        self.energy = new_edges
+        self.flux = new_flux
+        self.errors = new_errors
+        self.name = self.name + " equalised"
+
+    def __add__(self, other: "Spectrum") -> "Spectrum":
+        """Add another Spectrum to this one by summing the flux values.
+
+        The energy bins of the two spectra must be the same.
+
+        Args:
+            other: Another Spectrum object to add to this one.
+
+        Returns:
+            A new Spectrum object representing the sum of the two spectra.
+
+        """
+        if not np.allclose(self.energy, other.energy):
+            msg = "Energy bins of the two spectra must be the same to add them."
+            raise ValueError(msg)
+        new_flux = self.flux + other.flux
+        new_errors = np.sqrt(self.errors**2 + other.errors**2)
+        new_name = self.name + " + " + other.name
+        return Spectrum(self.energy, new_flux, new_errors, name=new_name)
+
+    def __mul__(self, factor: float) -> "Spectrum":
+        """Multiply the spectrum by a scalar factor.
+
+        Args:
+            factor: The scaling factor to apply to the spectrum.
+
+        Returns:
+            A new Spectrum object representing the scaled spectrum.
+
+        """
+        new_flux = self.flux * factor
+        new_errors = self.errors * abs(factor)
+        new_name = self.name + f" scaled by {factor}"
+        return Spectrum(self.energy, new_flux, new_errors, name=new_name)
+
+    def sample(self, samples: int = 100) -> np.ndarray:
+        """Sample the spectrum to simulate what a detector could observe.
+
+        Args:
+            samples: Number of samples to draw from the spectrum.
+
+        Returns:
+            Array of sampled energies.
+
+        """
+        return sample_histogram(self.energy, self.flux, samples)
+
+    def integrate(
+        self,
+        lower_energy: float,
+        upper_energy: float,
+    ) -> float:
+        """Integrate the spectrum over an energy range.
+
+        This provides the Spectrum-class equivalent of integrating a ROOT
+        histogram for flux calculations.
+
+        Args:
+            lower_energy: Lower energy bound in keV.
+            upper_energy: Upper energy bound in keV.
+
+        Returns:
+            Integrated spectrum value over the requested range.
+
+        """
+        if upper_energy <= lower_energy:
+            msg = "upper_energy must be greater than lower_energy"
+            raise ValueError(msg)
+
+        # We need to account for if the upper or lower bounds fall partially within a
+        # bin instead of at a bin edge.
+        # Calculate the overlap of each bin with the integration range,
+        # and weight the flux in each bin by this overlap length.
+        # For most bins this will be either 0 (outside the range) or the full bin width
+        # (fully within the range), but for the two bins at the edges of the range
+        # it could be a partial overlap.
+        # Using np.clip gives an array where each value is the length of the overlap of
+        # that bin with the integration range.
+        # Then multiply the flux in each bin by the overlap length, and sum to get the
+        # total integrated flux.
+        lower_edges = self.energy[:-1]
+        upper_edges = self.energy[1:]
+        overlap_length = np.clip(
+            np.minimum(upper_edges, upper_energy)
+            - np.maximum(lower_edges, lower_energy),
+            a_min=0,
+            a_max=None,
+        )
+        return float(np.sum(self.flux * overlap_length))
+
+    def write_csv(self, output_filename: Path | str = "") -> None:
+        """Output energy and flux data to CSV file.
+
+        Args:
+            output_filename: The name of the output CSV file.
+
+        """
+        if not output_filename:
+            output_filename = self.name.replace(" ", "_") + ".csv"
+        if isinstance(output_filename, str) and not output_filename.endswith(".csv"):
+            output_filename += ".csv"
+        elif isinstance(output_filename, Path) and output_filename.suffix != ".csv":
+            output_filename = output_filename.with_suffix(".csv")
+
+        data = np.column_stack((self.energy[:-1], self.flux, self.errors))
+        np.savetxt(
+            output_filename,
+            data,
+            fmt=("%.1f", "%.6e", "%.6e"),
+            delimiter=",",
+            header="energy_lower_edge,flux,error",
+            comments="",
+        )
 
 
 def create_spec(
