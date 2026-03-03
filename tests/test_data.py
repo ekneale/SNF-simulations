@@ -107,7 +107,7 @@ def test_load_spectrum() -> None:
     spectrum = load_spectrum("Sr90")
     assert isinstance(spectrum, np.ndarray), "Spectrum should be a numpy array"
     assert spectrum.shape[1] == 3, (
-        "Spectrum should have 3 columns (energy, dN/dE, uncertainty)"
+        "Spectrum should have 3 columns (energy, flux, uncertainty)"
     )
     assert spectrum.shape[0] > 0, "Spectrum should have at least one row"
 

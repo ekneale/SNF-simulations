@@ -3,25 +3,35 @@
 from pathlib import Path
 
 import numpy as np
-import ROOT
+import pytest
 
 from snf_simulations.data import load_antineutrino_data, load_isotope_data
-from snf_simulations.physics import get_isotope_activity
-from snf_simulations.spec import (
-    add_spec,
-    create_spec,
-    equalise_spec,
-    load_spec,
-    sample_spec,
-    scale_spec,
-    write_spec,
-)
-
-from .test_commandline import _spec_to_arrays
+from snf_simulations.spec import Spectrum
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
+
+
+def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return a standard mock spectrum dataset used across tests."""
+    # Example of energy, flux (dN/dE), and uncertainty data for a mock spectrum.
+    # Note the deliberately uneven energy bin spacing.
+    data = np.array(
+        [
+            [0.0, 10, 1],
+            [0.5, 20, 2],
+            [1.0, 30, 3],
+            [2.0, 40, 4],
+            [3.0, 50, 5],
+            [5.0, 60, 6],
+            [8.0, 70, 7],
+        ],
+    )
+    energy = data[:, 0]
+    flux = data[:, 1]
+    errors = data[:, 2]
+    return energy, flux, errors
 
 
 def test_load_isotope_data() -> None:
@@ -66,655 +76,433 @@ def test_load_antineutrino_data() -> None:
         )
 
 
-def _test_create_spec(
-    isotope_data: np.ndarray,
-    isotope_name: str = "test_isotope",
-) -> ROOT.TH1D:
-    """Test that spectra histograms can be created and have the correct properties."""
-    # Create the spectrum
-    energy = isotope_data[:, 0]
-    dn_de = isotope_data[:, 1]
-    errors = isotope_data[:, 2]
-    spec = create_spec(
-        energy=energy,
-        dn_de=dn_de,
-        errors=errors,
-        name=isotope_name,
-    )
+def test_create_spec() -> None:
+    """Test Spectrum construction with mock data."""
+    # Create the Spectrum
+    # Note we remove the last flux & error values, since the last energy value is
+    # taken as the upper edge of the penultimate bin, and we don't have an upper edge
+    # for the final flux bin.
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
 
     # Test basic properties
-    assert isinstance(spec, ROOT.TH1D), f"{isotope_name} spectrum is not a TH1D"
-    assert spec.GetName() == isotope_name, f"{isotope_name} spectrum name mismatch"
-    assert spec.GetNbinsX() == len(energy) - 1, (
-        f"{isotope_name} spectrum has {spec.GetNbinsX()} bins"
-        f" instead of {len(energy) - 1}"
+    assert isinstance(spec, Spectrum), "Spectrum is not a Spectrum"
+    assert len(spec.energy) == len(energy), (
+        f"Spectrum has {len(spec.energy)} energy values instead of {len(energy)}"
     )
-    assert spec.GetNbinsY() == 1, f"{isotope_name} spectrum has more than 1 Y bin"
-    assert spec.GetEntries() == len(energy), f"{isotope_name} spectrum entries mismatch"
-
-    # Test bin contents and errors
-    # ROOT bins are 1-indexed, with bin 0 being underflow and bin N+1 overflow.
-    # Each bin is defined with the input energy values being the edges,
-    # so the lower edge of bin 1 is energy[0], the upper edge of bin 1 (and the
-    # lower edge of bin 2) is energy[1], etc.
-    # Since we're using the energy values as bin edges, there are len(energy)-1 bins.
-    expected_lowers = energy[:-1]
-    expected_uppers = energy[1:]
-    expected_contents = dn_de[:-1]
-    expected_errors = errors[:-1]
-    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
-        # Check that bin edges, content and errors match the expected values
-        assert spec.GetBinLowEdge(nbin) == expected_lowers[i], (
-            f"{isotope_name} spectrum bin {nbin} lower edge mismatch"
-        )
-        assert (
-            spec.GetBinLowEdge(nbin) + spec.GetBinWidth(nbin) == expected_uppers[i]
-        ), f"{isotope_name} spectrum bin {nbin} upper edge mismatch"
-        assert spec.GetBinContent(nbin) == expected_contents[i], (
-            f"{isotope_name} spectrum bin {nbin} content mismatch"
-        )
-        assert spec.GetBinError(nbin) == expected_errors[i], (
-            f"{isotope_name} spectrum bin {nbin} error mismatch"
-        )
-
-    return spec
+    assert len(spec.flux) == len(energy) - 1, (
+        f"Spectrum has {len(spec.flux)} flux values instead of {len(energy) - 1}"
+    )
+    assert len(spec.errors) == len(energy) - 1, (
+        f"Spectrum has {len(spec.errors)} error values instead of {len(energy) - 1}"
+    )
+    assert np.array_equal(spec.energy, energy), "Spectrum energy values mismatch"
+    assert np.array_equal(spec.flux, flux[:-1]), "Spectrum flux values mismatch"
+    assert np.array_equal(spec.errors, errors[:-1]), "Spectrum error values mismatch"
 
 
-def test_create_spec_mock() -> None:
-    """Test that spectra histograms can be created with mock data."""
-    # Create some fake data
-    # NOTE: Need to set dtype to float to keep ROOT happy
-    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
-    dn_de = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    data = np.column_stack((energy, dn_de, errors))
+def test_init() -> None:
+    """Test that Spectrum constructor validates input shapes and lengths."""
+    energy, flux, errors = _mock_data()
 
-    # The test output should look like this:
-    # bin  lower  centre  upper  content  error
-    #   1    0.0    0.25    0.5     10.0    1.0
-    #   2    0.5    0.75    1.0     20.0    2.0
-    #   3    1.0    1.25    1.5     30.0    3.0
-    #   4    1.5    1.75    2.0     40.0    4.0
-    #   5    2.0    2.25    2.5     50.0    5.0
-    #   6    2.5    2.75    3.0     60.0    6.0
-    # NOTE: We lose the last data point (3, 70, 7), as it defines the upper edge of
-    # the final bin.
-    # If we had a bin 7 then we wouldn't know what the upper limit would be
-    # (since the bin widths don't have to be equal - see equalise_spec).
-    spec = _test_create_spec(data)
-    centres = np.array([0.25, 0.75, 1.25, 1.75, 2.25, 2.75])
-    content = np.array([10, 20, 30, 40, 50, 60])
-    errors = np.array([1, 2, 3, 4, 5, 6])
-    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
-        assert spec.GetBinCenter(nbin) == centres[i], (
-            f"test_isotope spectrum bin {nbin} centre mismatch"
-        )
-        assert spec.GetBinContent(nbin) == content[i], (
-            f"test_isotope spectrum bin {nbin} content mismatch"
-        )
-        assert spec.GetBinError(nbin) == errors[i], (
-            f"test_isotope spectrum bin {nbin} error mismatch"
-        )
+    with pytest.raises(ValueError, match="Energy, flux and errors must be 1D arrays"):
+        Spectrum(energy.reshape(-1, 1), flux, errors)
+
+    with pytest.raises(
+        ValueError,
+        match=r"Flux array must have length len\(energy\) - 1",
+    ):
+        Spectrum(energy, flux, errors)
+
+    with pytest.raises(
+        ValueError,
+        match="Flux and errors arrays must have the same length",
+    ):
+        Spectrum(energy, flux[:-1], errors[:-2])
 
 
-def test_create_spec_real() -> None:
-    """Test that spectra histograms can be created for the included isotope data."""
+def test_repr() -> None:
+    """Test repr for initialized and uninitialized Spectrum objects."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="mock")
+
+    expected_repr = (
+        f"<Spectrum {spec.name}, "
+        f"energy_range=({spec.energy[0]:.1f}-{spec.energy[-1]:.1f} keV)>"
+    )
+    assert repr(spec) == expected_repr, (
+        "Spectrum repr should include spectrum name and energy range"
+    )
+
+    # Create an instance without calling __init__ to exercise fallback repr path.
+    uninitialized = Spectrum.__new__(Spectrum)
+    assert repr(uninitialized) == "<Spectrum (uninitialized)>", (
+        "Spectrum repr should handle uninitialized objects gracefully"
+    )
+
+
+def test_from_isotope() -> None:
+    """Test that Spectrum.from_isotope returns a valid spectrum object."""
     molar_masses, _ = load_isotope_data()
-    isotopes = list(molar_masses.keys())
-    data = load_antineutrino_data(isotopes)
-    for isotope, isotope_data in data.items():
-        _test_create_spec(isotope_data, isotope_name=isotope)
-
-
-def _linear_interpolate_with_errors(
-    original_centres: np.ndarray,
-    original_content: np.ndarray,
-    original_errors: np.ndarray,
-    new_centres: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Linearly interpolate content and propagate errors to new bin centers."""
-    # TODO: Eventually this should replace the ROOT code in spec.equalise_spec
-
-    # Interpolate new content values
-    new_content = np.interp(new_centres, original_centres, original_content)
-
-    # Propagate errors
-    new_errors = np.zeros_like(new_centres)
-    for i, centre in enumerate(new_centres):
-        # Check for extrapolation cases
-        if centre < original_centres[0]:
-            # Extrapolation below the first bin centre - use first error
-            new_errors[i] = original_errors[0]
-            continue
-        if centre >= original_centres[-1]:
-            # Extrapolation above the last bin centre - use last error
-            new_errors[i] = original_errors[-1]
-            continue
-
-        # Find the two closest original bin centers.
-        # Using np.searchsorted finds the "insertion point" for the new centre,
-        # i.e. the index of where it would go to keep the array sorted.
-        # So if the original_centres are [1, 2, 3] and centre is 2.5, idx will be 2
-        # as it would fit between 2 (index 1) and 3 (index 2).
-        # Therefore the surrounding bins are at idx-1 and idx.
-        idx = np.searchsorted(original_centres, centre)
-        lower_idx = idx - 1
-        upper_idx = idx
-
-        # Calculate new error by propagating errors from the two surrounding bins,
-        # weighted by distance to the new centre.
-        c_lower = original_centres[lower_idx]
-        c_upper = original_centres[upper_idx]
-        err_lower = original_errors[lower_idx]
-        err_upper = original_errors[upper_idx]
-        weight_lower = (c_upper - centre) / (c_upper - c_lower)
-        weight_upper = (centre - c_lower) / (c_upper - c_lower)
-        new_errors[i] = np.sqrt(
-            weight_lower**2 * err_lower**2 + weight_upper**2 * err_upper**2,
+    for isotope in molar_masses:
+        spec = Spectrum.from_isotope(isotope)
+        assert isinstance(spec, Spectrum), "from_isotope should return a Spectrum"
+        assert spec.name == isotope, "from_isotope should preserve isotope name"
+        assert len(spec.energy) == len(spec.flux) + 1, (
+            "Energy edges/flux length mismatch"
+        )
+        assert np.all(np.diff(spec.energy) > 0), (
+            "Energy edges should be strictly increasing"
         )
 
-    return new_content, new_errors
 
+def test_equalise() -> None:
+    """Test Spectrum equalisation."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
 
-def _test_equalise_spec(
-    isotope_data: np.ndarray,
-    isotope_name: str = "test_isotope",
-    min_energy: int = 0,
-    max_energy: int | None = None,
-) -> ROOT.TH1D:
-    """Test that spectra can be loaded with equal bin widths."""
-    energy = isotope_data[:, 0]
-    dn_de = isotope_data[:, 1]
-    errors = isotope_data[:, 2]
-    if max_energy is None:
-        max_energy = int(np.max(energy))  # rounds down to nearest int
-
-    # Create the spectrum and equalise it
-    spec = create_spec(
-        energy=energy,
-        dn_de=dn_de,
-        errors=errors,
-        name=isotope_name,
-    )
-    spec = equalise_spec(spec, max_energy, min_energy)
+    # Equalise the Spectrum between the min and max energy values
+    min_energy = int(np.min(energy))
+    max_energy = int(np.max(energy))
+    spec.equalise(width=1, min_energy=min_energy, max_energy=max_energy)
 
     # Test basic properties
-    assert isinstance(spec, ROOT.TH1D), f"{isotope_name} spectrum is not a TH1D"
-    assert spec.GetName() == isotope_name, f"{isotope_name} spectrum name mismatch"
-    assert spec.GetNbinsX() == max_energy - min_energy, (
-        f"{isotope_name} spectrum has {spec.GetNbinsX()} bins"
-        f" instead of {max_energy - min_energy}"
+    assert len(spec.energy) == max_energy - min_energy + 1, (
+        f"Spectrum has {len(spec.energy)} energy values"
+        f" instead of {max_energy - min_energy + 1}"
     )
-    assert spec.GetNbinsY() == 1, f"{isotope_name} spectrum has more than 1 Y bin"
-    assert spec.GetEntries() == max_energy - min_energy, (
-        f"{isotope_name} spectrum entries mismatch"
+    assert len(spec.flux) == max_energy - min_energy, (
+        f"Spectrum has {len(spec.flux)} flux values"
+    )
+    assert len(spec.errors) == max_energy - min_energy, (
+        f"Spectrum has {len(spec.errors)} error values"
     )
 
     # Test bin spacing
     # The bins should now be equally spaced integers from min_energy to max_energy.
-    expected_edges = np.linspace(min_energy, max_energy, (max_energy - min_energy) + 1)
-    expected_centres = expected_edges[:-1] + 0.5
-    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
-        # Check that bin widths are equally spaced integers
-        assert spec.GetBinWidth(nbin) == 1, (
-            f"{isotope_name} spectrum bin {nbin} width is not 1"
-        )
-        # Check that bin centers match expected values
-        assert spec.GetBinCenter(nbin) == expected_centres[i], (
-            f"{isotope_name} spectrum bin {nbin} center mismatch"
-        )
-        # Check that bin edges match expected values
-        assert spec.GetBinLowEdge(nbin) == expected_edges[i], (
-            f"{isotope_name} spectrum bin {nbin} lower edge mismatch"
-        )
-
-    # Test bin contents and errors
-    original_centres = energy[:-1] + np.diff(energy) / 2  # energy values are bin edges
-    original_content = dn_de[:-1]
-    original_errors = errors[:-1]
-    expected_contents, expected_errors = _linear_interpolate_with_errors(
-        original_centres,
-        original_content,
-        original_errors,
-        expected_centres,
+    expected_edges = np.arange(min_energy, max_energy + 1)
+    assert np.all(spec.energy == expected_edges), (
+        "Spectrum energy values mismatch after equalisation"
     )
-    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
-        bin_center = spec.GetBinCenter(nbin)
-        bin_content = spec.GetBinContent(nbin)
-        bin_error = spec.GetBinError(nbin)
-
-        assert np.isclose(bin_center, expected_centres[i]), (
-            f"{isotope_name} spectrum bin {nbin} center mismatch"
-        )
-        assert np.isclose(bin_content, expected_contents[i]), (
-            f"{isotope_name} spectrum bin {nbin} content mismatch"
-        )
-        assert np.isclose(bin_error, expected_errors[i]), (
-            f"{isotope_name} spectrum bin {nbin} error mismatch"
-        )
-
-    return spec
 
 
-def test_equalise_spec_mock() -> None:
-    """Test that equal spectra histograms can be created with mock data."""
-    # Create some fake data
-    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
-    dn_de = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    data = np.column_stack((energy, dn_de, errors))
+def test_equalise_extrapolate() -> None:
+    """Test equalisation when extrapolating beyond original range."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
 
-    # The test output should go from this (from create_spec):
-    # bin  lower  centre  upper  content  error
-    #   1    0.0    0.25    0.5     10.0    1.0
-    #   2    0.5    0.75    1.0     20.0    2.0
-    #   3    1.0    1.25    1.5     30.0    3.0
-    #   4    1.5    1.75    2.0     40.0    4.0
-    #   5    2.0    2.25    2.5     50.0    5.0
-    #   6    2.5    2.75    3.0     60.0    6.0
-    # to this:
-    # bin  lower  centre  upper  content  error
-    #   1    0.0     0.5    1.0     15.0    1.118...
-    #   2    1.0     1.5    2.0     35.0    2.5
-    #   3    2.0     2.5    3.0     55.0    3.905...
-    # The contents are found at the new centres by linear interpolation,
-    # while the errors are calculated in quadrature based on the closest bins.
-    # e.g. for new bin 1 (centre 0.5):
-    #  lower old bin 1 centre = 0.25, error = 1.0
-    #  upper old bin 2 centre = 0.75, error = 2.0
-    #  distance to lower = 0.25
-    #  distance to upper = 0.25
-    #  total distance = 0.5
-    #  weight lower = 0.25 / 0.5 = 0.5
-    #  weight upper = 0.25 / 0.5 = 0.5
-    #  new error = sqrt(0.5^2 * 1.0^2 + 0.5^2 * 2.0^2) = 1.118...
-    spec = _test_equalise_spec(data)
-    centres = np.array([0.5, 1.5, 2.5])
-    content = np.array([15.0, 35.0, 55.0])
-    errors = np.array(
-        [
-            np.sqrt((0.25 / 0.5) ** 2 * 1.0**2 + (0.25 / 0.5) ** 2 * 2.0**2),
-            np.sqrt((0.25 / 0.5) ** 2 * 3.0**2 + (0.25 / 0.5) ** 2 * 4.0**2),
-            np.sqrt((0.25 / 0.5) ** 2 * 5.0**2 + (0.25 / 0.5) ** 2 * 6.0**2),
-        ],
+    # Equalise the Spectrum outside of the current range
+    min_energy = int(np.min(energy)) - 2
+    max_energy = int(np.max(energy)) + 2
+    spec.equalise(width=1, min_energy=min_energy, max_energy=max_energy)
+
+    # Test bin spacing
+    edges = np.arange(min_energy, max_energy + 1)
+    assert np.all(spec.energy == edges), (
+        "Spectrum bin edges mismatch after equalisation with extrapolation"
     )
-    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
-        assert spec.GetBinCenter(nbin) == centres[i], (
-            f"test_isotope spectrum bin {nbin} centre mismatch"
-        )
-        assert spec.GetBinContent(nbin) == content[i], (
-            f"test_isotope spectrum bin {nbin} content mismatch"
-        )
-        assert np.isclose(spec.GetBinError(nbin), errors[i]), (
-            f"test_isotope spectrum bin {nbin} error mismatch"
-        )
 
-
-def test_equalise_spec_mock_extrapolate() -> None:
-    """Test that spectra histograms can be extrapolated beyond the original range."""
-    # Create some fake data
-    energy = np.array([0, 2, 4, 6], dtype=float)
-    dn_de = np.array([10, 20, 30, 40], dtype=float)
-    errors = np.array([1, 2, 3, 4], dtype=float)
-    data = np.column_stack((energy, dn_de, errors))
-
-    # The create_spec function will create bins at every integer from min_energy
-    # to max_energy.
-    min_energy = -1
-    max_energy = 7
-    # The test output should go from this (from create_spec):
-    # bin  lower  centre  upper  content  error
-    #   1    0.0     1.0    2.0     10.0    1.0
-    #   2    2.0     3.0    4.0     20.0    2.0
-    #   3    4.0     5.0    6.0     30.0    3.0
-    # to this:
-    # bin  lower  centre  upper  content  error
-    #   1   -1.0    -0.5    0.0     10.0    1.0
-    #   2    0.0     0.5    1.0     10.0    1.0
-    #   3    1.0     1.5    2.0     12.5    0.9013...
-    #   4    2.0     2.5    3.0     17.5    1.5206...
-    #   5    3.0     3.5    4.0     22.5    1.6770...
-    #   6    4.0     4.5    5.0     27.5    2.3048...
-    #   7    5.0     5.5    6.0     30.0    3.0
-    #   8    6.0     6.5    7.0     30.0    3.0
-    # NOTE: Any bins below the lowest original bin centre (1.0)
-    #   or above the highest (5.0) just take the content and error of the
-    #   first/last original bin.
-    spec = _test_equalise_spec(data, min_energy=min_energy, max_energy=max_energy)
-    centres = np.array([-0.5, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5])
-    content = np.array([10.0, 10.0, 12.5, 17.5, 22.5, 27.5, 30.0, 30.0])
-    errors = np.array(
-        [
-            1.0,
-            1.0,
-            np.sqrt((1.5 / 2.0) ** 2 * 1.0**2 + (0.5 / 2.0) ** 2 * 2.0**2),
-            np.sqrt((0.5 / 2.0) ** 2 * 1.0**2 + (1.5 / 2.0) ** 2 * 2.0**2),
-            np.sqrt((1.5 / 2.0) ** 2 * 2.0**2 + (0.5 / 2.0) ** 2 * 3.0**2),
-            np.sqrt((0.5 / 2.0) ** 2 * 2.0**2 + (1.5 / 2.0) ** 2 * 3.0**2),
-            3.0,
-            3.0,
-        ],
+    # Test extrapolated values
+    # Any bins below the lowest original bin centre or above the highest should take
+    # the content and error of the first/last original bin.
+    assert np.all(spec.flux[:2] == flux[0]), (
+        "Spectrum flux values mismatch in extrapolated low-energy bins"
     )
-    for i, nbin in enumerate(range(1, spec.GetNbinsX() + 1)):
-        assert spec.GetBinCenter(nbin) == centres[i], (
-            f"test_isotope spectrum bin {nbin} centre mismatch"
-        )
-        assert spec.GetBinContent(nbin) == content[i], (
-            f"test_isotope spectrum bin {nbin} content mismatch"
-        )
-        assert np.isclose(spec.GetBinError(nbin), errors[i]), (
-            f"test_isotope spectrum bin {nbin} error mismatch"
-        )
+    assert np.all(spec.errors[:2] == errors[0]), (
+        "Spectrum error values mismatch in extrapolated low-energy bins"
+    )
+    assert np.all(spec.flux[-2:] == flux[-2]), (
+        "Spectrum flux values mismatch in extrapolated high-energy bins"
+    )
+    assert np.all(spec.errors[-2:] == errors[-2]), (
+        "Spectrum error values mismatch in extrapolated high-energy bins"
+    )
 
 
-def test_equalise_spec_real() -> None:
-    """Test that equal histograms can be created for the included isotope data."""
-    molar_masses, _ = load_isotope_data()
-    isotopes = list(molar_masses.keys())
-    data = load_antineutrino_data(isotopes)
-    for isotope, isotope_data in data.items():
-        _test_equalise_spec(isotope_data, isotope_name=isotope)
+def test_equalise_inputs() -> None:
+    """Test equalise validation and default min/max energy behavior."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    with pytest.raises(ValueError, match="width must be a positive value"):
+        spec.equalise(width=0)
+
+    with pytest.raises(ValueError, match="max_energy must be greater than min_energy"):
+        spec.equalise(width=1, min_energy=2, max_energy=2)
+
+    spec.equalise(width=1)
+    assert spec.energy[0] == energy[0], (
+        "Min energy should default to original min energy when not specified"
+    )
+    assert spec.energy[-1] == energy[-1], (
+        "Max energy should default to original max energy when not specified"
+    )
 
 
-def _test_scale_spec(
-    spec: ROOT.TH1D,
-    mass: float,
-    molar_mass: float,
-    half_life: float,
-    removal_time: float,
-) -> ROOT.TH1D:
-    """Test that scaling spectra works as expected."""
-    # Scale the spectrum
-    # NOTE ROOT edits in place, so make a copy to keep the original unscaled
-    scaled_spec = scale_spec(spec.Clone(), mass, molar_mass, half_life, removal_time)
+def test_scale() -> None:
+    """Test positive scaling of flux and errors."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    # Scale the Spectrum
+    scale_factor = 2.0
+    scaled_spec = spec * scale_factor
 
     # Test basic properties
-    assert isinstance(scaled_spec, ROOT.TH1D), "Scaled spectrum is not a TH1D"
-    assert scaled_spec.GetNbinsX() == spec.GetNbinsX(), (
-        "Scaled spectrum has different number of bins"
+    assert isinstance(scaled_spec, Spectrum), "Scaled spectrum is not a Spectrum"
+    assert np.all(np.isclose(scaled_spec.energy, spec.energy)), (
+        "Scaled spectrum has different energy values than original spectrum"
     )
 
     # Test that each bin content and error has been scaled correctly
-    expected_activity = get_isotope_activity(mass, molar_mass, half_life, removal_time)
-    for nbin in range(1, spec.GetNbinsX() + 1):
-        original_content = spec.GetBinContent(nbin)
-        scaled_content = scaled_spec.GetBinContent(nbin)
-        expected_content = original_content * expected_activity
-        assert np.isclose(scaled_content, expected_content), (
-            f"Scaled spectrum bin {nbin} content mismatch"
-        )
-
-        original_error = spec.GetBinError(nbin)
-        scaled_error = scaled_spec.GetBinError(nbin)
-        expected_error = original_error * expected_activity
-        assert np.isclose(scaled_error, expected_error), (
-            f"Scaled spectrum bin {nbin} error mismatch"
-        )
-
-    return scaled_spec
-
-
-def test_scale_mock() -> None:
-    """Test that scaling works on a mock spectrum."""
-    # Create a fake spectrum
-    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
-    dn_de = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    spec = create_spec(
-        energy=energy,
-        dn_de=dn_de,
-        errors=errors,
-        name="test_isotope",
+    expected_flux = spec.flux * scale_factor
+    expected_errors = spec.errors * scale_factor
+    assert np.all(np.isclose(scaled_spec.flux, expected_flux)), (
+        "Scaled spectrum flux values mismatch expected values"
     )
-
-    # Define scaling parameters
-    mass = 1.0  # kg
-    molar_mass = 100.0  # g/mol
-    half_life = 1.0  # year
-    removal_time = 0.5  # years
-
-    scaled_spec = _test_scale_spec(spec, mass, molar_mass, half_life, removal_time)
-    activity = 9.359326705935426e16  # Pre-calculated activity for these parameters
-    expected_contents = dn_de[:-1] * activity
-    expected_errors = errors[:-1] * activity
-    for i, nbin in enumerate(range(1, scaled_spec.GetNbinsX() + 1)):
-        assert np.isclose(scaled_spec.GetBinContent(nbin), expected_contents[i]), (
-            f"Scaled mock spectrum bin {nbin} content mismatch"
-        )
-        assert np.isclose(scaled_spec.GetBinError(nbin), expected_errors[i]), (
-            f"Scaled mock spectrum bin {nbin} error mismatch"
-        )
-
-
-def _test_load_and_scale(  # noqa: PLR0913
-    data: np.ndarray,
-    name: str,
-    mass: float,
-    molar_mass: float,
-    half_life: float,
-    removal_time: float,
-    max_energy: int,
-    min_energy: int = 0,
-) -> ROOT.TH1D:
-    """Test that loading and scaling spectra works as expected."""
-    # TODO: This has too many arguments but it mirrors load_spec, see it for details.
-    # Use the combined function
-    ls_spec = load_spec(
-        data,
-        name,
-        mass,
-        molar_mass,
-        half_life,
-        removal_time,
-        max_energy=None,
-        min_energy=0,
-    )
-    # Use the individual functions for comparison
-    spec = create_spec(
-        energy=data[:, 0],
-        dn_de=data[:, 1],
-        errors=data[:, 2],
-        name=name,
-    )
-    equalised_spec = equalise_spec(spec, max_energy, min_energy)
-    scaled_spec = scale_spec(
-        equalised_spec.Clone(),
-        mass,
-        molar_mass,
-        half_life,
-        removal_time,
-    )
-
-    # Test that both methods give the same result
-    assert ls_spec.GetNbinsX() == scaled_spec.GetNbinsX(), (
-        "Load and scale spectrum has different number of bins"
-    )
-    for nbin in range(1, ls_spec.GetNbinsX() + 1):
-        ls_content = ls_spec.GetBinContent(nbin)
-        scaled_content = scaled_spec.GetBinContent(nbin)
-        assert np.isclose(ls_content, scaled_content), (
-            f"Load and scale spectrum bin {nbin} content mismatch"
-        )
-
-        ls_error = ls_spec.GetBinError(nbin)
-        scaled_error = scaled_spec.GetBinError(nbin)
-        assert np.isclose(ls_error, scaled_error), (
-            f"Load and scale spectrum bin {nbin} error mismatch"
-        )
-
-
-def test_load_and_scale_mock() -> None:
-    """Test that loading and scaling works on a mock spectrum."""
-    # Create a fake spectrum
-    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
-    dn_de = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    data = np.column_stack((energy, dn_de, errors))
-
-    # Define scaling parameters
-    mass = 1.0  # kg
-    molar_mass = 100.0  # g/mol
-    half_life = 1.0  # year
-    removal_time = 0.5  # years
-
-    _test_load_and_scale(
-        data,
-        "test_isotope",
-        mass,
-        molar_mass,
-        half_life,
-        removal_time,
-        max_energy=3,
+    assert np.all(np.isclose(scaled_spec.errors, expected_errors)), (
+        "Scaled spectrum error values mismatch expected values"
     )
 
 
-def _test_add_spec(spectra_list: ROOT.TList) -> ROOT.TH1D:
-    """Test that adding multiple spectra works as expected."""
+def test_scale_negative() -> None:
+    """Test scaling by a negative factor flips flux but keeps errors positive."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    scaled = spec * -3
+    assert np.array_equal(scaled.flux, -3 * spec.flux), (
+        "Negative scaling should flip flux sign"
+    )
+    assert np.array_equal(scaled.errors, np.abs(-3 * spec.errors)), (
+        "Errors should scale with absolute factor"
+    )
+
+
+def test_add() -> None:
+    """Test adding two spectra with matching binning."""
+    energy, flux, errors = _mock_data()
+    spec1 = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    spec2 = Spectrum(energy=energy, flux=flux[:-1] * 2, errors=errors[:-1] * 2)
+
     # Add the spectra together
-    combined_spec = add_spec(spectra_list)
+    combined_spec = spec1 + spec2
 
     # Test basic properties
-    assert isinstance(combined_spec, ROOT.TH1D), "Combined spectrum is not a TH1D"
-    assert combined_spec.GetNbinsX() == spectra_list[0].GetNbinsX(), (
-        "Combined spectrum has different number of bins"
+    assert isinstance(combined_spec, Spectrum), "Combined spectrum is not a Spectrum"
+    assert len(combined_spec.energy) == len(spec1.energy), (
+        "Combined spectrum has different number of energy bins"
     )
 
     # Test that each bin content and error has been added correctly
-    for nbin in range(1, combined_spec.GetNbinsX() + 1):
-        expected_content = sum(spec.GetBinContent(nbin) for spec in spectra_list)
-        combined_content = combined_spec.GetBinContent(nbin)
-        assert np.isclose(combined_content, expected_content), (
-            f"Combined spectrum bin {nbin} content mismatch"
-        )
-
-        expected_error = np.sqrt(
-            sum(spec.GetBinError(nbin) ** 2 for spec in spectra_list),
-        )
-        combined_error = combined_spec.GetBinError(nbin)
-        assert np.isclose(combined_error, expected_error), (
-            f"Combined spectrum bin {nbin} error mismatch"
-        )
-
-    return combined_spec
-
-
-def test_add_spec_mock() -> None:
-    """Test that adding spectra works on mock spectra."""
-    # Create some fake spectra
-    energy = np.array([0, 0.5, 1, 1.5, 2, 2.5, 3], dtype=float)
-    dn_de = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    spec1 = create_spec(
-        energy=energy,
-        dn_de=dn_de,
-        errors=errors,
-        name="test_isotope1",
+    expected_flux = spec1.flux + spec2.flux
+    expected_errors = np.sqrt(spec1.errors**2 + spec2.errors**2)
+    assert np.all(np.isclose(combined_spec.flux, expected_flux)), (
+        "Combined spectrum flux values mismatch expected values"
     )
-    spec2 = create_spec(  # We'll make this one have double the counts and errors
-        energy=energy,
-        dn_de=dn_de * 2,
-        errors=errors * 2,
-        name="test_isotope2",
+    assert np.all(np.isclose(combined_spec.errors, expected_errors)), (
+        "Combined spectrum error values mismatch expected values"
     )
-    spectra_list = ROOT.TList()
-    spectra_list.Add(spec1)
-    spectra_list.Add(spec2)
-
-    # Add the spectra together
-    combined_spec = _test_add_spec(spectra_list)
-    expected_contents = (
-        dn_de + dn_de * 2
-    )  # Sum of contents from both spectra, easy with numpy
-    expected_errors = np.sqrt(errors**2 + (errors * 2) ** 2)  # Quadrature sum of errors
-    for i, nbin in enumerate(range(1, combined_spec.GetNbinsX() + 1)):
-        assert np.isclose(combined_spec.GetBinContent(nbin), expected_contents[i]), (
-            f"Combined mock spectrum bin {nbin} content mismatch"
-        )
-        assert np.isclose(combined_spec.GetBinError(nbin), expected_errors[i]), (
-            f"Combined mock spectrum bin {nbin} error mismatch"
-        )
 
 
-def test_sample_spec() -> None:
-    """Test sample size and bounds from a ROOT spectrum."""
-    ROOT.gRandom.SetSeed(1234)  # Fix seed for reproducibility
+def test_add_different_energy() -> None:
+    """Test that adding spectra with different binning raises an error."""
+    energy, flux, errors = _mock_data()
+    spec1 = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    spec2 = Spectrum(energy=energy * 2, flux=flux[:-1] * 2, errors=errors[:-1] * 2)
 
-    # Create a fake spectrum
-    spec = ROOT.TH1D("spec", "", 3, 0, 3)
-    spec.SetBinContent(1, 1.0)
-    spec.SetBinContent(2, 2.0)
-    spec.SetBinContent(3, 3.0)
+    with pytest.raises(
+        ValueError,
+        match="Energy bins of the two spectra must be the same",
+    ):
+        _ = spec1 + spec2
+
+
+def test_sample() -> None:
+    """Test deterministic sampling for a fixed seed."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
 
     # Test sampling 5 values from the spectrum
-    samples = sample_spec(spec, samples=5)
+    samples = spec.sample(samples=5, seed=1234)  # Fix seed for reproducibility
 
     # Samples should be fixed given the seed
     samples_ref = [
-        1.0745583504904062,
-        1.9929909987840801,
-        2.244217532686889,
-        2.6356768854893744,
-        1.81318321172148,
+        5.3542737,
+        2.24176629,
+        5.95560179,
+        1.96407925,
+        2.2636498,
     ]
-    assert samples == samples_ref, "Sampled values do not match reference"
+    assert np.allclose(samples, samples_ref), "Sampled values do not match reference"
 
 
-def test_sample_spec_output() -> None:
-    """Test CSV output writing when a filename is provided."""
-    ROOT.gRandom.SetSeed(1234)  # Fix seed for reproducibility
+def test_sample_reproducibility() -> None:
+    """Test sampling reproducibility with constant seed."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
 
-    # Create a fake spectrum
-    spec = ROOT.TH1D("spec", "", 3, 0, 3)
-    spec.SetBinContent(1, 1.0)
-    spec.SetBinContent(2, 2.0)
-    spec.SetBinContent(3, 3.0)
-
-    # Test sampling with output to a CSV file
-    filename = Path("samples")
-    samples = sample_spec(spec, samples=3, output_filename=filename)
-
-    # Check that the file was created and contents are correct
-    # (note that .csv extension is added automatically by sample_spec)
-    csv_file = filename.with_suffix(".csv")
-    saved = np.loadtxt(csv_file, delimiter=",")
-    assert saved.tolist() == samples, "Saved samples do not match returned samples"
-
-    # Clean up the file after testing
-    csv_file.unlink()
-
-
-def test_write_spec() -> None:
-    """Test that spectra can be written to a ROOT file and read back correctly."""
-    # Create a fake spectrum
-    energy = np.array([0, 1, 2, 3, 4, 5, 6], dtype=float)
-    dn_de = np.array([10, 20, 30, 40, 50, 60, 70], dtype=float)
-    errors = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
-    spec = create_spec(
-        energy=energy,
-        dn_de=dn_de,
-        errors=errors,
-        name="test_isotope",
+    # Test reproducibility with a random (but constant) seed
+    rng = np.random.default_rng()
+    seed = int(rng.integers(0, int(1e6)))
+    samples1 = spec.sample(samples=2000, seed=seed)
+    samples2 = spec.sample(samples=2000, seed=seed)
+    assert np.array_equal(samples1, samples2), (
+        "Sampling should be reproducible with constant seed"
     )
 
-    # Write the spectrum to a CSV
-    filename = Path("test_spectrum")
-    write_spec(spec, filename)
-    energy, flux = _spec_to_arrays(spec)
 
-    # Check that the file was created and contents are correct
-    # (note that .csv extension is added automatically by sample_spec)
-    csv_file = filename.with_suffix(".csv")
+def test_sample_zero_flux() -> None:
+    """Test that sampling raises an error when total histogram weight is zero."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=np.zeros(len(flux[:-1])), errors=errors[:-1])
+
+    with pytest.raises(
+        ValueError,
+        match="Histogram has zero total area; cannot sample",
+    ):
+        _ = spec.sample(samples=10)
+
+
+def test_integrate() -> None:
+    """Test integration over full and partial energy ranges."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    # Test integration over the full range
+    min_energy = energy[0]
+    max_energy = energy[-1]
+    total_integral = spec.integrate(min_energy, max_energy)
+    expected_total = np.sum(flux[:-1] * np.diff(energy))
+    assert np.isclose(total_integral, expected_total), (
+        "Total integral should match sum of bin content times bin width"
+    )
+
+    # Test integration over a partial range with full bins
+    min_energy = energy[1]
+    max_energy = energy[4]
+    partial_integral = spec.integrate(min_energy, max_energy)
+    expected_partial = np.sum(flux[:-1][1:4] * np.diff(energy)[1:4])
+    assert np.isclose(partial_integral, expected_partial), (
+        "Partial integral should include fractional contributions from edge bins"
+    )
+
+    # Test integration over a partial range that includes fractional bins
+    min_energy = energy[1] - (energy[1] - energy[0]) * 0.5
+    max_energy = energy[-2] + (energy[-1] - energy[-2]) * 0.5
+    partial_integral = spec.integrate(min_energy, max_energy)
+    expected_partial = (
+        0.5 * flux[0] * (energy[1] - energy[0])  # half of the first bin
+        + np.sum(flux[:-1][1:-1] * np.diff(energy)[1:-1])  # full middle bins
+        + 0.5 * flux[-2] * (energy[-1] - energy[-2])  # half of the last bin
+    )
+    assert np.isclose(partial_integral, expected_partial), (
+        "Partial integral should include fractional contributions from edge bins"
+    )
+
+
+def test_integrate_outside_range() -> None:
+    """Test that integration outside of the energy range returns zero."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    # Test below the energy range
+    min_energy = energy[0] - 2
+    max_energy = energy[0] - 1
+    assert np.isclose(spec.integrate(min_energy, max_energy), 0.0), (
+        "Integration below energy range should be zero"
+    )
+
+    # Test above the energy range
+    min_energy = energy[-1] + 1
+    max_energy = energy[-1] + 2
+    assert np.isclose(spec.integrate(min_energy, max_energy), 0.0), (
+        "Integration above energy range should be zero"
+    )
+
+
+def test_integrate_invalid_range() -> None:
+    """Test that invalid integration ranges raise ValueError."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    with pytest.raises(
+        ValueError,
+        match="upper_energy must be greater than lower_energy",
+    ):
+        _ = spec.integrate(2, 2)
+
+    with pytest.raises(
+        ValueError,
+        match="upper_energy must be greater than lower_energy",
+    ):
+        _ = spec.integrate(3, 1)
+
+
+def test_write_csv() -> None:
+    """Test writing and reading back spectrum CSV files."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    # Write the spectrum to a CSV
+    filename = Path("test_spectrum.csv")
+    if filename.exists():
+        filename.unlink()
+    spec.write_csv(filename)
+
+    # Check that the file was created
+    assert filename.exists(), "CSV file was not created"
+
+    # Check that the contents are correct
     data_loaded = np.loadtxt(
-        csv_file,
+        filename,
         delimiter=",",
         skiprows=1,
     )
-    energy_loaded = data_loaded[:, 0]
-    flux_loaded = data_loaded[:, 1]
+    energy_lower_loaded = data_loaded[:, 0]
+    energy_upper_loaded = data_loaded[:, 1]
+    energy_loaded = np.concatenate([energy_lower_loaded, [energy_upper_loaded[-1]]])
+    flux_loaded = data_loaded[:, 2]
+    errors_loaded = data_loaded[:, 3]
     assert np.array_equal(energy, energy_loaded), (
-        "Loaded energy does not match original"
+        "Loaded energy edges do not match original"
     )
-    assert np.array_equal(flux, flux_loaded), "Loaded flux does not match original"
+    assert np.array_equal(flux[:-1], flux_loaded), "Loaded flux does not match original"
+    assert np.array_equal(errors[:-1], errors_loaded), (
+        "Loaded errors do not match original"
+    )
 
     # Clean up the file after testing
-    csv_file.unlink()
+    filename.unlink()
+
+
+def test_write_csv_filenames() -> None:
+    """Test that write_csv defaults to correct file names."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    # Test that file extension is added if not provided
+    filename = Path("test_spectrum")
+    expected_filename = filename.with_suffix(".csv")
+    if expected_filename.exists():
+        expected_filename.unlink()
+    spec.write_csv(filename)
+    assert expected_filename.exists(), "CSV file was not created"
+    expected_filename.unlink()
+
+    # Test with string filename not Path object
+    filename = "test_spectrum"
+    expected_filename = Path(filename + ".csv")
+    if expected_filename.exists():
+        expected_filename.unlink()
+    spec.write_csv(filename)
+    assert expected_filename.exists(), "CSV file was not created with string input"
+    expected_filename.unlink()
+
+    # Test that write_csv uses default filename derived from spectrum name.
+    expected_filename = Path(f"{spec.name}.csv")
+    if expected_filename.exists():
+        expected_filename.unlink()
+    spec.write_csv()  # no filename provided, should use default
+    assert expected_filename.exists(), "write_csv() should create default filename"
+    expected_filename.unlink()

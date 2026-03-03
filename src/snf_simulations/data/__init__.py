@@ -97,7 +97,7 @@ def load_spectrum(isotope_name: str) -> np.ndarray:
         isotope_name: Name of the isotope to load data for.
 
     Returns:
-        Array containing energy, dN/dE, and uncertainty.
+        Array containing energy, flux, and uncertainty.
 
     """
     # TODO: download spectra from IAEA database, and cache locally
@@ -115,7 +115,7 @@ def load_spectrum(isotope_name: str) -> np.ndarray:
     # main decay chain ends based on the p_energy column.
     data = data[data[:, 3] == 0]
 
-    return data[:, [7, 10, 11]]  # energy, dN/dE, uncertainty
+    return data[:, [7, 10, 11]]  # energy, flux, uncertainty
 
 
 def load_antineutrino_data(isotopes: list[str]) -> dict[str, np.ndarray]:
@@ -126,7 +126,7 @@ def load_antineutrino_data(isotopes: list[str]) -> dict[str, np.ndarray]:
 
     Returns:
         Dictionary of arrays containing spectrum data for each isotope.
-        Data arrays contain energy, dN/dE, and uncertainty.
+        Data arrays contain energy, flux, and uncertainty.
 
     """
     data = {}

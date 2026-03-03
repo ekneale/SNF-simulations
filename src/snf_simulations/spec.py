@@ -151,9 +151,13 @@ class Spectrum:
 
     def __repr__(self) -> str:
         """Return a string representation of the Spectrum object."""
-        repr_str = f"<Spectrum {self.name}, "
-        repr_str += f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
-        return repr_str
+        try:
+            repr_str = f"<Spectrum {self.name}, "
+            repr_str += f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
+        except AttributeError:
+            return "<Spectrum (uninitialized)>"
+        else:
+            return repr_str
 
     @classmethod
     def from_isotope(
@@ -259,17 +263,19 @@ class Spectrum:
         new_name = self.name + f" scaled by {factor}"
         return Spectrum(self.energy, new_flux, new_errors, name=new_name)
 
-    def sample(self, samples: int = 100) -> np.ndarray:
+    def sample(self, samples: int = 100, seed: int | None = None) -> np.ndarray:
         """Sample the spectrum to simulate what a detector could observe.
 
         Args:
             samples: Number of samples to draw from the spectrum.
+            seed: Random seed for reproducibility.
+
 
         Returns:
             Array of sampled energies.
 
         """
-        return sample_histogram(self.energy, self.flux, samples)
+        return sample_histogram(self.energy, self.flux, samples, seed)
 
     def integrate(
         self,
@@ -317,6 +323,12 @@ class Spectrum:
     def write_csv(self, output_filename: Path | str = "") -> None:
         """Output energy and flux data to CSV file.
 
+        Output format is:
+            energy_lower, energy_upper, flux, error
+            for each bin, where energy_lower and energy_upper are the lower and upper
+            edges of the energy bin (in keV), flux is the flux value for that bin
+            (in keV^-1), and error is the uncertainty for that flux value.
+
         Args:
             output_filename: The name of the output CSV file.
 
@@ -328,20 +340,22 @@ class Spectrum:
         elif isinstance(output_filename, Path) and output_filename.suffix != ".csv":
             output_filename = output_filename.with_suffix(".csv")
 
-        data = np.column_stack((self.energy[:-1], self.flux, self.errors))
+        lower_edges = self.energy[:-1]
+        upper_edges = self.energy[1:]
+        data = np.column_stack((lower_edges, upper_edges, self.flux, self.errors))
         np.savetxt(
             output_filename,
             data,
-            fmt=("%.1f", "%.6e", "%.6e"),
+            fmt=("%.1f", "%.1f", "%.6e", "%.6e"),
             delimiter=",",
-            header="energy_lower_edge,flux,error",
+            header="energy_lower,energy_upper,flux,error",
             comments="",
         )
 
 
 def create_spec(
     energy: np.ndarray,
-    dn_de: np.ndarray,
+    flux: np.ndarray,
     errors: np.ndarray,
     name: str,
 ) -> ROOT.TH1D:
@@ -349,8 +363,8 @@ def create_spec(
 
     Args:
         energy: Array of energy bin edges (keV).
-        dn_de: Array of dN/dE values corresponding to each energy bin.
-        errors: Array of errors for each dN/dE value.
+        flux: Array of flux values (dN/dE) corresponding to each energy bin (keV^-1).
+        errors: Array of errors for each flux value.
         name: Name of the histogram.
 
     Returns:
@@ -372,8 +386,8 @@ def create_spec(
     # For spec.Fill this doesn't matter, as it fills each bin sequentially.
     # But for spec.SetBinError we loop starting at bin 1, so need the error from [i-1].
     # Using enumerate() with start=1 will handle this nicely.
-    for e, dn in zip(energy, dn_de, strict=True):
-        spec.Fill(e, dn)
+    for e, f in zip(energy, flux, strict=True):
+        spec.Fill(e, f)
     for i, err in enumerate(errors, start=1):
         spec.SetBinError(i, err)
 
@@ -538,7 +552,7 @@ def load_spec(  # noqa: PLR0913
     raw spectrum data, convert it to equal bin widths, and scale by isotope activity.
 
     Args:
-        data: Array of spectrum data with columns [energy, dN/dE, uncertainty].
+        data: Array of spectrum data with columns [energy, flux, uncertainty].
         name: Name of the histogram.
         mass: Mass of the isotope in kg.
         molar_mass: Molar mass of the isotope in g/mol.
