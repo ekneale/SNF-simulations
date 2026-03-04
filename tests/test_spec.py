@@ -156,37 +156,39 @@ def test_from_isotope() -> None:
         )
 
 
-def test_equalise() -> None:
-    """Test Spectrum equalisation."""
+@pytest.mark.parametrize("width", [0.1, 1.0, 2.0])
+def test_equalise(width: float) -> None:
+    """Test Spectrum equalisation over the energy range for given bin width."""
     energy, flux, errors = _mock_data()
     spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
 
     # Equalise the Spectrum between the min and max energy values
     min_energy = int(np.min(energy))
     max_energy = int(np.max(energy))
-    spec.equalise(width=1, min_energy=min_energy, max_energy=max_energy)
+    spec.equalise(width=width, min_energy=min_energy, max_energy=max_energy)
 
     # Test basic properties
-    assert len(spec.energy) == max_energy - min_energy + 1, (
-        f"Spectrum has {len(spec.energy)} energy values"
-        f" instead of {max_energy - min_energy + 1}"
+    expected_bins = int((max_energy - min_energy) / width)
+    assert len(spec.energy) == expected_bins + 1, (
+        f"Spectrum has {len(spec.energy)} energy values instead of {expected_bins + 1}"
     )
-    assert len(spec.flux) == max_energy - min_energy, (
-        f"Spectrum has {len(spec.flux)} flux values"
+    assert len(spec.flux) == expected_bins, (
+        f"Spectrum has {len(spec.flux)} flux values instead of {expected_bins}"
     )
-    assert len(spec.errors) == max_energy - min_energy, (
-        f"Spectrum has {len(spec.errors)} error values"
+    assert len(spec.errors) == expected_bins, (
+        f"Spectrum has {len(spec.errors)} error values instead of {expected_bins}"
     )
 
     # Test bin spacing
     # The bins should now be equally spaced integers from min_energy to max_energy.
-    expected_edges = np.arange(min_energy, max_energy + 1)
+    expected_edges = np.arange(min_energy, max_energy + width, width)
     assert np.all(spec.energy == expected_edges), (
         "Spectrum energy values mismatch after equalisation"
     )
 
 
-def test_equalise_extrapolate() -> None:
+@pytest.mark.parametrize("width", [0.1, 1.0, 2.0])
+def test_equalise_extrapolate(width: float) -> None:
     """Test equalisation when extrapolating beyond original range."""
     energy, flux, errors = _mock_data()
     spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
@@ -194,28 +196,70 @@ def test_equalise_extrapolate() -> None:
     # Equalise the Spectrum outside of the current range
     min_energy = int(np.min(energy)) - 2
     max_energy = int(np.max(energy)) + 2
-    spec.equalise(width=1, min_energy=min_energy, max_energy=max_energy)
+    spec.equalise(width=width, min_energy=min_energy, max_energy=max_energy)
 
     # Test bin spacing
-    edges = np.arange(min_energy, max_energy + 1)
+    edges = np.arange(min_energy, max_energy + width, width)
     assert np.all(spec.energy == edges), (
         "Spectrum bin edges mismatch after equalisation with extrapolation"
     )
 
     # Test extrapolated values
-    # Any bins below the lowest original bin centre or above the highest should take
-    # the content and error of the first/last original bin.
-    assert np.all(spec.flux[:2] == flux[0]), (
-        "Spectrum flux values mismatch in extrapolated low-energy bins"
+    # Any bins fully outside the original range should be zero
+    lower_edges = spec.energy[:-1]
+    upper_edges = spec.energy[1:]
+    outside = (upper_edges <= energy[0]) | (lower_edges >= energy[-1])
+    assert np.all(spec.flux[outside] == 0), "Extrapolated bins should have zero flux"
+    assert np.all(spec.errors[outside] == 0), (
+        "Extrapolated bins should have zero errors"
     )
-    assert np.all(spec.errors[:2] == errors[0]), (
-        "Spectrum error values mismatch in extrapolated low-energy bins"
+
+
+def test_equalise_extrapolate_overlap() -> None:
+    """Test extrapolated bins that overlap with the original energy range."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    # This creates one fully outside low-energy bin [-0.2, 0.0]
+    # and one overlapping bin [0.0, 0.2] that should remain non-zero.
+    spec.equalise(width=0.2, min_energy=-0.2, max_energy=0.6)
+
+    lower_edges = spec.energy[:-1]
+    upper_edges = spec.energy[1:]
+    outside = (upper_edges <= energy[0]) | (lower_edges >= energy[-1])
+    overlap = ~outside
+    assert np.all(spec.flux[outside] == 0), "Extrapolated bins should have zero flux"
+    assert np.all(spec.errors[outside] == 0), (
+        "Extrapolated bins should have zero errors"
     )
-    assert np.all(spec.flux[-2:] == flux[-2]), (
-        "Spectrum flux values mismatch in extrapolated high-energy bins"
+    assert np.any(spec.flux[overlap] > 0), (
+        "Overlapping bins should retain non-zero flux"
     )
-    assert np.all(spec.errors[-2:] == errors[-2]), (
-        "Spectrum error values mismatch in extrapolated high-energy bins"
+
+
+def test_equalise_integral() -> None:
+    """Test that extrapolating does not change total integral."""
+    energy, flux, errors = _mock_data()
+
+    # Equalise the Spectrum between the min and max energy values
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    min_energy = int(np.min(energy))
+    max_energy = int(np.max(energy))
+    spec.equalise(width=1, min_energy=min_energy, max_energy=max_energy)
+
+    # Equalise the Spectrum outside of the current range
+    spec_extrapolated = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    spec_extrapolated.equalise(
+        width=1, min_energy=min_energy - 2, max_energy=max_energy + 2
+    )
+
+    # Check that the integrals are the same
+    base_integral = spec.integrate(spec.energy[0], spec.energy[-1])
+    extrapolated_integral = spec_extrapolated.integrate(
+        spec_extrapolated.energy[0], spec_extrapolated.energy[-1]
+    )
+    assert np.isclose(extrapolated_integral, base_integral), (
+        "Extrapolating equalised range should not change total integral"
     )
 
 
@@ -237,6 +281,11 @@ def test_equalise_inputs() -> None:
     assert spec.energy[-1] == energy[-1], (
         "Max energy should default to original max energy when not specified"
     )
+
+    with pytest.raises(
+        ValueError, match="width is too large for the given energy range"
+    ):
+        spec.equalise(width=10, min_energy=0, max_energy=8)
 
 
 def test_scale() -> None:
@@ -324,7 +373,8 @@ def test_sample() -> None:
     spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
 
     # Test sampling 5 values from the spectrum
-    samples = spec.sample(samples=5, seed=1234)  # Fix seed for reproducibility
+    n_samples = 5
+    samples = spec.sample(samples=n_samples, seed=1234)  # Fix seed for reproducibility
 
     # Samples should be fixed given the seed
     samples_ref = [
@@ -334,6 +384,10 @@ def test_sample() -> None:
         1.96407925,
         2.2636498,
     ]
+    assert len(samples) == n_samples, (
+        f"Number of samples does not match requested number"
+        f" ({len(samples)} vs {n_samples})"
+    )
     assert np.allclose(samples, samples_ref), "Sampled values do not match reference"
 
 

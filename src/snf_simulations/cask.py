@@ -12,7 +12,7 @@ def get_total_spec(
     isotope_proportions: dict,
     total_mass: float = 1000,
     removal_time: float = 0,
-    max_energy: float = 6000,
+    max_energy: float | None = None,
 ) -> ROOT.TH1D:
     """Calculate the total antineutrino spectrum from spent nuclear fuel.
 
@@ -48,6 +48,7 @@ def get_total_spec(
             molar_masses[isotope],
             half_lives[isotope],
             removal_time,
+            max_energy=max_energy,
         )
         spectra.Add(spec)
 
@@ -84,11 +85,13 @@ def get_total_spec(
                 molar_masses[chain.daughter],
                 half_lives[chain.daughter],
                 0,
+                max_energy=max_energy,
             )
             spectra.Add(spec)
 
     # Sum all the spectra to get the total spectrum
     total_spec = add_spec(spectra)
     total_spec.SetTitle("Total Spectrum")
-    total_spec.GetXaxis().SetRangeUser(0, max_energy)
+    if max_energy is not None:
+        total_spec.GetXaxis().SetRangeUser(0, max_energy)
     return total_spec

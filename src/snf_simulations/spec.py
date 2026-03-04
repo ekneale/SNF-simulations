@@ -10,25 +10,59 @@ from .physics import get_isotope_activity
 
 
 def linear_interpolate_with_errors(
-    original_centres: np.ndarray,
+    original_bins: np.ndarray,
     original_content: np.ndarray,
     original_errors: np.ndarray,
-    new_centres: np.ndarray,
+    new_bins: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Linearly interpolate content and propagate errors to new bin centers."""
+    """Linearly interpolate histogram content and propagate errors onto new bins."""
+    if len(original_bins) != len(original_content) + 1:
+        msg = "original_bins must have length len(original_content) + 1"
+        raise ValueError(msg)
+    if len(original_errors) != len(original_content):
+        msg = "original_errors must have the same length as original_content"
+        raise ValueError(msg)
+    if len(original_bins) < 2:  # noqa: PLR2004
+        msg = "original_bins must have at least two values"
+        raise ValueError(msg)
+    if len(new_bins) < 2:  # noqa: PLR2004
+        msg = "new_bins must have at least two values"
+        raise ValueError(msg)
+    if np.any(np.diff(original_bins) <= 0):
+        msg = "original_bins must be strictly increasing"
+        raise ValueError(msg)
+    if np.any(np.diff(new_bins) <= 0):
+        msg = "new_bins must be strictly increasing"
+        raise ValueError(msg)
+
     # Interpolate new content values
+    original_centres = (original_bins[:-1] + original_bins[1:]) / 2
+    new_centres = (new_bins[:-1] + new_bins[1:]) / 2
     new_content = np.interp(new_centres, original_centres, original_content)
+
+    # Any extrapolated bins outside the original range should be set to zero
+    lower_edges = new_bins[:-1]
+    upper_edges = new_bins[1:]
+    lower_mask = upper_edges <= original_bins[0]
+    upper_mask = lower_edges >= original_bins[-1]
+    extrapolation_mask = lower_mask | upper_mask
+    new_content[extrapolation_mask] = 0
 
     # Propagate errors
     new_errors = np.zeros_like(new_centres)
     for i, centre in enumerate(new_centres):
-        # Check for extrapolation cases
-        if centre < original_centres[0]:
-            # Extrapolation below the first bin centre - use first error
+        # Check for extrapolated bins - these should keep zero error
+        if extrapolation_mask[i]:
+            continue
+
+        # Handle boundary centres explicitly to avoid out-of-range indexing.
+        # For bins that overlap the original edge range but whose centres fall outside
+        # the original centre range, keep the nearest edge-bin error constant.
+        # This avoids pseudo-bin (under/overflow) interpolation at the boundaries.
+        if centre <= original_centres[0] or np.isclose(centre, original_centres[0]):
             new_errors[i] = original_errors[0]
             continue
-        if centre >= original_centres[-1]:
-            # Extrapolation above the last bin centre - use last error
+        if centre >= original_centres[-1] or np.isclose(centre, original_centres[-1]):
             new_errors[i] = original_errors[-1]
             continue
 
@@ -38,7 +72,7 @@ def linear_interpolate_with_errors(
         # So if the original_centres are [1, 2, 3] and centre is 2.5, idx will be 2
         # as it would fit between 2 (index 1) and 3 (index 2).
         # Therefore the surrounding bins are at idx-1 and idx.
-        idx = np.searchsorted(original_centres, centre)
+        idx = int(np.searchsorted(original_centres, centre))
         lower_idx = idx - 1
         upper_idx = idx
 
@@ -210,16 +244,17 @@ class Spectrum:
         if max_energy <= min_energy:
             msg = "max_energy must be greater than min_energy"
             raise ValueError(msg)
+        if min_energy + width > max_energy:
+            msg = "width is too large for the given energy range"
+            raise ValueError(msg)
 
-        # Interpolate to the new bin centres and propagate errors
-        original_centres = (self.energy[:-1] + self.energy[1:]) / 2
+        # Interpolate to the new binning and propagate errors
         new_edges = np.arange(min_energy, max_energy + width, width)
-        new_centres = (new_edges[:-1] + new_edges[1:]) / 2
         new_flux, new_errors = linear_interpolate_with_errors(
-            original_centres,
+            self.energy,
             self.flux,
             self.errors,
-            new_centres,
+            new_edges,
         )
 
         # Apply the new values to this Spectrum instance in place
@@ -421,20 +456,35 @@ def equalise_spec(
     new_edges = np.linspace(min_energy, max_energy, (max_energy - min_energy) + 1)
     new_centres = new_edges[:-1] + 0.5
 
-    # Interpolate the content of the original histogram to the new bin centres
-    new_content = [spec.Interpolate(centre) for centre in new_centres]
+    first_edge = spec.GetBinLowEdge(1)
+    n_bins = spec.GetNbinsX()
+    last_edge = spec.GetBinLowEdge(n_bins) + spec.GetBinWidth(n_bins)
+    lower_edges = new_edges[:-1]
+    upper_edges = new_edges[1:]
+    outside = (upper_edges <= first_edge) | (lower_edges >= last_edge)
+
+    # Interpolate the content of the original histogram to the new bin centres.
+    # Outside the source range, bins are set to zero.
+    new_content = [
+        0.0 if is_outside else spec.Interpolate(centre)
+        for centre, is_outside in zip(new_centres, outside, strict=True)
+    ]
 
     # Calculate the new errors for interpolated bins
     new_errors = []
-    for centre in new_centres:
+    for centre, is_outside in zip(new_centres, outside, strict=True):
         # The TH1D::Interpolate function looks for the two closest bins surrounding the
         # given point.
-        # If it's below the first bin centre or above the final bin centre it just
-        # returns the content of the first/last bin, so here we do the same.
-        if centre < spec.GetBinCenter(1):
+        # Outside the original range, extrapolated bins are set to zero.
+        if is_outside:
+            new_errors.append(0.0)
+            continue
+        if centre <= spec.GetBinCenter(1) or np.isclose(centre, spec.GetBinCenter(1)):
             new_errors.append(spec.GetBinError(1))
             continue
-        if centre >= spec.GetBinCenter(spec.GetNbinsX()):
+        if centre >= spec.GetBinCenter(spec.GetNbinsX()) or np.isclose(
+            centre, spec.GetBinCenter(spec.GetNbinsX())
+        ):
             new_errors.append(spec.GetBinError(spec.GetNbinsX()))
             continue
 
@@ -543,8 +593,8 @@ def load_spec(  # noqa: PLR0913
     molar_mass: float,
     half_life: float,
     removal_time: float,
-    max_energy: int | None = None,
-    min_energy: int = 0,
+    max_energy: float | None = None,
+    min_energy: float = 0,
 ) -> ROOT.TH1D:
     """Load, equalise and scale a spectrum from data.
 

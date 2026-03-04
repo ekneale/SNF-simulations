@@ -18,6 +18,7 @@ def _get_spectra(
     cask_mass: float = 10000,
     removal_times: list[float] | np.ndarray | None = None,
     reactor: str = "sizewell",
+    max_energy: float | None = None,
 ) -> ROOT.TList:
     """Create spectra for a single dry cask of fuel at multiple removal times.
 
@@ -26,6 +27,7 @@ def _get_spectra(
         removal_times: List or array of removal times to plot (years).
             If None, only plot time 0.
         reactor: Reactor name.
+        max_energy: Maximum energy to consider in the spectrum (keV).
 
     Returns:
         List of spectra, one for each removal time in removal_times.
@@ -46,6 +48,7 @@ def _get_spectra(
             isotope_proportions=proportions,
             total_mass=cask_mass,
             removal_time=removal_time,
+            max_energy=max_energy,
         )
         spectra.Add(spec)
 

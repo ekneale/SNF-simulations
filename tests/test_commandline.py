@@ -97,6 +97,13 @@ def test_single_cask(reactor: str) -> None:
     spec = spectra[1]
     energy_single, flux_single = _spec_to_arrays(spec)
     energy_ref, flux_ref = _load_output(f"{reactor.capitalize()}_single_0.5.csv")
+
+    assert len(energy_ref) == len(energy_single), (
+        f"Energy data has wrong length ({len(energy_ref)} vs {len(energy_single)})"
+    )
+    assert len(flux_ref) == len(flux_single), (
+        f"Flux data has wrong length ({len(flux_ref)} vs {len(flux_single)})"
+    )
     assert np.allclose(energy_ref, energy_single), "Reference energy does not match"
     assert np.allclose(flux_ref, flux_single), "Reference flux does not match"
 
@@ -149,6 +156,12 @@ def test_multiple_casks(reactor: str) -> None:
     # Compare to the reference data file
     energy_multiple, flux_multiple = _spec_to_arrays(spec_multiple)
     energy_ref, flux_ref = _load_output(f"{reactor.capitalize()}_multiple.csv")
+    assert len(energy_ref) == len(energy_multiple), (
+        f"Energy data has wrong length ({len(energy_ref)} vs {len(energy_multiple)})"
+    )
+    assert len(flux_ref) == len(flux_multiple), (
+        f"Flux data has wrong length ({len(flux_ref)} vs {len(flux_multiple)})"
+    )
     assert np.allclose(energy_ref, energy_multiple), "Reference energy does not match"
     assert np.allclose(flux_ref, flux_multiple), "Reference flux does not match"
 
