@@ -85,7 +85,7 @@ def run_single(reactor: str = "sizewell", cask_mass: float = 10000) -> np.ndarra
     # Save 0.5 year spectrum to CSV
     print()
     print("Writing single cask spectrum data to CSV...")
-    filename = f"{reactor}_single.csv"
+    filename = f"{reactor.capitalize()}_single.csv"
     data_single_05 = write_spec(spec_single_05, output_filename=filename)
     print(f"Saved to {filename}")
 
@@ -159,7 +159,7 @@ def run_multiple(
     # Save to CSV
     print()
     print("Writing multiple cask spectrum data to CSV...")
-    filename = f"{reactor}_multiple.csv"
+    filename = f"{reactor.capitalize()}_multiple.csv"
     data_multiple = write_spec(spec_multiple, output_filename=filename)
     print(f"Saved to {filename}")
 
@@ -221,7 +221,7 @@ def run_compare(
     input("Displaying plot...")  # pause to view plot
 
     # Save the plot as a PDF
-    c.SaveAs(f"{reactor.capitalize()}_Multiple_Single_comp.png")
+    c.SaveAs(f"{reactor.capitalize()}_compare.pdf")
 
 
 def run_multiple_full(
@@ -300,7 +300,7 @@ def run_multiple_full(
     input("Displaying plot...")  # pause to view plot
 
     # Save the plot as a PDF
-    c.SaveAs(f"{reactor.capitalize()}_MultipleCasks.pdf")
+    c.SaveAs(f"{reactor.capitalize()}_multiple.pdf")
 
 
 def run_sample(
@@ -315,7 +315,7 @@ def run_sample(
     sampled = sample_spec(
         spec,
         samples=1000000,
-        output_filename=f"{reactor.capitalize()}_sampled_spectrum.csv",
+        output_filename=f"{reactor.capitalize()}_sampled.csv",
     )
 
     # Create ROOT canvas and legend
@@ -343,7 +343,7 @@ def run_sample(
     input("Displaying plot...")  # pause to view plot
 
     # Save the plot as a PDF
-    c.SaveAs(f"{reactor.capitalize()}_Sampled.pdf")
+    c.SaveAs(f"{reactor.capitalize()}_sampled.pdf")
 
 
 def run(reactor: str = "sizewell", cask_mass: float = 10000) -> None:

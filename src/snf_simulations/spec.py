@@ -621,7 +621,7 @@ def load_spec(  # noqa: PLR0913
     # be simplified a lot.
     spec = create_spec(data[:, 0], data[:, 1], data[:, 2], name)
     if max_energy is None:
-        max_energy = int(np.floor(max(data[:, 0])))
+        max_energy = int(np.ceil(max(data[:, 0])))
     spec_equal = equalise_spec(spec, max_energy, min_energy)
     spec_scaled = scale_spec(spec_equal, mass, molar_mass, half_life, removal_time)
     spec_scaled.SetTitle(name)
