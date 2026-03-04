@@ -12,7 +12,12 @@ try:
 except ImportError:
     pytest.skip("skipping ROOT tests", allow_module_level=True)
 
-from snf_simulations.data import load_antineutrino_data, load_isotope_data
+from snf_simulations.cask import Cask, get_total_spec
+from snf_simulations.data import (
+    load_antineutrino_data,
+    load_isotope_data,
+    load_reactor_data,
+)
 from snf_simulations.spec import Spectrum, equalise_spec
 
 from .test_spec import _mock_data
@@ -51,15 +56,21 @@ def _get_mock_spectra() -> tuple[Spectrum, ROOT.TH1D]:
 
 def _root_to_arrays(spec: ROOT.TH1D) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Convert a ROOT TH1D histogram to Numpy arrays."""
+    # ROOT bins are 1-indexed, so range from 1 to n_bins
     n_bins = spec.GetNbinsX()
-    lower_edges = [spec.GetBinLowEdge(i) for i in range(1, n_bins + 1)]
+    i_bins = range(1, n_bins + 1)
+
+    # Get the edges for each bin from the ROOT histogram.
+    # Note we have to specifically include the upper edge of the final bin.
+    lower_edges = [spec.GetBinLowEdge(i) for i in i_bins]
     upper_edge = spec.GetBinLowEdge(n_bins) + spec.GetBinWidth(n_bins)
     edges = np.array([*lower_edges, upper_edge], dtype=float)
-    content = np.array(
-        [spec.GetBinContent(i) for i in range(1, n_bins + 1)],
-        dtype=float,
-    )
-    errors = np.array([spec.GetBinError(i) for i in range(1, n_bins + 1)], dtype=float)
+
+    # Get the content and errors from the ROOT histogram bins.
+    content = np.array([spec.GetBinContent(i) for i in i_bins], dtype=float)
+    errors = np.array([spec.GetBinError(i) for i in i_bins], dtype=float)
+
+    # edges should be len(nbins + 1), content and errors should be len(n_bins)
     return edges, content, errors
 
 
@@ -257,23 +268,79 @@ def test_integrate() -> None:
 @pytest.mark.parametrize("isotope", ISOTOPES)
 def test_spec_real(isotope: str) -> None:
     """Test that Spectra from real data matches ROOT."""
-    max_energy = 6000
+    # Create the Spectrum instance and equalise it
+    spec = Spectrum.from_isotope(isotope)
+    spec.equalise(width=1, min_energy=0)
+
+    # Create the ROOT spectrum and equalise it
     isotope_data = ISOTOPE_SPECTRA[isotope]
     energy = isotope_data[:, 0]
     flux = isotope_data[:, 1]
     errors = isotope_data[:, 2]
-
-    # Create the ROOT spectrum and equalise it
     root_spec = ROOT.TH1D(isotope, isotope, len(energy) - 1, np.array(energy))
     for e, f in zip(energy[:-1], flux[:-1], strict=True):
         root_spec.Fill(e, f)
     for i, err in enumerate(errors[:-1], start=1):
         root_spec.SetBinError(i, err)
+    max_energy = int(np.ceil(max(isotope_data[:, 0])))
     root_equal = equalise_spec(root_spec, max_energy=max_energy, min_energy=0)
-
-    # Create the Spectrum instance and equalise it
-    spec = Spectrum.from_isotope(isotope)
-    spec.equalise(width=1, min_energy=0, max_energy=max_energy)
 
     # Compare the arrays to ensure they match
     _compare_spectra(spec, root_equal)
+
+
+@pytest.mark.parametrize("total_mass,removal_time", [(1000, 0), (5000, 10)])
+def test_cask(total_mass: float, removal_time: float) -> None:
+    """Test that the Cask class matches ROOT."""
+    # Test with only two isotopes
+    # Note for removal_time>0 Sr90 will decay into Y90
+    isotope_proportions = {"Sr90": 0.5, "Cs137": 0.5}
+
+    # Create the Cask and get the total spectra at the given removal time
+    cask = Cask(
+        isotope_proportions=isotope_proportions,
+        total_mass=total_mass,
+    )
+    spec = cask.get_total_spectrum(removal_time=removal_time)
+
+    # Do the same with the ROOT function
+    root_spec = get_total_spec(
+        cask_name="Test",
+        isotope_proportions=isotope_proportions,
+        total_mass=total_mass,
+        removal_time=removal_time,
+    )
+
+    # Compare the spectra to ensure they match
+    _compare_spectra(spec, root_spec)
+
+
+@pytest.mark.parametrize(
+    "reactor,total_mass,removal_time", [
+        ("sizewell", 1000, 0),
+        ("sizewell", 5000, 10),
+        ("hartlepool", 1000, 0),
+        ("hartlepool", 5000, 10),
+    ]
+)
+def test_cask_real(reactor: str, total_mass: float, removal_time: float) -> None:
+    """Test that the Cask class from real data matches ROOT."""
+    isotope_proportions = load_reactor_data(reactor)
+
+    # Create the Cask and get the total spectra at the given removal time
+    cask = Cask(
+        isotope_proportions=isotope_proportions,
+        total_mass=total_mass,
+    )
+    spec = cask.get_total_spectrum(removal_time=removal_time)
+
+    # Do the same with the ROOT function
+    root_spec = get_total_spec(
+        cask_name="Test",
+        isotope_proportions=isotope_proportions,
+        total_mass=total_mass,
+        removal_time=removal_time,
+    )
+
+    # Compare the spectra to ensure they match
+    _compare_spectra(spec, root_spec)

@@ -127,7 +127,7 @@ def test_repr() -> None:
     spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="mock")
 
     expected_repr = (
-        f"<Spectrum {spec.name}, "
+        f'<Spectrum "{spec.name}", '
         f"energy_range=({spec.energy[0]:.1f}-{spec.energy[-1]:.1f} keV)>"
     )
     assert repr(spec) == expected_repr, (

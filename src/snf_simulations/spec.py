@@ -167,26 +167,25 @@ class Spectrum:
         name: str = "Spectrum",
     ) -> None:
         """Initialize the Spectrum object."""
-        # Check that energy, flux and errors arrays have compatible shapes
-        if energy.ndim != 1 or flux.ndim != 1 or errors.ndim != 1:
-            msg = "Energy, flux and errors must be 1D arrays"
-            raise ValueError(msg)
-        if len(flux) != len(energy) - 1:
-            msg = "Flux array must have length len(energy) - 1"
-            raise ValueError(msg)
-        if len(flux) != len(errors):
-            msg = "Flux and errors arrays must have the same length"
-            raise ValueError(msg)
-
         self.energy = energy
         self.flux = flux
         self.errors = errors
         self.name = name
 
+        if self.energy.ndim != 1 or self.flux.ndim != 1 or self.errors.ndim != 1:
+            msg = "Energy, flux and errors must be 1D arrays"
+            raise ValueError(msg)
+        if len(self.flux) != len(self.energy) - 1:
+            msg = "Flux array must have length len(energy) - 1"
+            raise ValueError(msg)
+        if len(self.flux) != len(self.errors):
+            msg = "Flux and errors arrays must have the same length"
+            raise ValueError(msg)
+
     def __repr__(self) -> str:
         """Return a string representation of the Spectrum object."""
         try:
-            repr_str = f"<Spectrum {self.name}, "
+            repr_str = f'<Spectrum "{self.name}", '
             repr_str += f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
         except AttributeError:
             return "<Spectrum (uninitialized)>"
