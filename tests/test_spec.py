@@ -12,6 +12,9 @@ from snf_simulations.spec import Spectrum
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
 
+_MOLAR_MASSES, _ = load_isotope_data()
+ISOTOPES = list(_MOLAR_MASSES.keys())
+
 
 def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Return a standard mock spectrum dataset used across tests."""
@@ -141,19 +144,16 @@ def test_repr() -> None:
     )
 
 
-def test_from_isotope() -> None:
+@pytest.mark.parametrize("isotope", ISOTOPES)
+def test_from_isotope(isotope: str) -> None:
     """Test that Spectrum.from_isotope returns a valid spectrum object."""
-    molar_masses, _ = load_isotope_data()
-    for isotope in molar_masses:
-        spec = Spectrum.from_isotope(isotope)
-        assert isinstance(spec, Spectrum), "from_isotope should return a Spectrum"
-        assert spec.name == isotope, "from_isotope should preserve isotope name"
-        assert len(spec.energy) == len(spec.flux) + 1, (
-            "Energy edges/flux length mismatch"
-        )
-        assert np.all(np.diff(spec.energy) > 0), (
-            "Energy edges should be strictly increasing"
-        )
+    spec = Spectrum.from_isotope(isotope)
+    assert isinstance(spec, Spectrum), "from_isotope should return a Spectrum"
+    assert spec.name == isotope, "from_isotope should preserve isotope name"
+    assert len(spec.energy) == len(spec.flux) + 1, "Energy edges/flux length mismatch"
+    assert np.all(np.diff(spec.energy) > 0), (
+        "Energy edges should be strictly increasing"
+    )
 
 
 @pytest.mark.parametrize("width", [0.1, 1.0, 2.0])
