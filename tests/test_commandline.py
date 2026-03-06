@@ -85,15 +85,13 @@ def test_single_cask(reactor: str) -> None:
 
     # Calculate the single cask flux at 40m
     # Returns a single value of flux cm^-2 s^-1
-    lower_energy = 1801
-    upper_energy = 6000
-    total_flux = spec.Integral(lower_energy, upper_energy)
+    total_flux = spec.Integral(1806, 6000)
     flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     assert isinstance(flux_at_40m, float), "Single flux is not a float"
     if reactor == "sizewell":
-        flux_ref = 1199551604.4420211
+        flux_ref = 1193212153.241669
     elif reactor == "hartlepool":
-        flux_ref = 494388379.2776407
+        flux_ref = 491654259.98276895
     assert np.isclose(flux_at_40m, flux_ref), (
         f"Single flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
@@ -153,15 +151,13 @@ def test_multiple_casks(reactor: str) -> None:
     assert np.allclose(flux_ref, flux_multiple), "Reference flux does not match"
 
     # Calculate the total cask flux at 40m
-    lower_energy = 1801
-    upper_energy = 6000
-    total_flux = spec_multiple.Integral(lower_energy, upper_energy)
+    total_flux = spec_multiple.Integral(1806, 6000)
     flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     assert isinstance(flux_at_40m, float), "Total flux is not a float"
     if reactor == "sizewell":
-        flux_ref = 13071964027.884478
+        flux_ref = 12997598681.459194
     elif reactor == "hartlepool":
-        flux_ref = 1444552511.941234
+        flux_ref = 1431196201.737153
     assert np.isclose(flux_at_40m, flux_ref), (
         f"Total flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
@@ -171,11 +167,11 @@ def test_multiple_casks(reactor: str) -> None:
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        rate_lower_ref = 1.9449743904375646e-06
-        rate_upper_ref = 3.889948780875129e-06
+        rate_lower_ref = 1.93390958839063e-06
+        rate_upper_ref = 3.86781917678126e-06
     elif reactor == "hartlepool":
-        rate_lower_ref = 2.1493462155913332e-07
-        rate_upper_ref = 4.2986924311826664e-07
+        rate_lower_ref = 2.1294733936938256e-07
+        rate_upper_ref = 4.2589467873876513e-07
     assert np.isclose(rate_lower, rate_lower_ref), (
         f"Lower event rate does not match: ({rate_lower_ref:e} vs {rate_lower:e})"
     )

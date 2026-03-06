@@ -71,15 +71,11 @@ def run_single(reactor: str = "sizewell", cask_mass: float = 10000) -> np.ndarra
     # Calculate and print flux and event rates for the 0.5 year removal time
     spec_single_05 = spectra[1]
     # The total flux is the integral of the spectrum over the energy range of interest.
-    # For inverse beta decay the threshold is around 1.8 MeV (1800 keV), so we
-    # integrate above this energy to get the total flux of antineutrinos that can be
-    # detected.
-    # TODO: It's apparently 1.806 MeV, to be precise.
+    # For inverse beta decay the threshold is 1.806 MeV, so we integrate above this
+    # energy to get the total flux of antineutrinos that can be detected.
     # TODO: If we don't set an upper energy, it should default to the max energy in
     #       in the spectrum (this is the case in the Spectrum class).
-    lower_energy = 1801
-    upper_energy = 6000
-    total_flux = spec_single_05.Integral(lower_energy, upper_energy)
+    total_flux = spec_single_05.Integral(1806, 6000)
     flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     print()
     print(f"Single cask flux at 40 m for {reactor.capitalize()} after 0.5 years:")
@@ -174,9 +170,7 @@ def run_multiple(
     print(f"Saved to {filename}")
 
     # Calculate and print flux and event rates for the combined spectrum
-    lower_energy = 1801
-    upper_energy = 6000
-    total_flux = spec_multiple.Integral(lower_energy, upper_energy)
+    total_flux = spec_multiple.Integral(1806, 6000)
     flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     print()
     print(f"Multiple cask flux at 40 m for {reactor.capitalize()}:")
@@ -266,11 +260,9 @@ def run_multiple_full(
         spectra.Add(total_spec)
 
     # Calculate and print flux and event rates for each cooling time
-    lower_energy = 1801
-    upper_energy = 6000
     print()
     for i in range(len(spectra)):
-        total_flux = spectra[i].Integral(lower_energy, upper_energy)
+        total_flux = spectra[i].Integral(1806, 6000)
         flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
         print(
             f"Multiple cask flux at 40 m for {reactor.capitalize()}"
