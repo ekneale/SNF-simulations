@@ -455,6 +455,33 @@ def test_integrate() -> None:
     )
 
 
+def test_integrate_defaults() -> None:
+    """Test that integrate defaults to full energy range."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+
+    # Test both defaults together
+    total_integral = spec.integrate()
+    expected_total = spec.integrate(energy[0], energy[-1])
+    assert np.isclose(total_integral, expected_total), (
+        "Total integral should match sum of bin content times bin width"
+    )
+
+    # Test lower energy default
+    partial_integral = spec.integrate(upper_energy=energy[-2])
+    expected_partial = spec.integrate(energy[0], energy[-2])
+    assert np.isclose(partial_integral, expected_partial), (
+        "Partial integral with default lower energy should match expected value"
+    )
+
+    # Test upper energy default
+    partial_integral = spec.integrate(lower_energy=energy[1])
+    expected_partial = spec.integrate(energy[1], energy[-1])
+    assert np.isclose(partial_integral, expected_partial), (
+        "Partial integral with default upper energy should match expected value"
+    )
+
+
 def test_integrate_outside_range() -> None:
     """Test that integration outside of the energy range returns zero."""
     energy, flux, errors = _mock_data()

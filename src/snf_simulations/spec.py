@@ -179,8 +179,8 @@ class Spectrum:
 
     def integrate(
         self,
-        lower_energy: float,
-        upper_energy: float,
+        lower_energy: float | None = None,
+        upper_energy: float | None = None,
     ) -> float:
         """Integrate the spectrum over an energy range.
 
@@ -189,12 +189,18 @@ class Spectrum:
 
         Args:
             lower_energy: Lower energy bound in keV.
+                If None, uses the minimum energy from the spectrum.
             upper_energy: Upper energy bound in keV.
+                If None, uses the maximum energy from the spectrum.
 
         Returns:
             Integrated spectrum value over the requested range.
 
         """
+        if upper_energy is None:
+            upper_energy = float(self.energy[-1])
+        if lower_energy is None:
+            lower_energy = float(self.energy[0])
         if upper_energy <= lower_energy:
             msg = "upper_energy must be greater than lower_energy"
             raise ValueError(msg)

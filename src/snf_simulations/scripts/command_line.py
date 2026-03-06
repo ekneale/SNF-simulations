@@ -8,7 +8,7 @@ import ROOT
 
 from snf_simulations.cask import get_total_spec
 from snf_simulations.data import load_reactor_data
-from snf_simulations.physics import calculate_event_rate, calculate_flux
+from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
 from snf_simulations.spec import add_spec, sample_spec, write_spec
 
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
@@ -70,12 +70,22 @@ def run_single(reactor: str = "sizewell", cask_mass: float = 10000) -> np.ndarra
 
     # Calculate and print flux and event rates for the 0.5 year removal time
     spec_single_05 = spectra[1]
+    # The total flux is the integral of the spectrum over the energy range of interest.
+    # For inverse beta decay the threshold is around 1.8 MeV (1800 keV), so we
+    # integrate above this energy to get the total flux of antineutrinos that can be
+    # detected.
+    # TODO: It's apparently 1.806 MeV, to be precise.
+    # TODO: If we don't set an upper energy, it should default to the max energy in
+    #       in the spectrum (this is the case in the Spectrum class).
+    lower_energy = 1801
+    upper_energy = 6000
+    total_flux = spec_single_05.Integral(lower_energy, upper_energy)
+    flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     print()
     print(f"Single cask flux at 40 m for {reactor.capitalize()} after 0.5 years:")
-    flux = calculate_flux(spec_single_05, 40)
-    print(f"Flux: {flux:.3e} cm^-2 s^-1")
-    print(f"Flux: {flux * 60 * 60 * 24:.3e} cm^-2 days^-1")
-    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    print(f"Flux: {flux_at_40m:.3e} cm^-2 s^-1")
+    print(f"Flux: {flux_at_40m * 60 * 60 * 24:.3e} cm^-2 days^-1")
+    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
     print(f"Event rate: {rate_lower:.3e} to {rate_upper:.3e} per s")
     print(
         f"Event rate: {rate_lower * 60 * 60 * 24:.3f}"
@@ -164,12 +174,15 @@ def run_multiple(
     print(f"Saved to {filename}")
 
     # Calculate and print flux and event rates for the combined spectrum
+    lower_energy = 1801
+    upper_energy = 6000
+    total_flux = spec_multiple.Integral(lower_energy, upper_energy)
+    flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     print()
     print(f"Multiple cask flux at 40 m for {reactor.capitalize()}:")
-    flux = calculate_flux(spec_multiple, 40)
-    print(f"Flux: {flux:.3e} cm^-2 s^-1")
-    print(f"Flux: {flux * 60 * 60 * 24:.3e} cm^-2 days^-1")
-    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    print(f"Flux: {flux_at_40m:.3e} cm^-2 s^-1")
+    print(f"Flux: {flux_at_40m * 60 * 60 * 24:.3e} cm^-2 days^-1")
+    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
     print(f"Event rate: {rate_lower:.3e} to {rate_upper:.3e} per s")
     print(
         f"Event rate: {rate_lower * 60 * 60 * 24:.3f}"
@@ -253,16 +266,19 @@ def run_multiple_full(
         spectra.Add(total_spec)
 
     # Calculate and print flux and event rates for each cooling time
+    lower_energy = 1801
+    upper_energy = 6000
     print()
     for i in range(len(spectra)):
+        total_flux = spectra[i].Integral(lower_energy, upper_energy)
+        flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
         print(
             f"Multiple cask flux at 40 m for {reactor.capitalize()}"
             f" after {cooling_times[i]} years:",
         )
-        flux = calculate_flux(spectra[i], 40)
-        print(f"Flux: {flux:.3e} cm^-2 s^-1")
-        print(f"Flux: {flux * 60 * 60 * 24:.3e} cm^-2 days^-1")
-        rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+        print(f"Flux: {flux_at_40m:.3e} cm^-2 s^-1")
+        print(f"Flux: {flux_at_40m * 60 * 60 * 24:.3e} cm^-2 days^-1")
+        rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
         print(f"Event rate: {rate_lower:.3e} to {rate_upper:.3e} per s")
         print(
             f"Event rate: {rate_lower * 60 * 60 * 24:.3f}"

@@ -3,7 +3,6 @@
 from typing import NamedTuple
 
 import numpy as np
-import ROOT
 
 
 class DecayChain(NamedTuple):
@@ -88,34 +87,24 @@ def get_decay_mass(
     return daughter_mass
 
 
-def calculate_flux(
-    spec: ROOT.TH1D,
+def calculate_flux_at_distance(
+    total_flux: float,
     distance: float,
-    lower_energy: float = 1801,
-    upper_energy: float = 6000,
 ) -> float:
     """Calculate the antineutrino flux at a given distance from the source.
 
+    We assume the source is a point source emitting isotropically in all directions,
+    so the flux decreases with the square of the distance from the source.
+
     Args:
-        spec: The total antineutrino spectrum histogram.
+        total_flux: The total antineutrino flux emitted by the source in s^-1 .
         distance: Distance from the source in meters.
-        lower_energy: Lower energy threshold for integration (keV).
-            The default of 1801 keV is just above the inverse beta decay reaction
-            threshold of 1800 keV.
-        upper_energy: Upper energy threshold for integration (keV).
 
     Returns:
-        Antineutrino flux at the given distance in cm^{-2} s^{-1}.
+        Antineutrino flux at the given distance in cm^-2 s^-1.
 
     """
-    # The IBD reaction threshold is 1800 keV, so we integrate above this energy.
-    # This gives the total flux of antineutrinos per second above the threshold.
-    # TODO: It's apparently 1.806 MeV, to be precise.
-    total_flux = spec.Integral(lower_energy, upper_energy)
-
-    # Calculate the flux at the given distance, assuming it's a point source emitting
-    # isotropically in all directions.
-    # Note we convert to cm, to get the flux is in cm^-2 s^-1
+    # Note we convert distance to cm
     flux = (1 / (4 * np.pi * (distance * 100) ** 2)) * (total_flux)
     return flux
 

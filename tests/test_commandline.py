@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 import ROOT
 
-from snf_simulations.physics import calculate_event_rate, calculate_flux
+from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
 from snf_simulations.scripts.command_line import _get_spectra
 from snf_simulations.spec import add_spec, sample_spec
 
@@ -85,18 +85,21 @@ def test_single_cask(reactor: str) -> None:
 
     # Calculate the single cask flux at 40m
     # Returns a single value of flux cm^-2 s^-1
-    flux = calculate_flux(spec, distance=40)
-    assert isinstance(flux, float), "Single flux is not a float"
+    lower_energy = 1801
+    upper_energy = 6000
+    total_flux = spec.Integral(lower_energy, upper_energy)
+    flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
+    assert isinstance(flux_at_40m, float), "Single flux is not a float"
     if reactor == "sizewell":
         flux_ref = 1199551604.4420211
     elif reactor == "hartlepool":
         flux_ref = 494388379.2776407
-    assert np.isclose(flux, flux_ref), (
-        f"Single flux value does not match: ({flux_ref:e} vs {flux:e})"
+    assert np.isclose(flux_at_40m, flux_ref), (
+        f"Single flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
 
     # Calculate event rates in a detector at 40m using the flux spectrum
-    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
@@ -150,18 +153,21 @@ def test_multiple_casks(reactor: str) -> None:
     assert np.allclose(flux_ref, flux_multiple), "Reference flux does not match"
 
     # Calculate the total cask flux at 40m
-    flux = calculate_flux(spec_multiple, distance=40)
-    assert isinstance(flux, float), "Total flux is not a float"
+    lower_energy = 1801
+    upper_energy = 6000
+    total_flux = spec_multiple.Integral(lower_energy, upper_energy)
+    flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
+    assert isinstance(flux_at_40m, float), "Total flux is not a float"
     if reactor == "sizewell":
         flux_ref = 13071964027.884478
     elif reactor == "hartlepool":
         flux_ref = 1444552511.941234
-    assert np.isclose(flux, flux_ref), (
-        f"Total flux value does not match: ({flux_ref:e} vs {flux:e})"
+    assert np.isclose(flux_at_40m, flux_ref), (
+        f"Total flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
 
     # Calculate event rates in a detector at 40m using the flux spectrum
-    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
