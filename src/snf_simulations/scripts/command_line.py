@@ -57,7 +57,7 @@ def run_single(reactor: str = "sizewell", cask_mass: float = 10000) -> Spectrum:
     print()
     print("Writing single cask spectrum data to CSV...")
     filename = f"{reactor.capitalize()}_single.csv"
-    spec.write_csv(output_filename=filename)
+    spec_05.write_csv(output_filename=filename)
     print(f"Saved to {filename}")
 
     # Plot the cask spectra after different removal times

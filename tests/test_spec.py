@@ -367,7 +367,45 @@ def test_add_different_energy() -> None:
         _ = spec1 + spec2
 
 
-def test_sample() -> None:
+def test_sample_distribution() -> None:
+    """Test deterministic sampling for a fixed seed."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    n_samples = 100000
+
+    # Sample the spectrum
+    samples = spec.sample(samples=n_samples)
+    assert len(samples) == n_samples, "Wrong number of samples selected"
+
+    # We can't compare the samples directly due to the random selection, but we can
+    # compare their distributions to the expected probabilities from the histogram.
+    # First, compare against the expected probabilities which are proportional to
+    # the (normalised) flux values in each bin.
+    expected_probabilities = spec.flux / np.sum(spec.flux)
+    counts, _ = np.histogram(samples, bins=spec.energy)
+
+    # Use a chi-squared goodness-of-fit check against the expected bin probabilities.
+    expected_counts = expected_probabilities * n_samples
+    # Exclude bins where counts are zero to avoid division by zero in chi2.
+    valid = expected_counts > 0
+    chi2 = np.sum(
+        (counts[valid] - expected_counts[valid]) ** 2 / expected_counts[valid]
+    )
+    degrees_of_freedom = int(np.count_nonzero(valid) - 1)
+    assert degrees_of_freedom > 0, (
+        "Degrees of freedom must be positive for chi-squared test"
+    )
+
+    # The standard deviation of the chi-squared distribution is sqrt(2*ndf),
+    # again allow a 5-sigma deviation from the mean.
+    sigma = np.sqrt(2 * degrees_of_freedom)
+    assert chi2 < degrees_of_freedom + 5 * sigma, (
+        f"Sampled distribution differs too much from expected histogram: "
+        f"chi2={chi2:.3f}, ndf={degrees_of_freedom}"
+    )
+
+
+def test_sample_with_seed() -> None:
     """Test deterministic sampling for a fixed seed."""
     energy, flux, errors = _mock_data()
     spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
