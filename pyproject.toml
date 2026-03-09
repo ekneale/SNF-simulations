@@ -40,7 +40,6 @@ requires-python = ">=3.10"
 dependencies = [
     "numpy",
     "matplotlib",
-    # "ROOT" not on PyPI, so not listed here, but is required
 ]
 
 [project.scripts]
@@ -82,7 +81,6 @@ ignore = [
     "D213",  # Ignored for Google style docstrings
     ]
 
-# [tool.ty.rules]
-# Too many errors from ROOT, I think https://github.com/astral-sh/ruff/pull/23122
-# should fix it once it's released.
-# See also https://github.com/astral-sh/ty/issues/487.
+[tool.ty.analysis]
+# Ignore type checks for ROOT
+replace-imports-with-any = ["ROOT.**"]
