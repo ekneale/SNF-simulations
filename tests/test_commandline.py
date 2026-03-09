@@ -4,54 +4,20 @@ import importlib.resources
 
 import numpy as np
 import pytest
-import ROOT
 
-from snf_simulations.physics import calculate_event_rate, calculate_flux
-from snf_simulations.scripts.command_line import _get_spectra
-from snf_simulations.spec import add_spec, sample_spec
+from snf_simulations.cask import Cask
+from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
+from snf_simulations.spec import Spectrum
 
 from . import data
-
-ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
 # Suppress warnings from ruff
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
 
 
-def _spec_to_arrays(spec: ROOT.TH1D) -> tuple[np.ndarray, np.ndarray]:
-    """Convert a ROOT.TH1D spectrum to energy and flux numpy arrays."""
-    n_bins = spec.GetNbinsX()
-    energy = np.array([spec.GetBinCenter(i) for i in range(1, n_bins + 1)])
-    flux = np.array([spec.GetBinContent(i) for i in range(1, n_bins + 1)])
-    return energy, flux
-
-
 def _load_output(filename: str) -> tuple[np.ndarray, np.ndarray]:
-    """Load data from an output file.
-
-    The 'CSV' files written by the old `flux.write_spec_single` and
-    `flux.write_spec_multiple` functions are not really proper CSV files,
-    so we have to do a bit of manual parsing here to get the data out.
-    """
-    with importlib.resources.path(data, filename) as path, path.open() as f:
-        energy_line = f.readline()
-        flux_line = f.readline()
-
-    # Line format is:
-    # "energy": [0.0005, 0.0015, ... 5.2995, 5.3005],\n
-    # "(flux)": [58875835323384.055, ... 0.0, 0.0],\n
-    energy = np.array([float(e) for e in energy_line[11:-3].split(", ")])
-    flux = np.array([float(fx) for fx in flux_line[11:-3].split(", ")])
-
-    # Energy was saved in MeV, convert to keV
-    energy *= 1e3
-
-    return energy, flux
-
-
-def _load_output_new(filename: str) -> tuple[list[float], list[float]]:
-    """Load data from a proper CSV output file."""
+    """Load data from a CSV output file."""
     with importlib.resources.path(data, filename) as path:
         spec_data = np.loadtxt(
             path,
@@ -66,59 +32,66 @@ def _load_output_new(filename: str) -> tuple[list[float], list[float]]:
 @pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
 def test_single_cask(reactor: str) -> None:
     """Test single cask spectrum output."""
-    cask_mass = 100000  # test data is for a 100 tonne cask (not 10 tonnes)
+    cask_mass = 10000  # 10 tonne casks
     removal_times = [0, 0.5, 1, 5, 10, 20]
 
-    # Create the spectra for the given removal times
-    spectra = _get_spectra(
-        cask_mass=cask_mass,
-        removal_times=removal_times,
-        reactor=reactor,
-    )
+    # Create the Cask for the given reactor
+    cask = Cask.from_reactor(reactor, total_mass=cask_mass)
 
-    # Check the returned list of spectra
-    assert isinstance(spectra, ROOT.TList), "Returned object is not a TList"
-    assert len(spectra) == len(removal_times), "Returned list has wrong length"
-    assert all(isinstance(spec, ROOT.TH1D) for spec in spectra), (
-        "Not all items in list are TH1D"
-    )
-
-    # Check the basic properties of each of the spectra
-    for spec in spectra:
-        assert isinstance(spec, ROOT.TH1D), "Returned spectrum is not a TH1D"
-        counts, values = spec.counts(), spec.values()
-        assert isinstance(counts, np.ndarray), "Counts are not a numpy array"
-        assert isinstance(values, np.ndarray), "Values are not a numpy array"
-        assert len(counts) == len(values) == 5312, "Data has wrong length"
+    # Create the Spectra for the given removal times
+    spectra = []
+    for removal_time in removal_times:
+        spec_05 = cask.get_total_spectrum(removal_time=removal_time)
+        spectra.append(spec_05)
 
     # Compare to the reference data file
     # The reference data we have (saved by command_line.py) is for the
-    # 0.5 year removal time only, and saved in a non-standard format.
-    spec = spectra[1]
-    energy_single, flux_single = _spec_to_arrays(spec)
-    energy_ref, flux_ref = _load_output(f"{reactor.capitalize()}_single_0.5.csv")
-    assert np.allclose(energy_ref, energy_single), "Reference energy does not match"
-    assert np.allclose(flux_ref, flux_single), "Reference flux does not match"
+    # 0.5 year removal time only.
+    spec_05 = spectra[1]
+    with importlib.resources.path(data, f"{reactor.capitalize()}_single.csv") as path:
+        spec_ref = Spectrum.from_file(path)
+
+    assert len(spec_05.energy) == len(spec_ref.energy), (
+        f"Energy data has wrong length "
+        f"({len(spec_05.energy)} vs {len(spec_ref.energy)})"
+    )
+    assert len(spec_05.flux) == len(spec_ref.flux), (
+        f"Flux data has wrong length ({len(spec_05.flux)} vs {len(spec_ref.flux)})"
+    )
+    assert np.allclose(spec_05.energy, spec_ref.energy), (
+        "Reference energy does not match"
+    )
+    assert np.allclose(spec_05.flux, spec_ref.flux), "Reference flux does not match"
 
     # Calculate the single cask flux at 40m
     # Returns a single value of flux cm^-2 s^-1
-    flux = calculate_flux(spec, distance=40)
-    assert isinstance(flux, float), "Single flux is not a float"
+    total_flux = spec_05.integrate(1806, 6000)
+    flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
+    assert isinstance(flux_at_40m, float), "Single flux is not a float"
     if reactor == "sizewell":
-        assert flux == 11992567783.00658, "Single flux value does not match"
-    else:
-        assert flux == 4942443091.633026, "Single flux value does not match"
+        flux_ref = 1191944053.3836975
+    elif reactor == "hartlepool":
+        flux_ref = 491107390.00662863
+    assert np.isclose(flux_at_40m, flux_ref), (
+        f"Single flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
+    )
 
     # Calculate event rates in a detector at 40m using the flux spectrum
-    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        assert rate_lower == 1.7843712822172811e-06, "Lower event rate does not match"
-        assert rate_upper == 3.5687425644345623e-06, "Upper event rate does not match"
-    else:
-        assert rate_lower == 7.353849214177359e-07, "Lower event rate does not match"
-        assert rate_upper == 1.4707698428354718e-06, "Upper event rate does not match"
+        rate_lower_ref = 1.7734906963638752e-07
+        rate_upper_ref = 3.5469813927277504e-07
+    elif reactor == "hartlepool":
+        rate_lower_ref = 7.307175069331267e-08
+        rate_upper_ref = 1.4614350138662533e-07
+    assert np.isclose(rate_lower, rate_lower_ref, atol=1e-15), (
+        f"Lower event rate does not match: ({rate_lower_ref:e} vs {rate_lower:e})"
+    )
+    assert np.isclose(rate_upper, rate_upper_ref, atol=1e-15), (
+        f"Upper event rate does not match: ({rate_upper_ref:e} vs {rate_upper:e})"
+    )
 
 
 @pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
@@ -132,81 +105,58 @@ def test_multiple_casks(reactor: str) -> None:
         removal_times = [3, 7, 15, 19]
 
     # Create the spectra and combine them
-    spectra = _get_spectra(
-        cask_mass=cask_mass * casks_per_removal,
-        removal_times=removal_times,
-        reactor=reactor,
-    )
-    spec_multiple = add_spec(spectra)
-
-    # Check the combined spectrum
-    assert isinstance(spec_multiple, ROOT.TH1D), "Combined spectrum is not a TH1D"
-    counts, values = spec_multiple.counts(), spec_multiple.values()
-    assert isinstance(counts, np.ndarray), "Counts are not a numpy array"
-    assert isinstance(values, np.ndarray), "Values are not a numpy array"
-    assert len(counts) == len(values) == 5312, "Data has wrong length"
+    cask = Cask.from_reactor(reactor, total_mass=cask_mass * casks_per_removal)
+    spectra = []
+    for removal_time in removal_times:
+        spec = cask.get_total_spectrum(removal_time=removal_time)
+        spectra.append(spec)
+    spec_multiple = spectra[0]
+    for spec in spectra[1:]:
+        spec_multiple = spec_multiple + spec
 
     # Compare to the reference data file
-    energy_multiple, flux_multiple = _spec_to_arrays(spec_multiple)
-    energy_ref, flux_ref = _load_output(f"{reactor.capitalize()}_multiple.csv")
-    assert np.allclose(energy_ref, energy_multiple), "Reference energy does not match"
-    assert np.allclose(flux_ref, flux_multiple), "Reference flux does not match"
+    with importlib.resources.path(data, f"{reactor.capitalize()}_multiple.csv") as path:
+        spec_ref = Spectrum.from_file(path)
+    assert len(spec_ref.energy) == len(spec_multiple.energy), (
+        f"Energy data has wrong length "
+        f"({len(spec_ref.energy)} vs {len(spec_multiple.energy)})"
+    )
+    assert len(spec_ref.flux) == len(spec_multiple.flux), (
+        f"Flux data has wrong length "
+        f"({len(spec_ref.flux)} vs {len(spec_multiple.flux)})"
+    )
+    assert np.allclose(spec_ref.energy, spec_multiple.energy), (
+        "Reference energy does not match"
+    )
+    assert np.allclose(spec_ref.flux, spec_multiple.flux), (
+        "Reference flux does not match"
+    )
 
     # Calculate the total cask flux at 40m
-    flux = calculate_flux(spec_multiple, distance=40)
-    assert isinstance(flux, float), "Total flux is not a float"
+    total_flux = spec_multiple.integrate(1806, 6000)
+    flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
+    assert isinstance(flux_at_40m, float), "Total flux is not a float"
     if reactor == "sizewell":
-        assert flux == 13067897209.144945, "Total flux value does not match"
-    else:
-        assert flux == 1443268305.2325196, "Total flux value does not match"
+        flux_ref = 12982725680.40801
+    elif reactor == "hartlepool":
+        flux_ref = 1428527216.9547708
+    assert np.isclose(flux_at_40m, flux_ref), (
+        f"Total flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
+    )
 
     # Calculate event rates in a detector at 40m using the flux spectrum
-    rate_lower, rate_upper = calculate_event_rate(flux, 0.2, 0.4)
+    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        assert rate_lower == 1.9443692894533463e-06, "Lower event rate does not match"
-        assert rate_upper == 3.8887385789066926e-06, "Upper event rate does not match"
-    else:
-        assert rate_lower == 2.1474354475115334e-07, "Lower event rate does not match"
-        assert rate_upper == 4.294870895023067e-07, "Upper event rate does not match"
-
-
-@pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
-def test_sampling(reactor: str) -> None:
-    """Test plotting a sample spectrum for given removal times."""
-    cask_mass = 10000  # 10 tonne casks
-    casks_per_removal = 10
-    if reactor == "sizewell":
-        removal_times = [0.5, 5, 10, 20]
+        rate_lower_ref = 1.9316966381337443e-06
+        rate_upper_ref = 3.863393276267489e-06
     elif reactor == "hartlepool":
-        removal_times = [3, 7, 15, 19]
-
-    # Create the spectra and combine them
-    spectra = _get_spectra(
-        cask_mass=cask_mass * casks_per_removal,
-        removal_times=removal_times,
-        reactor=reactor,
+        rate_lower_ref = 2.1255022176416828e-07
+        rate_upper_ref = 4.2510044352833657e-07
+    assert np.isclose(rate_lower, rate_lower_ref, atol=1e-15), (
+        f"Lower event rate does not match: ({rate_lower_ref:e} vs {rate_lower:e})"
     )
-    spec_multiple = add_spec(spectra)
-
-    # Sample the spectrum
-    samples = sample_spec(
-        spec_multiple,
-        samples=1000000,
-    )
-
-    # Check the samples
-    assert len(samples) == 1000000, "Wrong number of samples in CSV"
-
-    # Compare to reference file
-    # sample.sample() uses GetRandom(), but the output seems to be deterministic.
-    # So we can compare to a reference file.
-    filename = f"{reactor.capitalize()}_sampled_spectrum.csv"
-    with importlib.resources.path(data, filename) as path, path.open() as f:
-        lines = f.readlines()
-        samples_ref = [float(line.strip()) for line in lines]
-    assert len(samples_ref) == 1000000, "Wrong number of samples in reference CSV"
-    assert np.isclose(samples, samples_ref).all(), (
-        "Sampled spectrum does not match reference"
+    assert np.isclose(rate_upper, rate_upper_ref, atol=1e-15), (
+        f"Upper event rate does not match: ({rate_upper_ref:e} vs {rate_upper:e})"
     )

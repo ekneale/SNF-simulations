@@ -1,5 +1,7 @@
 """Unit tests for data loading functions."""
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -102,12 +104,28 @@ def test_load_isotope_data() -> None:
     )
 
 
+def test_load_isotope_data_missing_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that missing isotope CSV raises ValueError with clear message."""
+
+    # Point the data package root to an empty temporary directory so
+    # isotopes.csv is absent.
+    def _mock_files(_: str) -> Path:
+        return tmp_path
+
+    monkeypatch.setattr("snf_simulations.data.files", _mock_files)
+
+    with pytest.raises(ValueError, match="Isotope CSV file not found."):
+        load_isotope_data()
+
+
 def test_load_spectrum() -> None:
     """Test loading spectrum data for a valid isotope."""
     spectrum = load_spectrum("Sr90")
     assert isinstance(spectrum, np.ndarray), "Spectrum should be a numpy array"
     assert spectrum.shape[1] == 3, (
-        "Spectrum should have 3 columns (energy, dN/dE, uncertainty)"
+        "Spectrum should have 3 columns (energy, flux, uncertainty)"
     )
     assert spectrum.shape[0] > 0, "Spectrum should have at least one row"
 
