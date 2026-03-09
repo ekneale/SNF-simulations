@@ -93,7 +93,7 @@ def test_linear_interpolate_with_errors_invalid_inputs() -> None:
         _ = linear_interpolate_with_errors(
             original_bins=np.array([0.0]),
             original_content=np.array([]),  # need to be 1 less than original_bins
-            original_errors=np.array([]),   # or else earlier check will fail first
+            original_errors=np.array([]),  # or else earlier check will fail first
             new_bins=np.array([0.0, 1.0]),
         )
 

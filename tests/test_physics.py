@@ -102,7 +102,7 @@ def test_calculate_flux() -> None:
     total_flux = spec.integrate()
     assert np.isclose(total_flux, expected_total), (
         f"Integrated flux ({total_flux}) does not match expected value"
-         f" ({expected_total})"
+        f" ({expected_total})"
     )
 
     distance = 40.0
