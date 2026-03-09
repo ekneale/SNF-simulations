@@ -1,5 +1,7 @@
 """Unit tests for data loading functions."""
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -100,6 +102,22 @@ def test_load_isotope_data() -> None:
     assert half_lives["Y90"] == 0.0073, (
         "Half life of Y90 should be approximately 0.0073 years"
     )
+
+
+def test_load_isotope_data_missing_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that missing isotope CSV raises ValueError with clear message."""
+
+    # Point the data package root to an empty temporary directory so
+    # isotopes.csv is absent.
+    def _mock_files(_: str) -> Path:
+        return tmp_path
+
+    monkeypatch.setattr("snf_simulations.data.files", _mock_files)
+
+    with pytest.raises(ValueError, match="Isotope CSV file not found."):
+        load_isotope_data()
 
 
 def test_load_spectrum() -> None:
