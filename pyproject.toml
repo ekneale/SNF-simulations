@@ -27,7 +27,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Physics",
     ]
@@ -58,6 +57,8 @@ namespaces = true
 where = ["src"]
 
 [tool.setuptools.package-data]
+"snf_simulations.data" = ["isotopes.csv"]
+"snf_simulations.data.reactor_data" = ["*.csv"]
 "snf_simulations.data.spec_data" = ["*.txt"]
 
 [tool.ruff]

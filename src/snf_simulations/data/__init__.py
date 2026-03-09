@@ -16,7 +16,7 @@ def get_reactors() -> list[str]:
         List of reactor names.
 
     """
-    data_files = files("snf_simulations.data.reactor_data")
+    data_files = files("snf_simulations.data") / "reactor_data"
     with as_file(data_files) as path:
         return [file.stem for file in path.iterdir() if file.suffix == ".csv"]
 
@@ -32,8 +32,7 @@ def load_reactor_data(reactor: str) -> dict[str, float]:
         e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
 
     """
-    data_files = files("snf_simulations.data.reactor_data")
-    filename = data_files / f"{reactor}.csv"
+    filename = files("snf_simulations.data") / "reactor_data" / f"{reactor}.csv"
 
     # Check if file exists
     with as_file(filename) as filepath:
