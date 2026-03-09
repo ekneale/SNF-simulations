@@ -538,7 +538,7 @@ def test_write_csv() -> None:
     data_loaded = np.loadtxt(
         filename,
         delimiter=",",
-        skiprows=1,
+        skiprows=2,
     )
     energy_lower_loaded = data_loaded[:, 0]
     energy_upper_loaded = data_loaded[:, 1]
@@ -587,3 +587,34 @@ def test_write_csv_filenames() -> None:
     spec.write_csv()  # no filename provided, should use default
     assert expected_filename.exists(), "write_csv() should create default filename"
     expected_filename.unlink()
+
+
+def test_from_file() -> None:
+    """Test creating a Spectrum from a CSV file."""
+    energy, flux, errors = _mock_data()
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="test")
+
+    # Write the spectrum to a CSV
+    filename = Path("test_spectrum.csv")
+    if filename.exists():
+        filename.unlink()
+    spec.write_csv(filename)
+
+    # Load the spectrum back from the file
+    loaded_spec = Spectrum.from_file(filename)
+
+    # Test that the loaded spectrum matches the original
+    assert isinstance(loaded_spec, Spectrum), "Loaded object is not a Spectrum"
+    assert loaded_spec.name == spec.name, "Loaded spectrum name does not match"
+    assert np.array_equal(loaded_spec.energy, spec.energy), (
+        "Loaded energy edges do not match original"
+    )
+    assert np.array_equal(loaded_spec.flux, spec.flux), (
+        "Loaded flux does not match original"
+    )
+    assert np.array_equal(loaded_spec.errors, spec.errors), (
+        "Loaded errors do not match original"
+    )
+
+    # Clean up the file after testing
+    filename.unlink()

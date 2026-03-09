@@ -81,6 +81,30 @@ class Spectrum:
             name=name,
         )
 
+    @classmethod
+    def from_file(
+        cls,
+        filename: Path | str,
+    ) -> "Spectrum":
+        """Create a Spectrum object from a CSV file written using write_csv."""
+        with open(filename) as f:
+            header = f.readline().strip()
+            # Name should have been saved in the header
+            name = "Spectrum" if not header.startswith("#") else header[1:].strip()
+        # The data should have columns: energy_lower, energy_upper, flux, error
+        data = np.loadtxt(filename, delimiter=",", skiprows=2)
+        lower_edges = data[:, 0]
+        upper_edges = data[:, 1]
+        energy = np.concatenate((lower_edges, [upper_edges[-1]]))
+        flux = data[:, 2]
+        errors = data[:, 3]
+        return cls(
+            energy,
+            flux,
+            errors,
+            name=name,
+        )
+
     def equalise(
         self,
         width: float = 1,
@@ -252,7 +276,7 @@ class Spectrum:
             data,
             fmt=("%.1f", "%.1f", "%.6e", "%.6e"),
             delimiter=",",
-            header="energy_lower,energy_upper,flux,error",
+            header=f"# {self.name}\nenergy_lower,energy_upper,flux,error",
             comments="",
         )
 
