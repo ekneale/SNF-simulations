@@ -126,7 +126,6 @@ class Spectrum:
         self.energy = new_edges
         self.flux = new_flux
         self.errors = new_errors
-        self.name = self.name + " equalised"
 
     def __add__(self, other: "Spectrum") -> "Spectrum":
         """Add another Spectrum to this one by summing the flux values.
@@ -160,8 +159,7 @@ class Spectrum:
         """
         new_flux = self.flux * factor
         new_errors = self.errors * abs(factor)
-        new_name = self.name + f" scaled by {factor}"
-        return Spectrum(self.energy, new_flux, new_errors, name=new_name)
+        return Spectrum(self.energy, new_flux, new_errors, name=self.name)
 
     def sample(self, samples: int = 100, seed: int | None = None) -> np.ndarray:
         """Sample the spectrum to simulate what a detector could observe.

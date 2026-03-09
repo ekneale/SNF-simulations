@@ -39,6 +39,7 @@ license-files = [
 requires-python = ">=3.10"
 dependencies = [
     "numpy",
+    "matplotlib",
     # "ROOT" not on PyPI, so not listed here, but is required
 ]
 

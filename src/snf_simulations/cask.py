@@ -1,5 +1,7 @@
 """Calculate antineutrino spectra for spent nuclear fuel casks."""
 
+from copy import deepcopy
+
 import ROOT
 
 from .data import load_antineutrino_data, load_isotope_data
@@ -61,14 +63,13 @@ class Cask:
         else:
             return repr_str
 
-    def get_total_spectrum(
-        self,
-        removal_time: float = 0,
-    ) -> Spectrum:
-        """Calculate the total antineutrino spectrum as a Spectrum object.
+    def _get_component_spectra(self, removal_time: float = 0) -> list[Spectrum]:
+        """Get the individual antineutrino spectra for each isotope in the cask.
 
-        Args:
-            removal_time: The time in years since the cask was removed from the reactor.
+        Returns:
+            A list of Spectrum objects, representing the antineutrino spectra for each
+            isotope as well as any additional isotopes created from decays since
+            removal from the reactor.
 
         """
         if removal_time < 0:
@@ -120,9 +121,10 @@ class Cask:
                     daughter_molar_mass = _molar_masses[chain.daughter]
                     daughter_half_life = _half_lives[chain.daughter]
                 else:
-                    daughter_spec = self.isotope_spectra[chain.daughter]
+                    daughter_spec = deepcopy(self.isotope_spectra[chain.daughter])
                     daughter_molar_mass = self.molar_masses[chain.daughter]
                     daughter_half_life = self.half_lives[chain.daughter]
+                daughter_spec.name = f"{chain.parent}->{chain.daughter}"
 
                 # Calculate the mass of the daughter isotope
                 daughter_mass = get_decay_mass(
@@ -144,6 +146,16 @@ class Cask:
                 )
                 scaled_spec = daughter_spec * activity
                 spectra.append(scaled_spec)
+        return spectra
+
+    def get_total_spectrum(self, removal_time: float = 0) -> Spectrum:
+        """Calculate the total antineutrino spectrum as a Spectrum object.
+
+        Args:
+            removal_time: The time in years since the cask was removed from the reactor.
+
+        """
+        spectra = self._get_component_spectra(removal_time)
 
         # Equalise all the spectra to 1keV bins to allow combining,
         # going from 0 to the maximum energy across all spectra.
