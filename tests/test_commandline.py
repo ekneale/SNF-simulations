@@ -6,7 +6,6 @@ import numpy as np
 import pytest
 
 from snf_simulations.cask import Cask
-from snf_simulations.data import load_reactor_data
 from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
 from snf_simulations.spec import Spectrum
 
@@ -37,12 +36,7 @@ def test_single_cask(reactor: str) -> None:
     removal_times = [0, 0.5, 1, 5, 10, 20]
 
     # Create the Cask for the given reactor
-    isotope_proportions = load_reactor_data(reactor)
-    cask = Cask(
-        isotope_proportions=isotope_proportions,
-        total_mass=cask_mass,
-        name=f"{reactor}_cask",
-    )
+    cask = Cask.from_reactor(reactor, total_mass=cask_mass)
 
     # Create the Spectra for the given removal times
     spectra = []
@@ -111,12 +105,7 @@ def test_multiple_casks(reactor: str) -> None:
         removal_times = [3, 7, 15, 19]
 
     # Create the spectra and combine them
-    isotope_proportions = load_reactor_data(reactor)
-    cask = Cask(
-        isotope_proportions=isotope_proportions,
-        total_mass=cask_mass * casks_per_removal,
-        name=f"{reactor}_cask",
-    )
+    cask = Cask.from_reactor(reactor, total_mass=cask_mass * casks_per_removal)
     spectra = []
     for removal_time in removal_times:
         spec = cask.get_total_spectrum(removal_time=removal_time)

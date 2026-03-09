@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from snf_simulations.cask import Cask
-from snf_simulations.data import load_reactor_data
 from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
 from snf_simulations.spec import Spectrum
 
@@ -15,14 +14,8 @@ def run_single(reactor: str = "sizewell", cask_mass: float = 10000) -> Spectrum:
     """Plot the spectrum for a single dry cask of fuel at different removal times."""
     print("Generating single cask spectra at different cooling times...")
 
-    # Create a single Cask of the given mass,
-    # using the isotope proportions for the given reactor
-    isotope_proportions = load_reactor_data(reactor)
-    cask = Cask(
-        isotope_proportions=isotope_proportions,
-        total_mass=cask_mass,
-        name=f"{reactor}_cask",
-    )
+    # Create a single Cask of the given mass
+    cask = Cask.from_reactor(reactor, total_mass=cask_mass)
 
     # Create the Spectra for removal times of 0, 0.5, 1, 5, 10, 20 years.
     removal_times = [0, 0.5, 1, 5, 10, 20]
@@ -105,12 +98,7 @@ def run_multiple(
     # at each removal time, we just simulate one 100-tonne cask.
     # Since all the casks are the same mass and proportions, just different removal
     # times, we only need to create a single Cask object.
-    isotope_proportions = load_reactor_data(reactor)
-    cask = Cask(
-        isotope_proportions=isotope_proportions,
-        total_mass=cask_mass * casks_per_removal,
-        name=f"{reactor}_cask",
-    )
+    cask = Cask.from_reactor(reactor, total_mass=cask_mass * casks_per_removal)
 
     # Create the Spectra for each cask at each removal time
     if reactor == "sizewell":
@@ -207,12 +195,7 @@ def run_multiple_full(
     print("Generating multiple cask spectra for different cooling times...")
     # This is the same setup as run_multi, but now we add extra cooling times
     # to see how the spectrum evolves.
-    isotope_proportions = load_reactor_data(reactor)
-    cask = Cask(
-        isotope_proportions=isotope_proportions,
-        total_mass=cask_mass * casks_per_removal,
-        name=f"{reactor}_cask",
-    )
+    cask = Cask.from_reactor(reactor, total_mass=cask_mass * casks_per_removal)
 
     if reactor == "sizewell":
         removal_times = [0.5, 5, 10, 20]

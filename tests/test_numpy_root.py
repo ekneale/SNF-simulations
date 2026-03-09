@@ -676,16 +676,12 @@ def test_cask(total_mass: float, removal_time: float) -> None:
 )
 def test_cask_real(reactor: str, total_mass: float, removal_time: float) -> None:
     """Test that the Cask class from real data matches ROOT."""
-    isotope_proportions = load_reactor_data(reactor)
-
     # Create the Cask and get the total spectra at the given removal time
-    cask = Cask(
-        isotope_proportions=isotope_proportions,
-        total_mass=total_mass,
-    )
+    cask = Cask.from_reactor(reactor, total_mass=total_mass)
     spec = cask.get_total_spectrum(removal_time=removal_time)
 
     # Do the same with the ROOT function
+    isotope_proportions = load_reactor_data(reactor)
     root_spec = _get_total_root_spec(
         cask_name="Test",
         isotope_proportions=isotope_proportions,

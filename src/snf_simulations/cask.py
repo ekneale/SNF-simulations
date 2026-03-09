@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from .data import load_isotope_data
+from .data import load_isotope_data, load_reactor_data
 from .physics import DecayChain, get_decay_mass, get_isotope_activity
 from .spec import Spectrum
 
@@ -60,6 +60,16 @@ class Cask:
             return "<Cask (uninitialized)>"
         else:
             return repr_str
+
+    @classmethod
+    def from_reactor(cls, reactor: str, total_mass: float) -> "Cask":
+        """Create a Cask object from reactor data."""
+        isotope_proportions = load_reactor_data(reactor)
+        return cls(
+            isotope_proportions=isotope_proportions,
+            total_mass=total_mass,
+            name=f"{reactor}_cask",
+        )
 
     def _get_component_spectra(self, removal_time: float = 0) -> list[Spectrum]:
         """Get the individual antineutrino spectra for each isotope in the cask.
