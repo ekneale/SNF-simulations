@@ -7,19 +7,13 @@ name = "snf_simulations"
 version = "0.1.0"
 description = "Simulate antineutrino spectra for different compositions of spent nuclear fuel."
 authors = [
-    {name = "Zuzanna Leliwa", email = "zleliwa1@sheffield.ac.uk"},
-    {name = "Abigail Power", email = "apower3@sheffield.ac.uk"},
-    {name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk"},
-    {name = "Martin Dyer", email = "martin.dyer@sheffield.ac.uk"},
+    { name = "Zuzanna Leliwa", email = "zleliwa1@sheffield.ac.uk" },
+    { name = "Abigail Power", email = "apower3@sheffield.ac.uk" },
+    { name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk" },
+    { name = "Martin Dyer", email = "martin.dyer@sheffield.ac.uk" },
 ]
-maintainers = [
-    {name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk"},
-]
-keywords = [
-    "nuclear",
-    "antineutrino",
-    "spectrum",
-]
+maintainers = [{ name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk" }]
+keywords = ["nuclear", "antineutrino", "spectrum"]
 classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
@@ -29,17 +23,12 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Physics",
-    ]
+]
 readme = "README.md"
 license = "BSD-3-Clause"
-license-files = [
-    'LICENSE.txt'
-]
+license-files = ["LICENSE.txt"]
 requires-python = ">=3.10"
-dependencies = [
-    "numpy",
-    "matplotlib",
-]
+dependencies = ["numpy", "matplotlib"]
 
 [dependency-groups]
 dev = [
@@ -55,7 +44,7 @@ snf-sim = "snf_simulations.scripts.command_line:run"
 
 [project.urls]
 homepage = "https://github.com/ekneale/SNF-simulations"
-documentation = "https://github.com/ekneale/SNF-simulations"  # TODO
+documentation = "https://github.com/ekneale/SNF-simulations" # TODO
 repository = "https://github.com/ekneale/SNF-simulations"
 
 [tool.setuptools]
@@ -71,25 +60,26 @@ where = ["src"]
 "snf_simulations.data.spec_data" = ["*.txt"]
 
 [tool.ruff]
+exclude = ["docs"]
 line-length = 88
 
 [tool.ruff.lint]
 select = [
-    "E", # pycodestyle (errors)
-    "F", # Pyflakes
-    "PL", # pylint
-    "UP", # pyupgrade
-    "B", # flake8-bugbear
-    "S", # flake8-bandit
+    "E",   # pycodestyle (errors)
+    "F",   # Pyflakes
+    "PL",  # pylint
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit
     "SIM", # flake8-simplify
-    "I", # isort
-    "ANN",  # Type annotation rules
-    "D", # pydocstyle
+    "I",   # isort
+    "ANN", # Type annotation rules
+    "D",   # pydocstyle
 ]
 ignore = [
-    "D203",  # Ignored for Google style docstrings
-    "D213",  # Ignored for Google style docstrings
-    ]
+    "D203", # Ignored for Google style docstrings
+    "D213", # Ignored for Google style docstrings
+]
 
 [tool.ty.analysis]
 # Ignore type checks for ROOT
