@@ -5,4 +5,5 @@
 :caption: Contents:
 cask.md
 spectrum.md
+apidocs/index.rst
 ```
