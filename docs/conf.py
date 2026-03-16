@@ -23,6 +23,9 @@ autodoc2_packages = [
     "../src/snf_simulations",
 ]
 autodoc2_render_plugin = "myst"
+autodoc2_sort_names = True
+autodoc2_class_docstring = "both"
+autodoc2_hidden_objects = {"inherited", "dunder"}
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
