@@ -33,6 +33,7 @@ dependencies = ["numpy", "matplotlib"]
 [dependency-groups]
 dev = [
     "myst-parser>=4.0.1",
+    "pydata-sphinx-theme>=0.16.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "sphinx>=8.1.3",
