@@ -10,7 +10,7 @@ import pytest
 try:
     import ROOT
 except ImportError:
-    pytest.skip("skipping ROOT tests", allow_module_level=True)  # ty: ignore
+    pytest.skip("skipping ROOT tests", allow_module_level=True)
 
 from snf_simulations.cask import Cask
 from snf_simulations.data import (
