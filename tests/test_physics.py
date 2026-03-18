@@ -1,15 +1,15 @@
 """Unit tests for physics calculations."""
 
 import numpy as np
-import ROOT
 
 from snf_simulations.physics import (
     DecayChain,
     calculate_event_rate,
-    calculate_flux,
+    calculate_flux_at_distance,
     get_decay_mass,
     get_isotope_activity,
 )
+from snf_simulations.spec import Spectrum
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
@@ -92,12 +92,22 @@ def test_get_decay_mass_positive_time() -> None:
 
 def test_calculate_flux() -> None:
     """Test flux calculation against expected value."""
-    integral_value = 8.0e9
-    spec = ROOT.TH1D("spec", "", 6000, 0, 6000)
-    spec.SetBinContent(2000, integral_value)
+    bin_value = 100
+    energy = np.array([0.0, 5.0, 10.0, 15.0])
+    flux = np.array([0.0, bin_value, 0.0])
+    errors = np.zeros_like(flux)
+    spec = Spectrum(energy=energy, flux=flux, errors=errors)
+
+    expected_total = np.sum(flux * np.diff(energy))
+    total_flux = spec.integrate()
+    assert np.isclose(total_flux, expected_total), (
+        f"Integrated flux ({total_flux}) does not match expected value"
+        f" ({expected_total})"
+    )
+
     distance = 40.0
-    flux = calculate_flux(spec, distance)
-    flux_ref = integral_value / (4 * np.pi * (distance * 100) ** 2)
+    flux = calculate_flux_at_distance(total_flux, distance)
+    flux_ref = expected_total / (4 * np.pi * (distance * 100) ** 2)
     assert np.isclose(flux, flux_ref), "Calculated flux does not match reference value"
 
 

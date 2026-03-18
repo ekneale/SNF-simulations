@@ -16,7 +16,7 @@ def get_reactors() -> list[str]:
         List of reactor names.
 
     """
-    data_files = files("snf_simulations.data.reactor_data")
+    data_files = files("snf_simulations.data") / "reactor_data"
     with as_file(data_files) as path:
         return [file.stem for file in path.iterdir() if file.suffix == ".csv"]
 
@@ -32,8 +32,7 @@ def load_reactor_data(reactor: str) -> dict[str, float]:
         e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
 
     """
-    data_files = files("snf_simulations.data.reactor_data")
-    filename = data_files / f"{reactor}.csv"
+    filename = files("snf_simulations.data") / "reactor_data" / f"{reactor}.csv"
 
     # Check if file exists
     with as_file(filename) as filepath:
@@ -97,7 +96,7 @@ def load_spectrum(isotope_name: str) -> np.ndarray:
         isotope_name: Name of the isotope to load data for.
 
     Returns:
-        Array containing energy, dN/dE, and uncertainty.
+        Array containing energy, flux, and uncertainty.
 
     """
     # TODO: download spectra from IAEA database, and cache locally
@@ -115,7 +114,7 @@ def load_spectrum(isotope_name: str) -> np.ndarray:
     # main decay chain ends based on the p_energy column.
     data = data[data[:, 3] == 0]
 
-    return data[:, [7, 10, 11]]  # energy, dN/dE, uncertainty
+    return data[:, [7, 10, 11]]  # energy, flux, uncertainty
 
 
 def load_antineutrino_data(isotopes: list[str]) -> dict[str, np.ndarray]:
@@ -126,7 +125,7 @@ def load_antineutrino_data(isotopes: list[str]) -> dict[str, np.ndarray]:
 
     Returns:
         Dictionary of arrays containing spectrum data for each isotope.
-        Data arrays contain energy, dN/dE, and uncertainty.
+        Data arrays contain energy, flux, and uncertainty.
 
     """
     data = {}
