@@ -219,3 +219,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Setuptools-scm version file
+src/snf_simulations/_version.py

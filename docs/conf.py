@@ -9,7 +9,9 @@
 project = "SNF-simulations"
 copyright = "2026, Zuzanna Leliwa, Abigail Power, Liz Kneale, Martin Dyer"
 author = "Zuzanna Leliwa, Abigail Power, Liz Kneale, Martin Dyer"
-release = "0.1.0"
+from importlib.metadata import version as get_version
+release = get_version("snf_simulations")
+release = ".".join(release.split('.')[:3])  # Only use major.minor.patch for docs
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
