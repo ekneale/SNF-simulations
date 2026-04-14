@@ -21,5 +21,3 @@ The software can also be used to provide an approximate prediction for the sensi
 [3] M. R. Bhat (1992). Evaluated Nuclear Structure Data File (ENSDF). In: Qaim, S.M. (eds) Nuclear Data for Science and Technology. Research Reports in Physics. Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-642-58113-7_227
 
 [4] X. Mougeot (2017). BetaShape: A new code for improved analytical calculations of beta spectra. EPJ Web Conf., 146 12015
-
-
