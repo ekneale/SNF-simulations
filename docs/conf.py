@@ -39,6 +39,8 @@ extensions = [
 
 myst_enable_extensions = [
     "fieldlist",
+    "dollarmath",
+    "colon_fence",
 ]
 
 # -- Options for autodoc2 ---------------------------------------------------
