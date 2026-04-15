@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "SNF-simulations"
-copyright = "2026, Zuzanna Leliwa, Abigail Power, Liz Kneale, Martin Dyer"
+copyright = "2026, E Kneale"
 author = "Zuzanna Leliwa, Abigail Power, Liz Kneale, Martin Dyer"
 from importlib.metadata import version as get_version
 release = get_version("snf_simulations")
