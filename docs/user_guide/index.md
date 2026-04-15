@@ -4,10 +4,8 @@ The pages in this guide provide a more detailed introduction to the main feature
 
 ```{toctree}
 :maxdepth: 2
-spectrum.md
-cask.md
-flux.md
-multiple_casks.md
+spectrum.ipynb
+cask.ipynb
+flux.ipynb
+multiple_casks.ipynb
 ```
-
-If you want a complete example notebook showing how to use the package, see [here](examples.ipynb).
