@@ -4,9 +4,17 @@ Provides functions to load isotope data, reactor fuel composition data, and
 antineutrino spectrum data from the built-in database files.
 """
 
+import os
+import re
+import urllib.request
 from importlib.resources import as_file, files
+from io import StringIO
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
+
+_CACHE_DIR_ENV_VAR = "SNF_SIMULATIONS_CACHE_DIR"
 
 
 def get_reactors() -> list[str]:
@@ -89,47 +97,151 @@ def load_isotope_data(
     return molar_masses, half_lives
 
 
-def load_spectrum(isotope_name: str) -> np.ndarray:
-    """Load in antineutrino spectrum data from text files.
+def _parse_nuclide(nuclide: str) -> str:
+    """Parse a nuclide name into the format expected by the IAEA database.
 
     Args:
-        isotope_name: Name of the isotope to load data for.
+        nuclide: Nuclide name in the format 'ElementMass' or 'MassElement',
+            e.g. 'Ru106' or '106Ru'.
+
+    Returns:
+        Nuclide name in the format 'masselement', e.g. '106ru'.
+        Note that the element symbol is converted to lowercase.
+
+    """
+    match = re.match(r"^([A-Za-z]+)(\d+)$", nuclide)
+    if match:
+        element, mass = match.groups()
+        return f"{mass}{element.lower()}"
+    match = re.match(r"^(\d+)([A-Za-z]+)$", nuclide)
+    if match:
+        mass, element = match.groups()
+        return f"{mass}{element.lower()}"
+    else:
+        msg = f"Nuclide format not recognized: {nuclide}"
+        msg += " Use 'ElementMass' or 'MassElement', e.g., 'Ru106' or '106Ru'."
+        raise ValueError(msg)
+
+
+def _get_cache_dir() -> Path:
+    """Return the writable directory used for downloaded spectrum data."""
+    cache_dir = os.environ.get(_CACHE_DIR_ENV_VAR)
+    if cache_dir is not None:
+        path = Path(cache_dir).expanduser()
+    else:
+        xdg_cache_home = os.environ.get("XDG_CACHE_HOME")
+        if xdg_cache_home is not None:
+            path = Path(xdg_cache_home).expanduser() / "snf_simulations" / "spec_data"
+        else:
+            path = Path.home() / ".cache" / "snf_simulations" / "spec_data"
+
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _get_cache_file(nuclide: str) -> Path:
+    """Return the writable cache file path for a nuclide."""
+    return _get_cache_dir() / f"{nuclide}.csv"
+
+
+def download_spectrum_data(nuclide: str) -> str:
+    """Download the antineutrino spectrum for a given nuclide from the IAEA database.
+
+    Args:
+        nuclide: Name of the nuclide to get the spectrum for, e.g. "Ru106" or "106Ru".
+
+    Returns:
+        Path to the downloaded spectrum data file in the cache.
+
+    """
+    # Download the data file
+    nuclide = _parse_nuclide(nuclide)
+    url = (
+        "https://nds.iaea.org/relnsd/v1/data?fields=bin_beta"
+        f"&nuclides={nuclide}&rad_types=bm"
+    )
+    req = urllib.request.Request(url)  # noqa: S310
+    req.add_header(
+        "User-Agent",
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox77.0",
+    )
+    try:
+        content = urllib.request.urlopen(req, timeout=5).read().decode("utf-8")  # noqa: S310
+    except Exception as err:
+        msg = f"Error downloading spectrum data for {nuclide} from IAEA database: {err}"
+        raise RuntimeError(msg) from err
+
+    data = pd.read_csv(StringIO(content))
+
+    # Some nuclides (e.g. Ru106) have duplicate rows in the IAEA database.
+    # These break creating histograms, so remove exact duplicates before caching.
+    data = data.drop_duplicates()
+
+    filename = _get_cache_file(nuclide)
+    if not filename.is_file():
+        data.to_csv(filename, index=False)
+
+    return str(filename)
+
+
+def load_spectrum_file(nuclide: str) -> np.ndarray:
+    """Load in antineutrino spectrum data from a CSV file in the cache.
+
+    Args:
+        nuclide: Name of the nuclide to load data for.
 
     Returns:
         Array containing energy, flux, and uncertainty.
 
     """
-    # TODO: download spectra from IAEA database, and cache locally
-    spec_files = files("snf_simulations.data.spec_data")
-    filename = spec_files / f"{isotope_name}_an.txt"
+    nuclide = _parse_nuclide(nuclide)
+    cache_file = _get_cache_file(nuclide)
+    if not cache_file.is_file():
+        msg = f"Spectrum data file for {nuclide} not found in cache."
+        raise ValueError(msg)
 
-    with as_file(filename) as filepath:
-        if not filepath.is_file():
-            msg = f"Spectrum data file for {isotope_name} not found."
-            raise ValueError(msg)
-
-        data = np.genfromtxt(filepath, skip_header=1)
+    df = pd.read_csv(cache_file)
 
     # Some isotopes have multiple decay chains, so cut off where the
     # main decay chain ends based on the p_energy column.
-    data = data[data[:, 3] == 0]
+    df = df[df["p_energy"] == 0]
 
-    return data[:, [7, 10, 11]]  # energy, flux, uncertainty
+    # Return only the relevant columns as a "D numpy array.
+    return df[["bin_en", "dn_de_nu", "unc_dn_de_nu"]].to_numpy()
 
 
-def load_antineutrino_data(isotopes: list[str]) -> dict[str, np.ndarray]:
-    """Load in antineutrino spectrum data from the IAEA.
+def load_spectrum(nuclide: str) -> np.ndarray:
+    """Load in antineutrino spectrum data for a given nuclide.
+
+    If the spectrum data is not already in the cache, it is downloaded from the
+    IAEA database and saved locally before loading.
 
     Args:
-        isotopes: List of isotope names to load data for.
+        nuclide: Name of the nuclide to load data for.
 
     Returns:
-        Dictionary of arrays containing spectrum data for each isotope.
+        Array containing energy, flux, and uncertainty.
+
+    """
+    nuclide = _parse_nuclide(nuclide)
+    if not _get_cache_file(nuclide).is_file():
+        download_spectrum_data(nuclide)
+    return load_spectrum_file(nuclide)
+
+
+def load_antineutrino_data(nuclides: list[str]) -> dict[str, np.ndarray]:
+    """Load in IAEA antineutrino spectrum data for the specified nuclides.
+
+    Args:
+        nuclides: List of nuclide names to load data for.
+
+    Returns:
+        Dictionary of arrays containing spectrum data for each nuclide.
         Data arrays contain energy, flux, and uncertainty.
 
     """
     data = {}
-    for isotope in isotopes:
-        isotope_data = load_spectrum(isotope)
-        data[isotope] = isotope_data
+    for nuclide in nuclides:
+        nuclide_data = load_spectrum(nuclide)
+        data[nuclide] = nuclide_data
     return data
