@@ -8,9 +8,9 @@ name = "snf_simulations"
 dynamic = ["version"]
 description = "Simulate antineutrino spectra for different compositions of spent nuclear fuel."
 authors = [
+    { name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk" },
     { name = "Zuzanna Leliwa", email = "zleliwa1@sheffield.ac.uk" },
     { name = "Abigail Power", email = "apower3@sheffield.ac.uk" },
-    { name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk" },
     { name = "Martin Dyer", email = "martin.dyer@sheffield.ac.uk" },
 ]
 maintainers = [{ name = "Liz Kneale", email = "e.kneale@sheffield.ac.uk" }]
