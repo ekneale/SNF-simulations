@@ -54,7 +54,7 @@ snf-sim = "snf_simulations.scripts.command_line:run"
 
 [project.urls]
 homepage = "https://github.com/ekneale/SNF-simulations"
-documentation = "https://github.com/ekneale/SNF-simulations" # TODO
+documentation = "https://ekneale.github.io/SNF-simulations"
 repository = "https://github.com/ekneale/SNF-simulations"
 
 [tool.setuptools]
