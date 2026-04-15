@@ -28,7 +28,8 @@ html_static_path = ["_static"]
 # -- Extensions configuration ------------------------------------------------
 
 extensions = [
-    "myst_parser",  # Markdown support
+#    "myst_parser",  # Markdown support
+    "myst_nb",  # MyST Notebooks support (also includes myst_parser)
     "autodoc2",  # Automatic API documentation generation
     "sphinx.ext.napoleon",  # Parse Google and NumPy style docstrings
     "sphinx.ext.viewcode",  # Add links to source code
