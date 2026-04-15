@@ -6,11 +6,14 @@ import numpy as np
 import pytest
 
 from snf_simulations.data import (
+    _get_cache_dir,
+    download_spectrum_data,
     get_reactors,
     load_antineutrino_data,
     load_isotope_data,
     load_reactor_data,
     load_spectrum,
+    load_spectrum_file,
 )
 
 # Suppress assert warnings from ruff
@@ -145,8 +148,121 @@ def test_load_spectrum() -> None:
 
 def test_load_spectrum_invalid() -> None:
     """Test that loading invalid isotope raises ValueError."""
-    with pytest.raises(ValueError, match=r"Spectrum data file.*not found"):
+    with pytest.raises(ValueError, match=r"Nuclide format not recognized"):
         load_spectrum("InvalidIsotope")
+
+
+def test_download_spectrum_data_uses_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that downloaded spectra are written to a writable user cache."""
+    csv_content = (
+        "p_z,p_n,p_symbol,p_energy,d_z,d_n,d_symbol,bin_en,dn_de,unc_dn_de,"
+        "dn_de_nu,unc_dn_de_nu,extraction_date\n"
+        "38,52,Sr,0,39,51,Y,0.0,0.1,0.01,0.2,0.02,2026-04-15\n"
+    )
+
+    class _MockResponse:
+        def read(self) -> bytes:
+            return csv_content.encode("utf-8")
+
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        "urllib.request.urlopen",
+        lambda request, timeout=5: _MockResponse(),
+    )
+
+    filepath = Path(download_spectrum_data("Ru106"))
+
+    assert filepath == tmp_path / "106ru.csv"
+    assert filepath.is_file(), "Downloaded spectrum file should be written to cache"
+
+
+def test_download_spectrum_data_wraps_network_errors(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that download errors are wrapped in RuntimeError."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+
+    def _raise_url_error(request: object, timeout: int = 5) -> object:
+        del request, timeout
+        raise TimeoutError("network down")
+
+    monkeypatch.setattr("urllib.request.urlopen", _raise_url_error)
+
+    with pytest.raises(RuntimeError, match=r"Error downloading spectrum data"):
+        download_spectrum_data("Ru106")
+
+
+def test_load_spectrum_file_missing_cache_raises(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that loading a missing cached spectrum raises ValueError."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+
+    with pytest.raises(ValueError, match=r"not found in cache"):
+        load_spectrum_file("Sr90")
+
+
+def test_load_spectrum_downloads_when_cache_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that load_spectrum triggers a download when cache is missing."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+    called: list[str] = []
+
+    def _fake_download(nuclide: str) -> str:
+        called.append(nuclide)
+        cache_file = tmp_path / f"{nuclide}.csv"
+        cache_file.write_text(
+            "p_z,p_n,p_symbol,p_energy,d_z,d_n,d_symbol,bin_en,dn_de,unc_dn_de,"
+            "dn_de_nu,unc_dn_de_nu,extraction_date\n"
+            "38,52,Sr,0,39,51,Y,0.5,0.1,0.01,1.5,0.15,2026-04-15\n",
+            encoding="utf-8",
+        )
+        return str(cache_file)
+
+    monkeypatch.setattr("snf_simulations.data.download_spectrum_data", _fake_download)
+
+    spectrum = load_spectrum("Sr90")
+
+    assert called == ["90sr"]
+    np.testing.assert_allclose(spectrum, np.array([[0.5, 1.5, 0.15]]))
+
+
+def test_get_cache_dir_uses_xdg_cache_home(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that the XDG cache location is used when no explicit cache is set."""
+    monkeypatch.delenv("SNF_SIMULATIONS_CACHE_DIR", raising=False)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
+
+    cache_dir = _get_cache_dir()
+
+    assert cache_dir == tmp_path / "snf_simulations" / "spec_data"
+    assert cache_dir.is_dir()
+
+
+def test_load_spectrum_uses_cached_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that cached spectra are loaded without attempting a download."""
+    cache_file = tmp_path / "90sr.csv"
+    cache_file.write_text(
+        "p_z,p_n,p_symbol,p_energy,d_z,d_n,d_symbol,bin_en,dn_de,unc_dn_de,"
+        "dn_de_nu,unc_dn_de_nu,extraction_date\n"
+        "38,52,Sr,0,39,51,Y,1.5,0.1,0.01,2.5,0.25,2026-04-15\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        "snf_simulations.data.download_spectrum_data",
+        lambda nuclide: pytest.fail(f"Unexpected download for {nuclide}"),
+    )
+
+    spectrum = load_spectrum("Sr90")
+
+    np.testing.assert_allclose(spectrum, np.array([[1.5, 2.5, 0.25]]))
 
 
 def test_load_antineutrino_data() -> None:
