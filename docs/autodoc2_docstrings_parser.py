@@ -6,7 +6,7 @@ from sphinx.ext.napoleon import docstring
 
 
 class NapoleonParser(MystParser):
-    def parse(self, input_string: str, document: nodes.document) -> None:
+    def parse(self, input_string: str, document: nodes.document) -> None:  # ty: ignore[invalid-method-override]
         # Get the Sphinx configuration
         config = document.settings.env.config
 

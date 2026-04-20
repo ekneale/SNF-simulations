@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "SNF-simulations"
-copyright = "2026, Zuzanna Leliwa, Abigail Power, Liz Kneale, Martin Dyer"
+copyright = "2026, E Kneale"
 author = "Zuzanna Leliwa, Abigail Power, Liz Kneale, Martin Dyer"
 from importlib.metadata import version as get_version
 release = get_version("snf_simulations")
@@ -28,7 +28,8 @@ html_static_path = ["_static"]
 # -- Extensions configuration ------------------------------------------------
 
 extensions = [
-    "myst_parser",  # Markdown support
+#    "myst_parser",  # Markdown support
+    "myst_nb",  # MyST Notebooks support (also includes myst_parser)
     "autodoc2",  # Automatic API documentation generation
     "sphinx.ext.napoleon",  # Parse Google and NumPy style docstrings
     "sphinx.ext.viewcode",  # Add links to source code
@@ -39,6 +40,8 @@ extensions = [
 
 myst_enable_extensions = [
     "fieldlist",
+    "dollarmath",
+    "colon_fence",
 ]
 
 # -- Options for autodoc2 ---------------------------------------------------
