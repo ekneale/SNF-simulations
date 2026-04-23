@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .data import load_spectrum
+from .data import get_antineutrino_spectrum
 from .utils import linear_interpolate_with_errors, sample_histogram
 
 
@@ -63,7 +63,7 @@ class Spectrum:
     ) -> "Spectrum":
         """Create a Spectrum object from an isotope name."""
         # The IAEA data files give equal arrays of energy, flux, and uncertainty.
-        data = load_spectrum(name)
+        data = get_antineutrino_spectrum(name)
         energy_points, flux_points, error_points = data[:, 0], data[:, 1], data[:, 2]
 
         # Histogram representation requires N+1 edges for N bins.

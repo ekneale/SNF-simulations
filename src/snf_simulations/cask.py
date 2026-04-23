@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from .data import load_isotope_data, load_reactor_data
+from .data import get_isotope_properties, get_reactor_data
 from .physics import DecayChain, get_decay_mass, get_isotope_activity
 from .spec import Spectrum
 
@@ -46,8 +46,9 @@ class Cask:
             isotope: proportion * self.total_mass
             for isotope, proportion in self.isotope_proportions.items()
         }
-        # TODO: use medvedev package for molar masses and half-lives
-        self.molar_masses, self.half_lives = load_isotope_data(self.isotopes)
+        self.isotope_properties = {
+            isotope: get_isotope_properties(isotope) for isotope in self.isotopes
+        }
         self.isotope_spectra = {
             isotope: Spectrum.from_isotope(isotope) for isotope in self.isotopes
         }
@@ -64,7 +65,7 @@ class Cask:
     @classmethod
     def from_reactor(cls, reactor: str, total_mass: float) -> "Cask":
         """Create a Cask object from reactor data."""
-        isotope_proportions = load_reactor_data(reactor)
+        isotope_proportions = get_reactor_data(reactor)
         return cls(
             isotope_proportions=isotope_proportions,
             total_mass=total_mass,
@@ -93,8 +94,8 @@ class Cask:
             # Scale based on given removal time
             activity = get_isotope_activity(
                 mass=self.isotope_masses[isotope],
-                molar_mass=self.molar_masses[isotope],
-                half_life=self.half_lives[isotope],
+                molar_mass=self.isotope_properties[isotope]["molar_mass"],
+                half_life=self.isotope_properties[isotope]["half_life"],
                 removal_time=removal_time,
             )
             scaled_spec = spec * activity
@@ -121,24 +122,22 @@ class Cask:
                     # No parent isotope in the cask, so skip this decay
                     continue
 
-                if chain.daughter not in self.isotopes:
+                if chain.daughter not in self.isotope_properties:
                     # We won't have the spectrum or hl/mm data cached
                     daughter_spec = Spectrum.from_isotope(chain.daughter)
-                    # TODO: load_isotope_data should take a single isotope name
-                    _molar_masses, _half_lives = load_isotope_data([chain.daughter])
-                    daughter_molar_mass = _molar_masses[chain.daughter]
-                    daughter_half_life = _half_lives[chain.daughter]
+                    daughter_properties = get_isotope_properties(chain.daughter)
                 else:
                     daughter_spec = deepcopy(self.isotope_spectra[chain.daughter])
-                    daughter_molar_mass = self.molar_masses[chain.daughter]
-                    daughter_half_life = self.half_lives[chain.daughter]
+                    daughter_properties = self.isotope_properties[chain.daughter]
+                daughter_molar_mass = daughter_properties["molar_mass"]
+                daughter_half_life = daughter_properties["half_life"]
                 daughter_spec.name = f"{chain.parent}->{chain.daughter}"
 
                 # Calculate the mass of the daughter isotope
                 daughter_mass = get_decay_mass(
                     time_elapsed=removal_time,
                     parent_mass=self.isotope_masses[chain.parent],
-                    parent_half_life=self.half_lives[chain.parent],
+                    parent_half_life=self.isotope_properties[chain.parent]["half_life"],
                     daughter_half_life=daughter_half_life,
                     branching_ratio=chain.branching_ratio,
                 )

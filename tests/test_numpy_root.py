@@ -14,9 +14,9 @@ except ImportError:
 
 from snf_simulations.cask import Cask
 from snf_simulations.data import (
-    load_antineutrino_data,
-    load_isotope_data,
-    load_reactor_data,
+    get_antineutrino_spectrum,
+    get_isotope_properties,
+    get_reactor_data,
 )
 from snf_simulations.physics import DecayChain, get_decay_mass, get_isotope_activity
 from snf_simulations.spec import Spectrum
@@ -29,9 +29,10 @@ from .test_spec import _mock_data
 ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
 
-_MOLAR_MASSES, _ = load_isotope_data()
-ISOTOPES = list(_MOLAR_MASSES.keys())
-ISOTOPE_SPECTRA = load_antineutrino_data(ISOTOPES)
+# Use the isotopes from the Sizewell reactor data for testing
+_SIZEWELL_PROPORTIONS = get_reactor_data("sizewell")
+ISOTOPES = list(_SIZEWELL_PROPORTIONS.keys())
+ISOTOPE_SPECTRA = {isotope: get_antineutrino_spectrum(isotope) for isotope in ISOTOPES}
 
 
 def _get_mock_spectra() -> tuple[Spectrum, ROOT.TH1D]:
@@ -381,8 +382,10 @@ def _get_total_root_spec(
     """
     # Load the isotope data dicts
     isotopes = list(isotope_proportions.keys())
-    molar_masses, half_lives = load_isotope_data(isotopes)
-    isotope_data = load_antineutrino_data(isotopes)
+    isotope_properties = {
+        isotope: get_isotope_properties(isotope) for isotope in isotopes
+    }
+    isotope_data = {isotope: get_antineutrino_spectrum(isotope) for isotope in isotopes}
 
     # Calculate the mass of each isotope from the input proportions of the total mass
     masses = {
@@ -397,8 +400,8 @@ def _get_total_root_spec(
             isotope_data[isotope],
             name,
             masses[isotope],
-            molar_masses[isotope],
-            half_lives[isotope],
+            isotope_properties[isotope]["molar_mass"],
+            isotope_properties[isotope]["half_life"],
             removal_time,
             max_energy=max_energy,
         )
@@ -423,31 +426,27 @@ def _get_total_root_spec(
                 continue  # Skip if the isotope data is absent
 
             if chain.daughter not in isotopes:
-                daughter_data = load_antineutrino_data([chain.daughter])
-                daughter_data = daughter_data[chain.daughter]
                 # We won't have the spectrum or hl/mm data cached
-                _molar_masses, _half_lives = load_isotope_data([chain.daughter])
-                daughter_molar_mass = _molar_masses[chain.daughter]
-                daughter_half_life = _half_lives[chain.daughter]
+                daughter_data = get_antineutrino_spectrum(chain.daughter)
+                daughter_properties = get_isotope_properties(chain.daughter)
             else:
                 daughter_data = isotope_data[chain.daughter]
-                daughter_molar_mass = molar_masses[chain.daughter]
-                daughter_half_life = half_lives[chain.daughter]
+                daughter_properties = isotope_properties[chain.daughter]
 
             name = f"additional {chain.daughter}{removal_time}{cask_name}"
             daughter_mass = get_decay_mass(
                 time_elapsed=removal_time,
                 parent_mass=masses[chain.parent],
-                parent_half_life=half_lives[chain.parent],
-                daughter_half_life=daughter_half_life,
+                parent_half_life=isotope_properties[chain.parent]["half_life"],
+                daughter_half_life=daughter_properties["half_life"],
                 branching_ratio=chain.branching_ratio,
             )
             spec = _load_root_spec(
                 daughter_data,
                 name,
                 daughter_mass,
-                daughter_molar_mass,
-                daughter_half_life,
+                daughter_properties["molar_mass"],
+                daughter_properties["half_life"],
                 0,
                 max_energy=max_energy,
             )
@@ -681,7 +680,7 @@ def test_cask_real(reactor: str, total_mass: float, removal_time: float) -> None
     spec = cask.get_total_spectrum(removal_time=removal_time)
 
     # Do the same with the ROOT function
-    isotope_proportions = load_reactor_data(reactor)
+    isotope_proportions = get_reactor_data(reactor)
     root_spec = _get_total_root_spec(
         cask_name="Test",
         isotope_proportions=isotope_proportions,

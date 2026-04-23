@@ -6,14 +6,14 @@ import numpy as np
 import pytest
 
 from snf_simulations.data import (
+    _download_spectrum_data,
     _get_cache_dir,
-    download_spectrum_data,
+    _load_spectrum_file,
+    _parse_isotope,
+    get_antineutrino_spectrum,
+    get_isotope_properties,
+    get_reactor_data,
     get_reactors,
-    load_antineutrino_data,
-    load_isotope_data,
-    load_reactor_data,
-    load_spectrum,
-    load_spectrum_file,
 )
 
 # Suppress assert warnings from ruff
@@ -31,9 +31,9 @@ def test_get_reactors() -> None:
     assert "hartlepool" in reactors, "Hartlepool should be in reactor list"
 
 
-def test_load_reactor_data_sizewell() -> None:
+def test_get_reactor_data_sizewell() -> None:
     """Test loading reactor data for Sizewell."""
-    data = load_reactor_data("sizewell")
+    data = get_reactor_data("sizewell")
     assert isinstance(data, dict), "Loaded data should be a dictionary"
     assert len(data) > 0, "Should have loaded isotope data"
     assert all(isinstance(k, str) for k in data), "All keys should be isotope names"
@@ -43,113 +43,124 @@ def test_load_reactor_data_sizewell() -> None:
     assert all(v >= 0 for v in data.values()), "All proportions should be non-negative"
 
 
-def test_load_reactor_data_hartlepool() -> None:
+def test_get_reactor_data_hartlepool() -> None:
     """Test loading reactor data for Hartlepool."""
-    data = load_reactor_data("hartlepool")
+    data = get_reactor_data("hartlepool")
     assert isinstance(data, dict), "Loaded data should be a dictionary"
     assert len(data) > 0, "Should have loaded isotope data"
 
 
-def test_load_reactor_data_invalid() -> None:
+def test_get_reactor_data_invalid() -> None:
     """Test that loading invalid reactor raises ValueError."""
     with pytest.raises(ValueError, match=r"Reactor.*data file not found"):
-        load_reactor_data("invalid_reactor")
+        get_reactor_data("invalid_reactor")
 
 
-def test_load_isotope_data_all() -> None:
-    """Test loading all isotope data."""
-    molar_masses, half_lives = load_isotope_data()
-    assert isinstance(molar_masses, dict), "Molar masses should be a dictionary"
-    assert isinstance(half_lives, dict), "Half lives should be a dictionary"
-    assert len(molar_masses) > 0, "Should have loaded molar masses"
-    assert len(half_lives) > 0, "Should have loaded half lives"
-    assert len(molar_masses) == len(half_lives), (
-        "Molar masses and half lives should have same length"
-    )
+def test_parse_isotope() -> None:
+    """Test parsing isotope names in both supported orders."""
+    assert _parse_isotope("Ru106") == ("Ru", 106)
+    assert _parse_isotope("106Ru") == ("Ru", 106)
+    assert _parse_isotope("y90") == ("y", 90)
 
-    # Check data types and values
-    assert all(isinstance(k, str) for k in molar_masses), (
-        "All molar mass keys should be isotope names"
-    )
-    assert all(isinstance(v, int) for v in molar_masses.values()), (
-        "All molar masses should be integers"
-    )
-    assert all(v > 0 for v in molar_masses.values()), (
-        "All molar masses should be positive"
-    )
-
-    assert all(isinstance(k, str) for k in half_lives), (
-        "All half life keys should be isotope names"
-    )
-    assert all(isinstance(v, float) for v in half_lives.values()), (
-        "All half lives should be floats"
-    )
-    assert all(v > 0 for v in half_lives.values()), "All half lives should be positive"
+    with pytest.raises(ValueError, match=r"Isotope format not recognized"):
+        _parse_isotope("Ru-106")
+    with pytest.raises(ValueError, match=r"Isotope format not recognized"):
+        _parse_isotope("Ru")
+    with pytest.raises(ValueError, match=r"Isotope format not recognized"):
+        _parse_isotope("106")
 
 
-def test_load_isotope_data() -> None:
-    """Test loading specific isotopes."""
-    isotopes = ["Sr90", "Y90"]
-    molar_masses, half_lives = load_isotope_data(isotopes)
-    assert len(molar_masses) == 2, "Should have loaded 2 isotopes"
-    assert len(half_lives) == 2, "Should have loaded 2 isotopes"
-    assert "Sr90" in molar_masses, "Sr90 should be in molar masses"
-    assert "Y90" in molar_masses, "Y90 should be in molar masses"
-    assert "Sr90" in half_lives, "Sr90 should be in half lives"
-    assert "Y90" in half_lives, "Y90 should be in half lives"
-    assert molar_masses["Sr90"] == 90, "Molar mass of Sr90 should be 90 g/mol"
-    assert molar_masses["Y90"] == 90, "Molar mass of Y90 should be 90 g/mol"
-    assert half_lives["Sr90"] == 28.91, (
-        "Half life of Sr90 should be approximately 28.91 years"
+def test_get_isotope_properties(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test loading isotope data."""
+
+    class _MockIsotope:
+        mass = 90.0
+        half_life = 100.0
+        half_life_unit = "year"
+
+    monkeypatch.setattr("snf_simulations.data.isotope", lambda *_: _MockIsotope())
+
+    isotope_properties = get_isotope_properties("Y90")
+    assert isotope_properties["molar_mass"] == 90.0, "Molar mass should be 90 g/mol"
+    assert isotope_properties["half_life"] == 100.0, "Half life should be 100 years"
+
+
+def test_get_isotope_properties_real() -> None:
+    """Test loading specific isotope data."""
+    # We can't test every possible isotope, but we can do one to check there
+    # aren't any obvious problems.
+    isotope_properties = get_isotope_properties("Y90")
+    assert isotope_properties["molar_mass"] == pytest.approx(89.9, rel=1e-3), (
+        "Molar mass of Y90 should be approximately 89.9 g/mol"
     )
-    assert half_lives["Y90"] == 0.0073, (
+    assert isotope_properties["half_life"] == pytest.approx(0.0073, rel=1e-3), (
         "Half life of Y90 should be approximately 0.0073 years"
     )
 
 
-def test_load_isotope_data_missing_file(
+def test_get_isotope_properties_converts_to_years(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test half-life conversion from non-year units into years."""
+
+    class _MockIsotope:
+        mass = 90.0
+        half_life = 24.0
+        half_life_unit = "hour"
+
+    monkeypatch.setattr("snf_simulations.data.isotope", lambda *_: _MockIsotope())
+
+    isotope_properties = get_isotope_properties("Y90")
+
+    assert isotope_properties["molar_mass"] == 90.0, "Molar mass should be 90 g/mol"
+    assert isotope_properties["half_life"] == pytest.approx(
+        24.0 * 3600.0 / 31_556_926.0
+    ), "Half life in years should be 24 hours converted to years"
+
+
+def test_get_isotope_properties_unsupported_unit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test unsupported half-life unit raises ValueError."""
+
+    class _MockIsotope:
+        mass = 1.0
+        half_life = 1.0
+        half_life_unit = "fortnight"
+
+    monkeypatch.setattr("snf_simulations.data.isotope", lambda *_: _MockIsotope())
+
+    with pytest.raises(ValueError, match=r"Unsupported half-life unit"):
+        get_isotope_properties("Y90")
+
+
+def test_get_cache_dir_uses_xdg_cache_home(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """Test that missing isotope CSV raises ValueError with clear message."""
+    """Test that the XDG cache location is used when no explicit cache is set."""
+    monkeypatch.delenv("SNF_SIMULATIONS_CACHE_DIR", raising=False)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
 
-    # Point the data package root to an empty temporary directory so
-    # isotopes.csv is absent.
-    def _mock_files(_: str) -> Path:
-        return tmp_path
+    cache_dir = _get_cache_dir()
 
-    monkeypatch.setattr("snf_simulations.data.files", _mock_files)
-
-    with pytest.raises(ValueError, match="Isotope CSV file not found."):
-        load_isotope_data()
+    assert cache_dir == tmp_path / "snf_simulations" / "spec_data"
+    assert cache_dir.is_dir()
 
 
-def test_load_spectrum() -> None:
-    """Test loading spectrum data for a valid isotope."""
-    spectrum = load_spectrum("Sr90")
-    assert isinstance(spectrum, np.ndarray), "Spectrum should be a numpy array"
-    assert spectrum.shape[1] == 3, (
-        "Spectrum should have 3 columns (energy, flux, uncertainty)"
-    )
-    assert spectrum.shape[0] > 0, "Spectrum should have at least one row"
+def test_get_cache_dir_defaults_to_home(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test cache defaults to ~/.cache when env vars are not set."""
+    monkeypatch.delenv("SNF_SIMULATIONS_CACHE_DIR", raising=False)
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
+    monkeypatch.setattr("snf_simulations.data.Path.home", lambda: tmp_path)
 
-    # Check that energy values are positive and increasing
-    energy = spectrum[:, 0]
-    assert np.all(energy >= 0), "Energy values should be positive"
-    assert np.all(np.diff(energy) > 0), "Energy should be increasing"
+    cache_dir = _get_cache_dir()
 
-    # Check that flux values are non-negative
-    flux = spectrum[:, 1]
-    assert np.all(flux >= 0), "Flux values should be non-negative"
-
-    # Check that uncertainties are non-negative
-    uncertainty = spectrum[:, 2]
-    assert np.all(uncertainty >= 0), "Uncertainty values should be non-negative"
-
-
-def test_load_spectrum_invalid() -> None:
-    """Test that loading invalid isotope raises ValueError."""
-    with pytest.raises(ValueError, match=r"Nuclide format not recognized"):
-        load_spectrum("InvalidIsotope")
+    assert cache_dir == tmp_path / ".cache" / "snf_simulations" / "spec_data"
+    assert cache_dir.is_dir()
 
 
 def test_download_spectrum_data_uses_cache(
@@ -172,10 +183,68 @@ def test_download_spectrum_data_uses_cache(
         lambda request, timeout=5: _MockResponse(),
     )
 
-    filepath = Path(download_spectrum_data("Ru106"))
+    filepath = Path(_download_spectrum_data("Ru106"))
 
     assert filepath == tmp_path / "106ru.csv"
     assert filepath.is_file(), "Downloaded spectrum file should be written to cache"
+
+
+def test_download_spectrum_data_removes_duplicates(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that duplicate rows from IAEA data are removed correctly."""
+    csv_content = (
+        "p_z,p_n,p_symbol,p_energy,d_z,d_n,d_symbol,bin_en,dn_de,unc_dn_de,"
+        "dn_de_nu,unc_dn_de_nu,extraction_date\n"
+        "38,52,Sr,0,39,51,Y,0.0,0.1,0.01,0.2,0.02,2026-04-15\n"
+        "38,52,Sr,0,39,51,Y,0.0,0.1,0.01,0.2,0.02,2026-04-15\n"
+        "38,52,Sr,0,39,51,Y,0.5,0.2,0.02,0.4,0.04,2026-04-15\n"
+    )
+
+    class _MockResponse:
+        def read(self) -> bytes:
+            return csv_content.encode("utf-8")
+
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        "urllib.request.urlopen",
+        lambda request, timeout=5: _MockResponse(),
+    )
+
+    filepath = Path(_download_spectrum_data("Sr90"))
+    cached_data = np.genfromtxt(filepath, delimiter=",", skip_header=1, dtype=str)
+
+    assert cached_data.shape[0] == 2, "Caching file should remove duplicate rows"
+
+
+def test_download_spectrum_data_does_not_overwrite_existing_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that an existing cache file is not overwritten by a new download."""
+    cache_file = tmp_path / "90sr.csv"
+    sentinel_content = "already,cached\n1,2\n"
+    cache_file.write_text(sentinel_content, encoding="utf-8")
+
+    csv_content = (
+        "p_z,p_n,p_symbol,p_energy,d_z,d_n,d_symbol,bin_en,dn_de,unc_dn_de,"
+        "dn_de_nu,unc_dn_de_nu,extraction_date\n"
+        "38,52,Sr,0,39,51,Y,0.0,0.1,0.01,0.2,0.02,2026-04-15\n"
+    )
+
+    class _MockResponse:
+        def read(self) -> bytes:
+            return csv_content.encode("utf-8")
+
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        "urllib.request.urlopen",
+        lambda request, timeout=5: _MockResponse(),
+    )
+
+    filepath = Path(_download_spectrum_data("Sr90"))
+
+    assert filepath == cache_file
+    assert filepath.read_text(encoding="utf-8") == sentinel_content
 
 
 def test_download_spectrum_data_wraps_network_errors(
@@ -191,7 +260,7 @@ def test_download_spectrum_data_wraps_network_errors(
     monkeypatch.setattr("urllib.request.urlopen", _raise_url_error)
 
     with pytest.raises(RuntimeError, match=r"Error downloading spectrum data"):
-        download_spectrum_data("Ru106")
+        _download_spectrum_data("Ru106")
 
 
 def test_load_spectrum_file_missing_cache_raises(
@@ -201,13 +270,66 @@ def test_load_spectrum_file_missing_cache_raises(
     monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
 
     with pytest.raises(ValueError, match=r"not found in cache"):
-        load_spectrum_file("Sr90")
+        _load_spectrum_file("Sr90")
 
 
-def test_load_spectrum_downloads_when_cache_missing(
+def test_load_spectrum_file_contents(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """Test that load_spectrum triggers a download when cache is missing."""
+    """Test _load_spectrum_file returns the expected data."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+    cache_file = tmp_path / "90sr.csv"
+    cache_file.write_text(
+        "p_z,p_n,p_symbol,p_energy,d_z,d_n,d_symbol,bin_en,dn_de,unc_dn_de,"
+        "dn_de_nu,unc_dn_de_nu,extraction_date\n"
+        "38,52,Sr,0,39,51,Y,0.5,0.1,0.01,1.5,0.15,2026-04-15\n"
+        "38,52,Sr,1,39,51,Y,1.5,0.2,0.02,2.5,0.25,2026-04-15\n"
+        "38,52,Sr,0,39,51,Y,2.5,0.3,0.03,3.5,0.35,2026-04-15\n",
+        encoding="utf-8",
+    )
+
+    spectrum = _load_spectrum_file("Sr90")
+
+    assert spectrum.shape == (2, 3)
+    np.testing.assert_allclose(
+        spectrum,
+        np.array([[0.5, 1.5, 0.15], [2.5, 3.5, 0.35]]),
+    )
+
+
+def test_get_antineutrino_spectrum() -> None:
+    """Test loading spectrum data for a valid isotope."""
+    spectrum = get_antineutrino_spectrum("Sr90")
+    assert isinstance(spectrum, np.ndarray), "Spectrum should be a numpy array"
+    assert spectrum.shape[1] == 3, (
+        "Spectrum should have 3 columns (energy, flux, uncertainty)"
+    )
+    assert spectrum.shape[0] > 0, "Spectrum should have at least one row"
+
+    # Check that energy values are positive and increasing
+    energy = spectrum[:, 0]
+    assert np.all(energy >= 0), "Energy values should be positive"
+    assert np.all(np.diff(energy) > 0), "Energy should be increasing"
+
+    # Check that flux values are non-negative
+    flux = spectrum[:, 1]
+    assert np.all(flux >= 0), "Flux values should be non-negative"
+
+    # Check that uncertainties are non-negative
+    uncertainty = spectrum[:, 2]
+    assert np.all(uncertainty >= 0), "Uncertainty values should be non-negative"
+
+
+def test_get_antineutrino_spectrum_invalid() -> None:
+    """Test that loading invalid isotope raises ValueError."""
+    with pytest.raises(ValueError, match=r"Isotope format not recognized"):
+        get_antineutrino_spectrum("InvalidIsotope")
+
+
+def test_get_antineutrino_spectrum_downloads_when_cache_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that get_antineutrino_spectrum triggers a download when cache is missing."""
     monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
     called: list[str] = []
 
@@ -222,28 +344,15 @@ def test_load_spectrum_downloads_when_cache_missing(
         )
         return str(cache_file)
 
-    monkeypatch.setattr("snf_simulations.data.download_spectrum_data", _fake_download)
+    monkeypatch.setattr("snf_simulations.data._download_spectrum_data", _fake_download)
 
-    spectrum = load_spectrum("Sr90")
+    spectrum = get_antineutrino_spectrum("Sr90")
 
     assert called == ["90sr"]
     np.testing.assert_allclose(spectrum, np.array([[0.5, 1.5, 0.15]]))
 
 
-def test_get_cache_dir_uses_xdg_cache_home(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    """Test that the XDG cache location is used when no explicit cache is set."""
-    monkeypatch.delenv("SNF_SIMULATIONS_CACHE_DIR", raising=False)
-    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
-
-    cache_dir = _get_cache_dir()
-
-    assert cache_dir == tmp_path / "snf_simulations" / "spec_data"
-    assert cache_dir.is_dir()
-
-
-def test_load_spectrum_uses_cached_file(
+def test_get_antineutrino_spectrum_uses_cached_file(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """Test that cached spectra are loaded without attempting a download."""
@@ -256,26 +365,10 @@ def test_load_spectrum_uses_cached_file(
     )
     monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
     monkeypatch.setattr(
-        "snf_simulations.data.download_spectrum_data",
+        "snf_simulations.data._download_spectrum_data",
         lambda nuclide: pytest.fail(f"Unexpected download for {nuclide}"),
     )
 
-    spectrum = load_spectrum("Sr90")
+    spectrum = get_antineutrino_spectrum("Sr90")
 
     np.testing.assert_allclose(spectrum, np.array([[1.5, 2.5, 0.25]]))
-
-
-def test_load_antineutrino_data() -> None:
-    """Test loading antineutrino data for multiple isotopes."""
-    isotopes = ["Sr90", "Y90"]
-    data = load_antineutrino_data(isotopes)
-    assert isinstance(data, dict), "Loaded data should be a dictionary"
-    assert len(data) == 2, "Should have loaded 2 isotopes"
-
-    for isotope in isotopes:
-        assert isotope in data, f"{isotope} should be in loaded data"
-        spectrum = data[isotope]
-        assert isinstance(spectrum, np.ndarray), (
-            f"{isotope} spectrum should be numpy array"
-        )
-        assert spectrum.shape[1] == 3, f"{isotope} spectrum should have 3 columns"

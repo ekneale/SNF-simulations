@@ -5,15 +5,16 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from snf_simulations.data import load_antineutrino_data, load_isotope_data
+from snf_simulations.data import get_reactor_data
 from snf_simulations.spec import Spectrum
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
 
-_MOLAR_MASSES, _ = load_isotope_data()
-ISOTOPES = list(_MOLAR_MASSES.keys())
+# Use the isotopes from the Sizewell reactor data for testing
+_SIZEWELL_PROPORTIONS = get_reactor_data("sizewell")
+ISOTOPES = list(_SIZEWELL_PROPORTIONS.keys())
 
 
 def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -35,48 +36,6 @@ def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     flux = data[:, 1]
     errors = data[:, 2]
     return energy, flux, errors
-
-
-def test_load_isotope_data() -> None:
-    """Test that isotope data is imported correctly."""
-    molar_masses, half_lives = load_isotope_data()
-    assert isinstance(molar_masses, dict), "Molar masses is not a dictionary"
-    assert isinstance(half_lives, dict), "Half lives is not a dictionary"
-    assert len(molar_masses) == 16, f"Loaded {len(molar_masses)} isotopes, expected 16"
-    assert len(molar_masses) == len(half_lives), (
-        "Molar masses and half lives have different number of isotopes",
-    )
-
-
-def test_load_antineutrino_data() -> None:
-    """Test that antineutrino spectra are imported correctly."""
-    molar_masses, _ = load_isotope_data()
-    isotopes = list(molar_masses.keys())
-    data = load_antineutrino_data(isotopes)
-    assert isinstance(data, dict), "Loaded data is not a dictionary"
-    assert len(data) == 16, f"Loaded {len(data)} isotopes, expected 16"
-
-    for isotope, isotope_data in data.items():
-        # Basic structure checks
-        assert isinstance(isotope_data, np.ndarray), (
-            f"Isotope {isotope} spectrum is not a numpy array"
-        )
-        assert isotope_data.shape[1] == 3, (
-            f"Isotope {isotope} spectrum has {isotope_data.shape[1]} columns,"
-            f" expected 3"
-        )
-        assert isotope_data.shape[0] > 0, f"Isotope {isotope} spectrum has no rows"
-
-        # Physical value checks
-        assert np.all(isotope_data[:, 0] >= 0), (
-            f"Isotope {isotope} has negative energies"
-        )
-        assert np.all(isotope_data[:, 1] >= 0), (
-            f"Isotope {isotope} has negative flux values"
-        )
-        assert np.all(isotope_data[:, 2] >= 0), (
-            f"Isotope {isotope} has negative uncertainties"
-        )
 
 
 def test_create_spec() -> None:

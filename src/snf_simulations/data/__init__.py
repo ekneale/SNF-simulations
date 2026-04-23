@@ -13,8 +13,35 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from mendeleev import isotope
 
 _CACHE_DIR_ENV_VAR = "SNF_SIMULATIONS_CACHE_DIR"
+
+
+# mendeleev uses this conversion, see https://github.com/lmmentel/mendeleev/pull/160
+_SECONDS_PER_YEAR = 31_556_926.0
+_UNITS_TO_SECONDS = {
+    "ysec": 1e-24,
+    "zsec": 1e-21,
+    "asec": 1e-18,
+    "psec": 1e-12,
+    "nsec": 1e-9,
+    "usec": 1e-6,
+    "msec": 1e-3,
+    "sec": 1.0,
+    "minute": 60.0,
+    "hour": 3600.0,
+    "day": 86400.0,
+    "year": _SECONDS_PER_YEAR,
+    "kyear": 1e3 * _SECONDS_PER_YEAR,
+    "Myear": 1e6 * _SECONDS_PER_YEAR,
+    "Gyear": 1e9 * _SECONDS_PER_YEAR,
+    "Tyear": 1e12 * _SECONDS_PER_YEAR,
+    "Pyear": 1e15 * _SECONDS_PER_YEAR,
+    "Eyear": 1e18 * _SECONDS_PER_YEAR,
+    "Zyear": 1e21 * _SECONDS_PER_YEAR,
+    "Yyear": 1e24 * _SECONDS_PER_YEAR,
+}
 
 
 def get_reactors() -> list[str]:
@@ -29,7 +56,7 @@ def get_reactors() -> list[str]:
         return [file.stem for file in path.iterdir() if file.suffix == ".csv"]
 
 
-def load_reactor_data(reactor: str) -> dict[str, float]:
+def get_reactor_data(reactor: str) -> dict[str, float]:
     """Load in reactor isotope proportions from the database.
 
     Args:
@@ -60,71 +87,68 @@ def load_reactor_data(reactor: str) -> dict[str, float]:
     return {str(d[0]): float(d[1]) for d in data}
 
 
-def load_isotope_data(
-    isotopes: list[str] | None = None,
-) -> tuple[dict[str, int], dict[str, float]]:
-    """Load in isotope parameters from the database.
+def _parse_isotope(isotope_name: str) -> tuple[str, int]:
+    """Parse an isotope name and return its element and mass number.
 
     Args:
-        isotopes: List of isotope names to load data for.
-            If None, load data for all isotopes in the database.
+        isotope_name: Name of the isotope to parse.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
 
     Returns:
-        Tuple of two dictionaries:
-        - molar_masses: Dictionary of molar masses (g/mol) for each isotope.
-        - half_lives: Dictionary of half-lives (years) for each isotope.
+        element: The element symbol (case unchanged).
+        mass_number: The mass number.
 
     """
-    data_files = files("snf_simulations.data")
-    filename = data_files / "isotopes.csv"
-
-    with as_file(filename) as filepath:
-        if not filepath.is_file():
-            msg = "Isotope CSV file not found."
-            raise ValueError(msg)
-
-        data = np.genfromtxt(
-            filepath,
-            delimiter=",",
-            skip_header=1,
-            dtype=str,
-        )
-
-    if isotopes is not None:
-        data = data[np.isin(data[:, 0], isotopes)]
-    molar_masses = {str(d[0]): int(d[1]) for d in data}
-    half_lives = {str(d[0]): float(d[2]) for d in data}
-    return molar_masses, half_lives
-
-
-def _parse_nuclide(nuclide: str) -> str:
-    """Parse a nuclide name into the format expected by the IAEA database.
-
-    Args:
-        nuclide: Nuclide name in the format 'ElementMass' or 'MassElement',
-            e.g. 'Ru106' or '106Ru'.
-
-    Returns:
-        Nuclide name in the format 'masselement', e.g. '106ru'.
-        Note that the element symbol is converted to lowercase.
-
-    """
-    match = re.match(r"^([A-Za-z]+)(\d+)$", nuclide)
+    match = re.match(r"^([A-Za-z]+)(\d+)$", isotope_name)
     if match:
-        element, mass = match.groups()
-        return f"{mass}{element.lower()}"
-    match = re.match(r"^(\d+)([A-Za-z]+)$", nuclide)
+        element, mass_number = match.groups()
+        return element, int(mass_number)
+    match = re.match(r"^(\d+)([A-Za-z]+)$", isotope_name)
     if match:
-        mass, element = match.groups()
-        return f"{mass}{element.lower()}"
+        mass_number, element = match.groups()
+        return element, int(mass_number)
     else:
-        msg = f"Nuclide format not recognized: {nuclide}"
+        msg = f"Isotope format not recognized: {isotope_name}"
         msg += " Use 'ElementMass' or 'MassElement', e.g., 'Ru106' or '106Ru'."
         raise ValueError(msg)
 
 
+def get_isotope_properties(isotope_name: str) -> dict[str, float]:
+    """Get the mass and half-life for the given isotope using the mendeleev package.
+
+    Args:
+        isotope_name: Name of the isotope.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
+
+    Returns:
+        Dictionary containing the molar mass (in g/mol) and half-life (in years)
+        of the isotope.
+
+    """
+    element, mass_number = _parse_isotope(isotope_name)
+    mendeleev_isotope = isotope(element, mass_number)
+
+    molar_mass = float(mendeleev_isotope.mass)  # ty: ignore
+    half_life = float(mendeleev_isotope.half_life)  # ty: ignore
+    unit = str(mendeleev_isotope.half_life_unit)
+    seconds_per_unit = _UNITS_TO_SECONDS.get(unit)
+    if seconds_per_unit is None:
+        msg = f"Unsupported half-life unit for isotope {isotope_name}: {unit}. "
+        msg += "Supported units are: "
+        msg += ", ".join(sorted(_UNITS_TO_SECONDS))
+        raise ValueError(msg)
+    half_life_years = half_life * seconds_per_unit / _SECONDS_PER_YEAR
+
+    return {"molar_mass": molar_mass, "half_life": half_life_years}
+
+
 def _get_cache_dir() -> Path:
-    """Return the writable directory used for downloaded spectrum data."""
+    """Return the writable directory used for downloaded spectrum data.
+
+    Returns:
+        Path to the cache directory.
+
+    """
     cache_dir = os.environ.get(_CACHE_DIR_ENV_VAR)
     if cache_dir is not None:
         path = Path(cache_dir).expanduser()
@@ -139,23 +163,49 @@ def _get_cache_dir() -> Path:
     return path
 
 
-def _get_cache_file(nuclide: str) -> Path:
-    """Return the writable cache file path for a nuclide."""
-    return _get_cache_dir() / f"{nuclide}.csv"
+def _get_cache_file(isotope_name: str) -> Path:
+    """Return the writable cache file path for an isotope.
+
+    Args:
+        isotope_name: Name of the isotope to get the cache file for.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
+
+    Returns:
+        Path to the cache file for the isotope.
+
+    """
+    return _get_cache_dir() / f"{isotope_name}.csv"
 
 
-def download_spectrum_data(nuclide: str) -> str:
+def _parse_nuclide(isotope_name: str) -> str:
+    """Parse an isotope name into the nuclide format expected by the IAEA database.
+
+    Args:
+        isotope_name: Name of the isotope to parse.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
+
+    Returns:
+        nuclide: Nuclide name in the format 'masselement' (e.g. '106ru').
+        Note that the element symbol is converted to lowercase.
+
+    """
+    element, mass_number = _parse_isotope(isotope_name)
+    return f"{mass_number}{element.lower()}"
+
+
+def _download_spectrum_data(isotope_name: str) -> str:
     """Download the antineutrino spectrum for a given nuclide from the IAEA database.
 
     Args:
-        nuclide: Name of the nuclide to get the spectrum for, e.g. "Ru106" or "106Ru".
+        isotope_name: Name of the isotope to download data for.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
 
     Returns:
         Path to the downloaded spectrum data file in the cache.
 
     """
     # Download the data file
-    nuclide = _parse_nuclide(nuclide)
+    nuclide = _parse_nuclide(isotope_name)
     url = (
         "https://nds.iaea.org/relnsd/v1/data?fields=bin_beta"
         f"&nuclides={nuclide}&rad_types=bm"
@@ -184,17 +234,18 @@ def download_spectrum_data(nuclide: str) -> str:
     return str(filename)
 
 
-def load_spectrum_file(nuclide: str) -> np.ndarray:
+def _load_spectrum_file(isotope_name: str) -> np.ndarray:
     """Load in antineutrino spectrum data from a CSV file in the cache.
 
     Args:
-        nuclide: Name of the nuclide to load data for.
+        isotope_name: Name of the isotope to load data for.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
 
     Returns:
         Array containing energy, flux, and uncertainty.
 
     """
-    nuclide = _parse_nuclide(nuclide)
+    nuclide = _parse_nuclide(isotope_name)
     cache_file = _get_cache_file(nuclide)
     if not cache_file.is_file():
         msg = f"Spectrum data file for {nuclide} not found in cache."
@@ -210,38 +261,21 @@ def load_spectrum_file(nuclide: str) -> np.ndarray:
     return df[["bin_en", "dn_de_nu", "unc_dn_de_nu"]].to_numpy()
 
 
-def load_spectrum(nuclide: str) -> np.ndarray:
-    """Load in antineutrino spectrum data for a given nuclide.
+def get_antineutrino_spectrum(isotope_name: str) -> np.ndarray:
+    """Load in antineutrino spectrum data for a given isotope.
 
     If the spectrum data is not already in the cache, it is downloaded from the
     IAEA database and saved locally before loading.
 
     Args:
-        nuclide: Name of the nuclide to load data for.
+        isotope_name: Isotope name to load the spectrum for.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
 
     Returns:
         Array containing energy, flux, and uncertainty.
 
     """
-    nuclide = _parse_nuclide(nuclide)
+    nuclide = _parse_nuclide(isotope_name)
     if not _get_cache_file(nuclide).is_file():
-        download_spectrum_data(nuclide)
-    return load_spectrum_file(nuclide)
-
-
-def load_antineutrino_data(nuclides: list[str]) -> dict[str, np.ndarray]:
-    """Load in IAEA antineutrino spectrum data for the specified nuclides.
-
-    Args:
-        nuclides: List of nuclide names to load data for.
-
-    Returns:
-        Dictionary of arrays containing spectrum data for each nuclide.
-        Data arrays contain energy, flux, and uncertainty.
-
-    """
-    data = {}
-    for nuclide in nuclides:
-        nuclide_data = load_spectrum(nuclide)
-        data[nuclide] = nuclide_data
-    return data
+        _download_spectrum_data(nuclide)
+    return _load_spectrum_file(nuclide)

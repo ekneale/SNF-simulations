@@ -29,7 +29,12 @@ readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE.txt"]
 requires-python = ">=3.10"
-dependencies = ["numpy", "matplotlib", "pandas>=2.3.3"]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "pandas>=2.3.3",
+    "mendeleev>=1.1.0",
+]
 
 [dependency-groups]
 dev = [
