@@ -5,16 +5,15 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from snf_simulations.data import (
+from snf_simulations.data.iaea import (
     _download_spectrum_data,
     _get_cache_dir,
     _load_spectrum_file,
-    _parse_isotope,
     get_antineutrino_spectrum,
-    get_isotope_properties,
-    get_reactor_data,
-    get_reactors,
 )
+from snf_simulations.data.mendeleev import get_isotope_properties
+from snf_simulations.data.reactor import get_reactor_data, get_reactors
+from snf_simulations.data.utils import _parse_isotope
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
@@ -80,7 +79,9 @@ def test_get_isotope_properties(
         half_life = 100.0
         half_life_unit = "year"
 
-    monkeypatch.setattr("snf_simulations.data.isotope", lambda *_: _MockIsotope())
+    monkeypatch.setattr(
+        "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
+    )
 
     isotope_properties = get_isotope_properties("Y90")
     assert isotope_properties["molar_mass"] == 90.0, "Molar mass should be 90 g/mol"
@@ -110,7 +111,9 @@ def test_get_isotope_properties_converts_to_years(
         half_life = 24.0
         half_life_unit = "hour"
 
-    monkeypatch.setattr("snf_simulations.data.isotope", lambda *_: _MockIsotope())
+    monkeypatch.setattr(
+        "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
+    )
 
     isotope_properties = get_isotope_properties("Y90")
 
@@ -130,7 +133,9 @@ def test_get_isotope_properties_unsupported_unit(
         half_life = 1.0
         half_life_unit = "fortnight"
 
-    monkeypatch.setattr("snf_simulations.data.isotope", lambda *_: _MockIsotope())
+    monkeypatch.setattr(
+        "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
+    )
 
     with pytest.raises(ValueError, match=r"Unsupported half-life unit"):
         get_isotope_properties("Y90")
@@ -155,7 +160,7 @@ def test_get_cache_dir_defaults_to_home(
     """Test cache defaults to ~/.cache when env vars are not set."""
     monkeypatch.delenv("SNF_SIMULATIONS_CACHE_DIR", raising=False)
     monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
-    monkeypatch.setattr("snf_simulations.data.Path.home", lambda: tmp_path)
+    monkeypatch.setattr("snf_simulations.data.iaea.Path.home", lambda: tmp_path)
 
     cache_dir = _get_cache_dir()
 
@@ -344,7 +349,9 @@ def test_get_antineutrino_spectrum_downloads_when_cache_missing(
         )
         return str(cache_file)
 
-    monkeypatch.setattr("snf_simulations.data._download_spectrum_data", _fake_download)
+    monkeypatch.setattr(
+        "snf_simulations.data.iaea._download_spectrum_data", _fake_download
+    )
 
     spectrum = get_antineutrino_spectrum("Sr90")
 
@@ -365,7 +372,7 @@ def test_get_antineutrino_spectrum_uses_cached_file(
     )
     monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
     monkeypatch.setattr(
-        "snf_simulations.data._download_spectrum_data",
+        "snf_simulations.data.iaea._download_spectrum_data",
         lambda nuclide: pytest.fail(f"Unexpected download for {nuclide}"),
     )
 
