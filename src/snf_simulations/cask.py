@@ -1,5 +1,6 @@
 """Calculate antineutrino spectra for spent nuclear fuel casks."""
 
+from collections.abc import Collection
 from copy import deepcopy
 from pathlib import Path
 from typing import cast
@@ -81,7 +82,7 @@ class Cask:
         cls,
         filepath: str | Path,
         total_mass: float,
-        isotopes: list[str] | None | object = _DEFAULT_ISOTOPES,
+        isotopes: Collection[str] | None | object = _DEFAULT_ISOTOPES,
         timestep: str | None = None,
         name: str | None = None,
     ) -> "Cask":
@@ -118,7 +119,7 @@ class Cask:
             if isotopes is _DEFAULT_ISOTOPES:
                 selected_isotopes = DEFAULT_ISOTOPES
             else:
-                selected_isotopes = cast(list[str], isotopes)
+                selected_isotopes = cast(Collection[str], isotopes)
             isotope_masses = {
                 isotope: mass
                 for isotope, mass in isotope_masses.items()
@@ -134,8 +135,11 @@ class Cask:
             name=name,
         )
 
-    def _get_component_spectra(self, removal_time: float = 0) -> list[Spectrum]:
+    def _get_component_spectra(self, cooling_time: float = 0) -> list[Spectrum]:
         """Get the individual antineutrino spectra for each isotope in the cask.
+
+        Args:
+            cooling_time: The time in years since the cask was removed from the reactor.
 
         Returns:
             A list of Spectrum objects, representing the antineutrino spectra for each
@@ -143,8 +147,8 @@ class Cask:
             removal from the reactor.
 
         """
-        if removal_time < 0:
-            msg = "removal_time must be non-negative"
+        if cooling_time < 0:
+            msg = "cooling_time must be non-negative"
             raise ValueError(msg)
 
         # Get the antineutrino spectra for each isotope
@@ -155,16 +159,16 @@ class Cask:
 
             # Scale based on given removal time
             activity = get_isotope_activity(
+                time_elapsed=cooling_time,
                 mass=self.isotope_masses[isotope],
                 molar_mass=self.isotope_properties[isotope]["molar_mass"],
                 half_life=self.isotope_properties[isotope]["half_life"],
-                removal_time=removal_time,
             )
             scaled_spec = spec * activity
             spectra.append(scaled_spec)
 
         # Add any extra newly-created isotopes from decays.
-        if removal_time != 0:
+        if cooling_time != 0:
             # All of these decay chains have a branching ratio of 1.
             # If any additional isotopes were to be added with decay chains
             # involving more beta emitting isotopes then they can be added here.
@@ -197,7 +201,7 @@ class Cask:
 
                 # Calculate the mass of the daughter isotope
                 daughter_mass = get_decay_mass(
-                    time_elapsed=removal_time,
+                    time_elapsed=cooling_time,
                     parent_mass=self.isotope_masses[chain.parent],
                     parent_half_life=self.isotope_properties[chain.parent]["half_life"],
                     daughter_half_life=daughter_half_life,
@@ -205,26 +209,27 @@ class Cask:
                 )
 
                 # Scale based on the daughter mass
-                # Note the removal time is set to 0 here, since the daughter mass
+                # Note the time_elapsed is set to 0 here, since the daughter mass
                 # already accounts for decay during the time since the cask was removed
+                # from the core.
                 activity = get_isotope_activity(
+                    time_elapsed=0,
                     mass=daughter_mass,
                     molar_mass=daughter_molar_mass,
                     half_life=daughter_half_life,
-                    removal_time=0,
                 )
                 scaled_spec = daughter_spec * activity
                 spectra.append(scaled_spec)
         return spectra
 
-    def get_total_spectrum(self, removal_time: float = 0) -> Spectrum:
+    def get_total_spectrum(self, cooling_time: float = 0) -> Spectrum:
         """Calculate the total antineutrino spectrum as a Spectrum object.
 
         Args:
-            removal_time: The time in years since the cask was removed from the reactor.
+            cooling_time: The time in years since the cask was removed from the reactor.
 
         """
-        spectra = self._get_component_spectra(removal_time)
+        spectra = self._get_component_spectra(cooling_time)
 
         # Equalise all the spectra to 1keV bins to allow combining,
         # going from 0 to the maximum energy across all spectra.
@@ -236,5 +241,5 @@ class Cask:
         total_spec = spectra[0]
         for spec in spectra[1:]:
             total_spec = total_spec + spec
-        total_spec.name = f"{self.name} total spectrum"
+        total_spec.name = self.name
         return total_spec

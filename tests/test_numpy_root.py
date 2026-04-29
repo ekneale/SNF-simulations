@@ -261,7 +261,7 @@ def _scale_root_spec(
     mass: float,
     molar_mass: float,
     half_life: float,
-    removal_time: float,
+    time_elapsed: float,
 ) -> ROOT.TH1D:
     """Scale a ROOT TH1D histogram spectrum by the activity of the isotope.
 
@@ -270,7 +270,7 @@ def _scale_root_spec(
         mass: Mass of the isotope in kg.
         molar_mass: Molar mass of the isotope in g/mol.
         half_life: Half-life of the isotope in years.
-        removal_time: Time since removal from reactor in years.
+        time_elapsed: Time elapsed since initial measurement in years.
 
     Returns:
         Scaled histogram.
@@ -278,10 +278,10 @@ def _scale_root_spec(
     """
     # Calculate the activity of the isotope
     activity = get_isotope_activity(
-        mass,
-        molar_mass,
-        half_life,
-        removal_time,
+        time_elapsed=time_elapsed,
+        mass=mass,
+        molar_mass=molar_mass,
+        half_life=half_life,
     )
 
     # Scale the spectrum
@@ -303,7 +303,7 @@ def _load_root_spec(  # noqa: PLR0913
     mass: float,
     molar_mass: float,
     half_life: float,
-    removal_time: float,
+    cooling_time: float,
     max_energy: int | None = None,
     min_energy: int = 0,
 ) -> ROOT.TH1D:
@@ -318,7 +318,7 @@ def _load_root_spec(  # noqa: PLR0913
         mass: Mass of the isotope in kg.
         molar_mass: Molar mass of the isotope in g/mol.
         half_life: Half-life of the isotope in years.
-        removal_time: Time since removal from reactor in years.
+        cooling_time: Time since removal from reactor in years.
         max_energy: Maximum energy for the new histogram (keV).
             If None, uses the maximum energy from the input data.
         min_energy: Minimum energy for the new histogram (keV).
@@ -335,7 +335,7 @@ def _load_root_spec(  # noqa: PLR0913
         max_energy = int(np.ceil(max(data[:, 0])))
     spec_equal = _equalise_root_spec(spec, max_energy, min_energy)
     spec_scaled = _scale_root_spec(
-        spec_equal, mass, molar_mass, half_life, removal_time
+        spec_equal, mass, molar_mass, half_life, cooling_time
     )
     spec_scaled.SetTitle(name)
     return spec_scaled
@@ -364,7 +364,7 @@ def _get_total_root_spec(
     cask_name: str,
     isotope_proportions: dict,
     total_mass: float = 1000,
-    removal_time: float = 0,
+    cooling_time: float = 0,
     max_energy: int | None = None,
 ) -> ROOT.TH1D:
     """Calculate the total antineutrino spectrum from spent nuclear fuel.
@@ -373,7 +373,7 @@ def _get_total_root_spec(
         cask_name: Name of the SNF cask.
         isotope_proportions: Dictionary of isotope proportions of the total mass.
         total_mass: Total mass of SNF (kg).
-        removal_time: Time since removal from reactor (years).
+        cooling_time: Time since removal from reactor (years).
         max_energy: Maximum energy to consider (keV).
 
     Returns:
@@ -395,20 +395,20 @@ def _get_total_root_spec(
     # Create the scaled spectra of each isotope and add them to a ROOT TList
     spectra = ROOT.TList()
     for isotope in isotopes:
-        name = f"{isotope}{removal_time}{cask_name}"
+        name = f"{isotope}{cooling_time}{cask_name}"
         spec = _load_root_spec(
             isotope_data[isotope],
             name,
             masses[isotope],
             isotope_properties[isotope]["molar_mass"],
             isotope_properties[isotope]["half_life"],
-            removal_time,
+            cooling_time=cooling_time,
             max_energy=max_energy,
         )
         spectra.Add(spec)
 
     # Add any extra newly-created isotopes from decays.
-    if removal_time != 0:
+    if cooling_time != 0:
         # All of these decay chains have a branching ratio of 1.
         # If any additional isotopes were to be added with decay chains
         # involving more beta emitting isotopes then they can be added here.
@@ -433,9 +433,9 @@ def _get_total_root_spec(
                 daughter_data = isotope_data[chain.daughter]
                 daughter_properties = isotope_properties[chain.daughter]
 
-            name = f"additional {chain.daughter}{removal_time}{cask_name}"
+            name = f"additional {chain.daughter}{cooling_time}{cask_name}"
             daughter_mass = get_decay_mass(
-                time_elapsed=removal_time,
+                time_elapsed=cooling_time,
                 parent_mass=masses[chain.parent],
                 parent_half_life=isotope_properties[chain.parent]["half_life"],
                 daughter_half_life=daughter_properties["half_life"],
@@ -488,10 +488,10 @@ def test_scale() -> None:
     mass = 1000
     molar_mass = 100
     half_life = 30
-    removal_time = 5
-    activity = get_isotope_activity(mass, molar_mass, half_life, removal_time)
+    cooling_time = 5
+    activity = get_isotope_activity(mass, molar_mass, half_life, cooling_time)
     spec_scaled = spec * activity
-    root_scaled = _scale_root_spec(root_spec, mass, molar_mass, half_life, removal_time)
+    root_scaled = _scale_root_spec(root_spec, mass, molar_mass, half_life, cooling_time)
 
     # Compare the arrays to ensure they match
     _compare_spectra(spec_scaled, root_scaled)
@@ -638,26 +638,26 @@ def test_spec_real(isotope: str) -> None:
     _compare_spectra(spec, root_equal)
 
 
-@pytest.mark.parametrize("total_mass,removal_time", [(1000, 0), (5000, 10)])
-def test_cask(total_mass: float, removal_time: float) -> None:
+@pytest.mark.parametrize("total_mass,cooling_time", [(1000, 0), (5000, 10)])
+def test_cask(total_mass: float, cooling_time: float) -> None:
     """Test that the Cask class matches ROOT."""
     # Test with only two isotopes
-    # Note for removal_time>0 Sr90 will decay into Y90
+    # Note for cooling_time>0 Sr90 will decay into Y90
     isotope_proportions = {"Sr90": 0.5, "Cs137": 0.5}
 
-    # Create the Cask and get the total spectra at the given removal time
+    # Create the Cask and get the total spectra at the given cooling time
     cask = Cask(
         isotope_proportions=isotope_proportions,
         total_mass=total_mass,
     )
-    spec = cask.get_total_spectrum(removal_time=removal_time)
+    spec = cask.get_total_spectrum(cooling_time=cooling_time)
 
     # Do the same with the ROOT function
     root_spec = _get_total_root_spec(
         cask_name="Test",
         isotope_proportions=isotope_proportions,
         total_mass=total_mass,
-        removal_time=removal_time,
+        cooling_time=cooling_time,
     )
 
     # Compare the spectra to ensure they match
@@ -665,7 +665,7 @@ def test_cask(total_mass: float, removal_time: float) -> None:
 
 
 @pytest.mark.parametrize(
-    "reactor,total_mass,removal_time",
+    "reactor,total_mass,cooling_time",
     [
         ("sizewell", 1000, 0),
         ("sizewell", 5000, 10),
@@ -673,11 +673,11 @@ def test_cask(total_mass: float, removal_time: float) -> None:
         ("hartlepool", 5000, 10),
     ],
 )
-def test_cask_real(reactor: str, total_mass: float, removal_time: float) -> None:
+def test_cask_real(reactor: str, total_mass: float, cooling_time: float) -> None:
     """Test that the Cask class from real data matches ROOT."""
-    # Create the Cask and get the total spectra at the given removal time
+    # Create the Cask and get the total spectra after the given cooling time
     cask = Cask.from_reactor(reactor, total_mass=total_mass)
-    spec = cask.get_total_spectrum(removal_time=removal_time)
+    spec = cask.get_total_spectrum(cooling_time=cooling_time)
 
     # Do the same with the ROOT function
     isotope_proportions = get_reactor_data(reactor)
@@ -685,7 +685,7 @@ def test_cask_real(reactor: str, total_mass: float, removal_time: float) -> None
         cask_name="Test",
         isotope_proportions=isotope_proportions,
         total_mass=total_mass,
-        removal_time=removal_time,
+        cooling_time=cooling_time,
     )
 
     # Compare the spectra to ensure they match

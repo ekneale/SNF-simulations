@@ -41,8 +41,8 @@ def test_single_cask(reactor: str) -> None:
     # Create the Spectra for the given removal times
     spectra = []
     for removal_time in removal_times:
-        spec_05 = cask.get_total_spectrum(removal_time=removal_time)
-        spectra.append(spec_05)
+        spec = cask.get_total_spectrum(removal_time=removal_time)
+        spectra.append(spec)
 
     # Compare to the reference data file
     # The reference data we have (saved by command_line.py) is for the

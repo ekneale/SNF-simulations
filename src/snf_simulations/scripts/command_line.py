@@ -58,7 +58,7 @@ def run_single(
     # Get the Spectra for the given times after removal from the core.
     spectra: dict[float, Spectrum] = {}
     for simulation_time in simulation_times:
-        spec = cask.get_total_spectrum(removal_time=simulation_time)
+        spec = cask.get_total_spectrum(cooling_time=simulation_time)
         spectra[simulation_time] = spec
 
     # Calculate and print flux and event rates for each simulation time.
@@ -136,7 +136,7 @@ def run_multiple(
     # Create the Spectra for each set of casks at the specified times.
     spectra = []
     for cooling_time in cooling_times:
-        spec = cask.get_total_spectrum(removal_time=cooling_time)
+        spec = cask.get_total_spectrum(cooling_time=cooling_time)
         spectra.append(spec)
 
     # Combine the spectra from all casks to get the total spectrum for all 40 casks.
@@ -227,7 +227,7 @@ def run_multiple_full(
         time_spectra = []
         for cooling_time, cask in casks.items():
             new_cooling_time = cooling_time + simulation_time
-            spec = cask.get_total_spectrum(removal_time=new_cooling_time)
+            spec = cask.get_total_spectrum(cooling_time=new_cooling_time)
             time_spectra.append(spec)
         total_spec = time_spectra[0]
         for spec in time_spectra[1:]:

@@ -73,7 +73,7 @@ def test_get_total_spectrum() -> None:
 
     # We won't test the actual spectrum content here, just that it returns a Spectrum
     # object with the expected name.
-    spec = cask.get_total_spectrum(removal_time=1.0)
+    spec = cask.get_total_spectrum(cooling_time=1.0)
     assert isinstance(spec, Spectrum), "get_total_spectrum should return a Spectrum"
     assert spec.name == f"{cask.name} total spectrum", (
         "Spectrum name should be based on cask name"
@@ -87,5 +87,5 @@ def test_get_total_spectrum_inputs() -> None:
     name = "test_cask"
     cask = Cask(isotope_proportions, total_mass, name=name)
 
-    with pytest.raises(ValueError, match="removal_time must be non-negative"):
-        cask.get_total_spectrum(removal_time=-1.0)
+    with pytest.raises(ValueError, match="cooling_time must be non-negative"):
+        cask.get_total_spectrum(cooling_time=-1.0)

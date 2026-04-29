@@ -25,19 +25,19 @@ def test_decay_chain_defaults() -> None:
 
 def test_get_isotope_activity() -> None:
     """Test isotope activity calculation."""
+    time_elapsed = 10  # years
     mass = 1.0  # kg
     molar_mass = 90  # g/mol for Sr90
     half_life = 28.91  # years for Sr90
-    removal_time = 10  # years
 
-    activity = get_isotope_activity(mass, molar_mass, half_life, removal_time)
+    activity = get_isotope_activity(time_elapsed, mass, molar_mass, half_life)
 
     # Manually compute expected activity
     number_of_atoms = (mass * 1000 / molar_mass) * 6.022e23
     lambda_ = np.log(2) / (half_life * 365 * 24 * 60 * 60)
     initial_activity = number_of_atoms * lambda_
     activity_ref = initial_activity * np.exp(
-        -1 * lambda_ * removal_time * 365 * 24 * 60 * 60,
+        -1 * lambda_ * time_elapsed * 365 * 24 * 60 * 60,
     )
 
     assert np.isclose(activity, activity_ref), (
