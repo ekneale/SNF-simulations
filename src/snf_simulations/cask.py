@@ -1,51 +1,65 @@
 """Calculate antineutrino spectra for spent nuclear fuel casks."""
 
 from copy import deepcopy
+from pathlib import Path
+from typing import cast
 
-from .data import get_isotope_properties, get_reactor_data
+from .data import get_isotope_properties, get_isotope_proportions
 from .physics import DecayChain, get_decay_mass, get_isotope_activity
 from .spec import Spectrum
+
+# Define a default list of isotopes to include in the cask spectrum if the user doesn't
+# specify their own list.
+DEFAULT_ISOTOPES = [
+    "Sr90",
+    "Y90",
+    "Pu241",
+    "Cs137",
+    "Am242",
+    "Cs135",
+    "I129",
+    "Np239",
+    "Tc99",
+    "Zr93",
+    "Ce144",
+    "Kr88",
+    "Pr144",
+    "Rb88",
+    "Rh106",
+    "Ru106",
+]
+_DEFAULT_ISOTOPES = object()  # Sentinel value (see Cask.from_tabqfile)
 
 
 class Cask:
     """Class representing a cask of spent nuclear fuel.
 
     Attributes:
-        isotope_proportions: The proportions of each isotope in the cask.
+        isotope_masses: The masses of each isotope in the cask.
             Should be a dictionary where keys are isotope names and values are the
-            proportion of the total mass that isotope represents (between 0 and 1).
-        total_mass: The total mass of the cask in kg.
+            mass of the isotope in the cask (in kg).
         name: The name of the cask.
 
     """
 
     def __init__(
         self,
-        isotope_proportions: dict[str, float],
-        total_mass: float = 1000,
+        isotope_masses: dict[str, float],
         name: str = "Cask",
     ) -> None:
         """Initialize the Cask object."""
+        self.isotope_masses = isotope_masses
         self.name = name
-        self.isotope_proportions = isotope_proportions
-        self.total_mass = total_mass
 
-        if not self.isotope_proportions:
-            msg = "isotope_proportions must not be empty"
+        if not self.isotope_masses:
+            msg = "isotope_masses must not be empty"
             raise ValueError(msg)
-        if any(proportion < 0 for proportion in self.isotope_proportions.values()):
-            msg = "isotope_proportions values must be non-negative"
-            raise ValueError(msg)
-        if self.total_mass <= 0:
-            msg = "total_mass must be positive"
+        if any(mass < 0 for mass in self.isotope_masses.values()):
+            msg = "isotope_masses values must be non-negative"
             raise ValueError(msg)
 
         # Store all constant isotope data
-        self.isotopes = list(self.isotope_proportions.keys())
-        self.isotope_masses = {
-            isotope: proportion * self.total_mass
-            for isotope, proportion in self.isotope_proportions.items()
-        }
+        self.isotopes = list(self.isotope_masses.keys())
         self.isotope_properties = {
             isotope: get_isotope_properties(isotope) for isotope in self.isotopes
         }
@@ -56,20 +70,68 @@ class Cask:
     def __repr__(self) -> str:
         """Return a string representation of the Cask object."""
         try:
-            repr_str = f'<Cask "{self.name}", total_mass={self.total_mass} kg>'
+            repr_str = f'<Cask "{self.name}", {len(self.isotope_masses)} isotopes>'
         except AttributeError:
             return "<Cask (uninitialized)>"
         else:
             return repr_str
 
     @classmethod
-    def from_reactor(cls, reactor: str, total_mass: float) -> "Cask":
-        """Create a Cask object from reactor data."""
-        isotope_proportions = get_reactor_data(reactor)
+    def from_tabqfile(
+        cls,
+        filepath: str | Path,
+        total_mass: float,
+        isotopes: list[str] | None | object = _DEFAULT_ISOTOPES,
+        timestep: str | None = None,
+        name: str | None = None,
+    ) -> "Cask":
+        """Create a Cask object from a FISPIN .tbQ output file.
+
+        Args:
+            filepath: Path to the .tabq file to load.
+            total_mass: The total mass of the cask (in kg).
+            isotopes: Optional list of isotopes to include from the file.
+                Defaults to a list of selected isotopes (see DEFAULT_ISOTOPES).
+                If None, includes all isotopes in the file.
+            timestep: Specific time step to extract data for.
+                If None, the smallest time step in the file is used.
+                (see data.get_isotope_proportions for details)
+            name: Optional name for the cask.
+                If None, a name is generated from the filename.
+
+        Returns:
+            A Cask object with the isotope masses loaded from the file.
+
+        """
+        isotope_proportions = get_isotope_proportions(filepath, timestep)
+        isotope_masses = {
+            isotope: proportion * total_mass
+            for isotope, proportion in isotope_proportions.items()
+        }
+        # Filter isotopes
+        # We use a sentinel value for the default here to allow distinguishing between
+        # the user explicitly passing None (to include all isotopes) and
+        # not passing anything (to use the default list of selected isotopes).
+        # The cast is needed to satisfy type checking.
+        # Note PEP 661 proposes a builtin sentinel class which would be helpful here.
+        if isotopes is not None:
+            if isotopes is _DEFAULT_ISOTOPES:
+                selected_isotopes = DEFAULT_ISOTOPES
+            else:
+                selected_isotopes = cast(list[str], isotopes)
+            isotope_masses = {
+                isotope: mass
+                for isotope, mass in isotope_masses.items()
+                if isotope in selected_isotopes
+            }
+        if name is None:
+            if isinstance(filepath, str):
+                name = filepath.rsplit("/", maxsplit=1)[-1].split(".", maxsplit=1)[0]
+            else:
+                name = filepath.stem
         return cls(
-            isotope_proportions=isotope_proportions,
-            total_mass=total_mass,
-            name=f"{reactor}_cask",
+            isotope_masses=isotope_masses,
+            name=name,
         )
 
     def _get_component_spectra(self, removal_time: float = 0) -> list[Spectrum]:
