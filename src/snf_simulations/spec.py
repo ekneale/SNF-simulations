@@ -183,19 +183,18 @@ class Spectrum:
         new_errors = self.errors * abs(factor)
         return Spectrum(self.energy, new_flux, new_errors, name=self.name)
 
-    def sample(self, samples: int = 100, seed: int | None = None) -> np.ndarray:
+    def sample(self, n_samples: int = 100, seed: int | None = None) -> np.ndarray:
         """Sample the spectrum to simulate what a detector could observe.
 
         Args:
-            samples: Number of samples to draw from the spectrum.
+            n_samples: Number of samples to draw from the spectrum.
             seed: Random seed for reproducibility.
-
 
         Returns:
             Array of sampled energies.
 
         """
-        return sample_histogram(self.energy, self.flux, samples, seed)
+        return sample_histogram(self.energy, self.flux, n_samples, seed)
 
     def integrate(
         self,

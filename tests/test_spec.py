@@ -333,7 +333,7 @@ def test_sample_distribution() -> None:
     n_samples = 100000
 
     # Sample the spectrum
-    samples = spec.sample(samples=n_samples)
+    samples = spec.sample(n_samples)
     assert len(samples) == n_samples, "Wrong number of samples selected"
 
     # We can't compare the samples directly due to the random selection, but we can
@@ -371,7 +371,7 @@ def test_sample_with_seed() -> None:
 
     # Test sampling 5 values from the spectrum
     n_samples = 5
-    samples = spec.sample(samples=n_samples, seed=1234)  # Fix seed for reproducibility
+    samples = spec.sample(n_samples, seed=1234)  # Fix seed for reproducibility
 
     # Samples should be fixed given the seed
     samples_ref = [
@@ -396,8 +396,8 @@ def test_sample_reproducibility() -> None:
     # Test reproducibility with a random (but constant) seed
     rng = np.random.default_rng()
     seed = int(rng.integers(0, int(1e6)))
-    samples1 = spec.sample(samples=2000, seed=seed)
-    samples2 = spec.sample(samples=2000, seed=seed)
+    samples1 = spec.sample(2000, seed=seed)
+    samples2 = spec.sample(2000, seed=seed)
     assert np.array_equal(samples1, samples2), (
         "Sampling should be reproducible with constant seed"
     )
@@ -412,7 +412,7 @@ def test_sample_zero_flux() -> None:
         ValueError,
         match="Histogram has zero total area; cannot sample",
     ):
-        _ = spec.sample(samples=10)
+        _ = spec.sample(10)
 
 
 def test_integrate() -> None:

@@ -519,7 +519,7 @@ def test_sample() -> None:
 
     # Sample from both spectra
     samples = 100000
-    spec_samples = spec.sample(samples=samples)
+    spec_samples = spec.sample(n_samples=samples)
     root_samples = np.array([root_spec.GetRandom() for _ in range(samples)])
     assert len(spec_samples) == samples, (
         "Spectrum.sample did not produce the expected number of samples"
