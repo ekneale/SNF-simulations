@@ -1,4 +1,4 @@
-"""Module for loading reactor data."""
+"""Module for loading FISPIN .tbQ output files."""
 
 from pathlib import Path
 
@@ -70,7 +70,7 @@ def load_tabqfile(filepath: str | Path) -> dict[str, pd.DataFrame]:
 
 
 def _convert_sim_time_to_years(time_str: str) -> float:
-    """Convert a simulation time string from the .tabq file into years."""
+    """Convert a simulation time string from the .tbQ file into years."""
     value, unit = time_str.split()
     return float(value) * _UNITS_TO_SECONDS[unit] / _UNITS_TO_SECONDS["YEARS"]
 
@@ -78,10 +78,10 @@ def _convert_sim_time_to_years(time_str: str) -> float:
 def get_isotope_proportions(
     filepath: str | Path, time_str: str | None = None
 ) -> tuple[dict[str, float], float]:
-    """Get the isotope proportions from a FISPIN .tabq file.
+    """Get the isotope proportions from a FISPIN .tbQ output file.
 
     Args:
-        filepath: Path to the .tabq file to load.
+        filepath: Path to the file to load.
         time_str: Specific simulation time to extract data for.
             If None, uses the earliest time in the file.
             Will raise an error if the specified string is not found in the file.
