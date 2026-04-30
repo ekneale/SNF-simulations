@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 _UNITS_TO_SECONDS = {
@@ -14,15 +15,15 @@ _UNITS_TO_SECONDS = {
 
 
 def load_tabqfile(filepath: str | Path) -> dict[str, pd.DataFrame]:
-    """Load in a FISPIN .tbQ file and extract the data.
+    """Load in a FISPIN .tbQ output file and extract the data.
 
     Args:
-        filepath: Path to the .tabq file to load.
+        filepath: Path to the file to load.
 
     Returns:
         Dictionary of pandas dataframes containing the isotope data,
         for each time step in the file.
-        Keys are the time values from the file,
+        Keys are the simulation time string values from the file,
         e.g. "6.000E+01 MINS" or "2.800E+01 DAYS".
 
     """
@@ -68,43 +69,59 @@ def load_tabqfile(filepath: str | Path) -> dict[str, pd.DataFrame]:
     return time_dfs
 
 
+def _convert_sim_time_to_years(time_str: str) -> float:
+    """Convert a simulation time string from the .tabq file into years."""
+    value, unit = time_str.split()
+    return float(value) * _UNITS_TO_SECONDS[unit] / _UNITS_TO_SECONDS["YEARS"]
+
+
 def get_isotope_proportions(
-    filepath: str | Path, timestep: str | None = None
-) -> dict[str, float]:
+    filepath: str | Path, time_str: str | None = None
+) -> tuple[dict[str, float], float]:
     """Get the isotope proportions from a FISPIN .tabq file.
 
     Args:
         filepath: Path to the .tabq file to load.
-        timestep: Specific time step to extract data for.
-            If None, uses the earliest time step in the file.
+        time_str: Specific simulation time to extract data for.
+            If None, uses the earliest time in the file.
+            Will raise an error if the specified string is not found in the file.
 
     Returns:
-        Dictionary of isotope proportions in the fuel,
-        e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
+        isotope_proportions: Dictionary of isotope proportions at the specified
+            time, where keys are isotope names and values are the proportion of the
+            total mass for each isotope, e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
+        cooling_time: The cooling time in years that the proportions correspond to,
+            converted from the file time units.
 
     """
     time_dfs = load_tabqfile(filepath)
-    if timestep is None:
-        # Return the isotope proportions from the earliest time step
-        # Annoyingly, the file doesn't have to be in order and the keys are strings
-        # in different units, so we have to convert them here to find the earliest.
-        try:
-            timesteps = {
-                (
-                    float(time_str.split()[0]) * _UNITS_TO_SECONDS[time_str.split()[1]]
-                ): time_str
-                for time_str in time_dfs
-            }
-        except (IndexError, KeyError) as err:
-            msg = f"Error parsing time steps from file: {filepath}"
-            raise ValueError(msg) from err
-        timestep = timesteps[min(timesteps)]
 
-    # Calculate the proportions of each isotope of the total
-    df = time_dfs[timestep]
-    total_mass = df["GRAMS"].sum()
-    isotope_masses = df.set_index("ALL-NUC")["GRAMS"].to_dict()
-    proportions = {
-        isotope: float(mass / total_mass) for isotope, mass in isotope_masses.items()
-    }
-    return proportions
+    if time_str is not None:
+        # Select the dataframe for the specified time, and convert it to years.
+        if time_str not in time_dfs:
+            msg = f"Specified time string '{time_str}' not found in file: {filepath}"
+            msg += f"\nAvailable times: {list(time_dfs.keys())}"
+            raise ValueError(msg)
+        df = time_dfs[time_str]
+        cooling_time = _convert_sim_time_to_years(time_str)
+    else:
+        # If no time string is specified, use the isotope proportions from the earliest
+        # simulated cooling time.
+        selected_time_str = ""
+        cooling_time = np.inf
+        for inner_time_str in time_dfs:
+            time_years = _convert_sim_time_to_years(inner_time_str)
+            if time_years < cooling_time:
+                cooling_time = time_years
+                selected_time_str = inner_time_str
+        df = time_dfs[selected_time_str]
+
+    # Calculate the proportions of each isotope of the total mass.
+    isotope_masses = pd.to_numeric(df["GRAMS"], errors="coerce")
+    total_mass = float(isotope_masses.sum())
+    isotope_names = df["ALL-NUC"].astype(str)
+    proportions: dict[str, float] = {}
+    for isotope, mass in zip(isotope_names, isotope_masses, strict=True):
+        proportions[str(isotope)] = float(mass) / total_mass
+
+    return proportions, cooling_time
