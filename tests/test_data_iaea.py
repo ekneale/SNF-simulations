@@ -1,4 +1,4 @@
-"""Unit tests for data loading functions."""
+"""Unit tests for IAEA antineutrino spectrum data functions."""
 
 from pathlib import Path
 
@@ -11,134 +11,10 @@ from snf_simulations.data.iaea import (
     _load_spectrum_file,
     get_antineutrino_spectrum,
 )
-from snf_simulations.data.mendeleev import get_isotope_properties
-from snf_simulations.data.reactor import get_reactor_data, get_reactors
-from snf_simulations.data.utils import _parse_isotope
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
-
-
-def test_get_reactors() -> None:
-    """Test that reactor list can be retrieved."""
-    reactors = get_reactors()
-    assert isinstance(reactors, list), "Reactors should be a list"
-    assert len(reactors) > 0, "Should have at least one reactor"
-    assert all(isinstance(r, str) for r in reactors), "All reactors should be strings"
-    assert "sizewell" in reactors, "Sizewell should be in reactor list"
-    assert "hartlepool" in reactors, "Hartlepool should be in reactor list"
-
-
-def test_get_reactor_data_sizewell() -> None:
-    """Test loading reactor data for Sizewell."""
-    data = get_reactor_data("sizewell")
-    assert isinstance(data, dict), "Loaded data should be a dictionary"
-    assert len(data) > 0, "Should have loaded isotope data"
-    assert all(isinstance(k, str) for k in data), "All keys should be isotope names"
-    assert all(isinstance(v, float) for v in data.values()), (
-        "All values should be floats"
-    )
-    assert all(v >= 0 for v in data.values()), "All proportions should be non-negative"
-
-
-def test_get_reactor_data_hartlepool() -> None:
-    """Test loading reactor data for Hartlepool."""
-    data = get_reactor_data("hartlepool")
-    assert isinstance(data, dict), "Loaded data should be a dictionary"
-    assert len(data) > 0, "Should have loaded isotope data"
-
-
-def test_get_reactor_data_invalid() -> None:
-    """Test that loading invalid reactor raises ValueError."""
-    with pytest.raises(ValueError, match=r"Reactor.*data file not found"):
-        get_reactor_data("invalid_reactor")
-
-
-def test_parse_isotope() -> None:
-    """Test parsing isotope names in both supported orders."""
-    assert _parse_isotope("Ru106") == ("Ru", 106)
-    assert _parse_isotope("106Ru") == ("Ru", 106)
-    assert _parse_isotope("y90") == ("y", 90)
-
-    with pytest.raises(ValueError, match=r"Isotope format not recognized"):
-        _parse_isotope("Ru-106")
-    with pytest.raises(ValueError, match=r"Isotope format not recognized"):
-        _parse_isotope("Ru")
-    with pytest.raises(ValueError, match=r"Isotope format not recognized"):
-        _parse_isotope("106")
-
-
-def test_get_isotope_properties(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test loading isotope data."""
-
-    class _MockIsotope:
-        mass = 90.0
-        half_life = 100.0
-        half_life_unit = "year"
-
-    monkeypatch.setattr(
-        "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
-    )
-
-    isotope_properties = get_isotope_properties("Y90")
-    assert isotope_properties["molar_mass"] == 90.0, "Molar mass should be 90 g/mol"
-    assert isotope_properties["half_life"] == 100.0, "Half life should be 100 years"
-
-
-def test_get_isotope_properties_real() -> None:
-    """Test loading specific isotope data."""
-    # We can't test every possible isotope, but we can do one to check there
-    # aren't any obvious problems.
-    isotope_properties = get_isotope_properties("Y90")
-    assert isotope_properties["molar_mass"] == pytest.approx(89.9, rel=1e-3), (
-        "Molar mass of Y90 should be approximately 89.9 g/mol"
-    )
-    assert isotope_properties["half_life"] == pytest.approx(0.0073, rel=1e-3), (
-        "Half life of Y90 should be approximately 0.0073 years"
-    )
-
-
-def test_get_isotope_properties_converts_to_years(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test half-life conversion from non-year units into years."""
-
-    class _MockIsotope:
-        mass = 90.0
-        half_life = 24.0
-        half_life_unit = "hour"
-
-    monkeypatch.setattr(
-        "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
-    )
-
-    isotope_properties = get_isotope_properties("Y90")
-
-    assert isotope_properties["molar_mass"] == 90.0, "Molar mass should be 90 g/mol"
-    assert isotope_properties["half_life"] == pytest.approx(
-        24.0 * 3600.0 / 31_556_926.0
-    ), "Half life in years should be 24 hours converted to years"
-
-
-def test_get_isotope_properties_unsupported_unit(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Test unsupported half-life unit raises ValueError."""
-
-    class _MockIsotope:
-        mass = 1.0
-        half_life = 1.0
-        half_life_unit = "fortnight"
-
-    monkeypatch.setattr(
-        "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
-    )
-
-    with pytest.raises(ValueError, match=r"Unsupported half-life unit"):
-        get_isotope_properties("Y90")
 
 
 def test_get_cache_dir_uses_xdg_cache_home(
