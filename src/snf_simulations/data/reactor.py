@@ -5,12 +5,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-_UNITS_TO_SECONDS = {
-    "SECONDS": 1,
-    "MINS": 60,
-    "HOURS": 60 * 60,
-    "DAYS": 24 * 60 * 60,
-    "YEARS": 365 * 24 * 60 * 60,
+from .utils import _UNITS_TO_SECONDS
+
+_UNITS_TO_YEARS = {
+    "SECONDS": _UNITS_TO_SECONDS["sec"] / _UNITS_TO_SECONDS["year"],
+    "MINS": _UNITS_TO_SECONDS["minute"] / _UNITS_TO_SECONDS["year"],
+    "HOURS": _UNITS_TO_SECONDS["hour"] / _UNITS_TO_SECONDS["year"],
+    "DAYS": _UNITS_TO_SECONDS["day"] / _UNITS_TO_SECONDS["year"],
+    "YEARS": 1.0,
 }
 
 
@@ -72,7 +74,7 @@ def load_tabqfile(filepath: str | Path) -> dict[str, pd.DataFrame]:
 def _convert_sim_time_to_years(time_str: str) -> float:
     """Convert a simulation time string from the .tbQ file into years."""
     value, unit = time_str.split()
-    return float(value) * _UNITS_TO_SECONDS[unit] / _UNITS_TO_SECONDS["YEARS"]
+    return float(value) * _UNITS_TO_YEARS[unit]
 
 
 def get_isotope_proportions(

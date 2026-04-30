@@ -2,6 +2,31 @@
 
 import re
 
+# mendeleev uses this conversion, see https://github.com/lmmentel/mendeleev/pull/160
+_SECONDS_PER_YEAR = 31_556_926.0
+_UNITS_TO_SECONDS = {
+    "ysec": 1e-24,
+    "zsec": 1e-21,
+    "asec": 1e-18,
+    "psec": 1e-12,
+    "nsec": 1e-9,
+    "usec": 1e-6,
+    "msec": 1e-3,
+    "sec": 1.0,
+    "minute": 60.0,
+    "hour": 3600.0,
+    "day": 86400.0,
+    "year": _SECONDS_PER_YEAR,
+    "kyear": 1e3 * _SECONDS_PER_YEAR,
+    "Myear": 1e6 * _SECONDS_PER_YEAR,
+    "Gyear": 1e9 * _SECONDS_PER_YEAR,
+    "Tyear": 1e12 * _SECONDS_PER_YEAR,
+    "Pyear": 1e15 * _SECONDS_PER_YEAR,
+    "Eyear": 1e18 * _SECONDS_PER_YEAR,
+    "Zyear": 1e21 * _SECONDS_PER_YEAR,
+    "Yyear": 1e24 * _SECONDS_PER_YEAR,
+}
+
 
 def _parse_isotope(isotope_name: str) -> tuple[str, int]:
     """Parse an isotope name and return its element and mass number.

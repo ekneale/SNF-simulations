@@ -37,8 +37,8 @@ def _write_tabqfile(tmp_path: Path) -> Path:
 def test_convert_sim_time_to_years() -> None:
     """Test conversion of supported simulation time units to years."""
     assert _convert_sim_time_to_years("1.000E+00 YEARS") == pytest.approx(1.0)
-    assert _convert_sim_time_to_years("3.650E+02 DAYS") == pytest.approx(1.0)
-    assert _convert_sim_time_to_years("8.760E+03 HOURS") == pytest.approx(1.0)
+    assert _convert_sim_time_to_years("3.652425E+02 DAYS") == pytest.approx(1.0)
+    assert _convert_sim_time_to_years("8.76582E+03 HOURS") == pytest.approx(1.0)
 
 
 def test_load_tabqfile(tmp_path: Path) -> None:
@@ -61,7 +61,7 @@ def test_get_isotope_proportions_default_time(tmp_path: Path) -> None:
 
     proportions, cooling_time = get_isotope_proportions(filepath)
 
-    assert cooling_time == pytest.approx(0.5 / 365.0)
+    assert cooling_time == pytest.approx(0.5 / 365.2425)
     assert proportions["Sr90"] == pytest.approx(0.5)
     assert proportions["Cs137"] == pytest.approx(0.5)
     assert sum(proportions.values()) == pytest.approx(1.0)
@@ -73,7 +73,7 @@ def test_get_isotope_proportions_selected_time(tmp_path: Path) -> None:
 
     proportions, cooling_time = get_isotope_proportions(filepath, "2.000E+00 DAYS")
 
-    assert cooling_time == pytest.approx(2.0 / 365.0)
+    assert cooling_time == pytest.approx(2.0 / 365.2425)
     assert proportions["Sr90"] == pytest.approx(0.2)
     assert proportions["Cs137"] == pytest.approx(0.8)
 
