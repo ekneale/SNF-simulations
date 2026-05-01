@@ -111,10 +111,10 @@ def calculate_flux_at_distance(
 
 def calculate_event_rate(
     flux: float,
-    lower_efficiency: float = 0.2,
-    upper_efficiency: float = 0.4,
+    lower_efficiency: float = 0.3,
+    upper_efficiency: float = 0.5,
 ) -> tuple[float, float]:
-    """Calculate the expected event rate in the VIDARR detector for a given flux.
+    """Calculate the expected event rate in the baseline detector for a given flux.
 
     Args:
         flux: Antineutrino flux in cm^-2 s^-1.
@@ -126,10 +126,12 @@ def calculate_event_rate(
 
     """
     # Calculate the number of target protons in the detector
-    # VIDARR is a plastic scintillator detector with a volume of (1.52 x 1.52 x 0.7) m^3
+    # The prototype detector is a plastic scintillator detector with a volume of ~0.6 m^3
+    # but we expect to use a minimum of 2 of these detectors to measure a SNF cask so
+    # we'll start with 1.2 m^3 detector volume
     # TODO: these are all currently hardcoded, ideally they should be input parameters
     # or read from a detector config file.
-    detector_volume = 1.52 * 1.52 * 0.7  # m^3
+    detector_volume = 0.6 * 2 * 2 # m^3
     detector_volume = detector_volume * 1e6  # convert to cm^3
     proton_density = 4.6e22  # number density of protons in cm^-3
     number_of_protons = detector_volume * proton_density
