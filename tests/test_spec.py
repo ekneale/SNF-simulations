@@ -85,7 +85,7 @@ def test_repr() -> None:
     spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="mock")
 
     expected_repr = (
-        f'<Spectrum "{spec.name}", '
+        f'<Spectrum "{spec.name}": '
         f"energy_range=({spec.energy[0]:.1f}-{spec.energy[-1]:.1f} keV)>"
     )
     assert repr(spec) == expected_repr, (
@@ -96,6 +96,16 @@ def test_repr() -> None:
     uninitialized = Spectrum.__new__(Spectrum)
     assert repr(uninitialized) == "<Spectrum (uninitialized)>", (
         "Spectrum repr should handle uninitialized objects gracefully"
+    )
+
+    # Create an unnamed instance.
+    unnamed = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    expected_repr = (
+        f"<Spectrum: "
+        f"energy_range=({unnamed.energy[0]:.1f}-{unnamed.energy[-1]:.1f} keV)>"
+    )
+    assert repr(unnamed) == expected_repr, (
+        "Spectrum repr should include energy range even if name is not provided"
     )
 
 
@@ -313,6 +323,9 @@ def test_add() -> None:
     assert len(combined_spec.energy) == len(spec1.energy), (
         "Combined spectrum has different number of energy bins"
     )
+    assert combined_spec.name is None, (
+        "Combined spectrum should have no name by default when adding unnamed spectra"
+    )
 
     # Test that each bin content and error has been added correctly
     expected_flux = spec1.flux + spec2.flux
@@ -322,6 +335,22 @@ def test_add() -> None:
     )
     assert np.all(np.isclose(combined_spec.errors, expected_errors)), (
         "Combined spectrum error values mismatch expected values"
+    )
+
+
+def test_add_names() -> None:
+    """Test adding two spectra with names."""
+    energy, flux, errors = _mock_data()
+    spec1 = Spectrum(
+        energy=energy, flux=flux[:-1], errors=errors[:-1], name="Spectrum 1"
+    )
+    spec2 = Spectrum(
+        energy=energy, flux=flux[:-1] * 2, errors=errors[:-1] * 2, name="Spectrum 2"
+    )
+
+    combined_spec = spec1 + spec2
+    assert combined_spec.name == "Spectrum 1 + Spectrum 2", (
+        "Combined spectrum name should be the sum of the input spectrum names"
     )
 
 
@@ -569,7 +598,9 @@ def test_write_csv() -> None:
 def test_write_csv_filenames() -> None:
     """Test that write_csv defaults to correct file names."""
     energy, flux, errors = _mock_data()
-    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    spec = Spectrum(
+        energy=energy, flux=flux[:-1], errors=errors[:-1], name="test_spectrum"
+    )
 
     # Test that file extension is added if not provided
     filename = Path("test_spectrum")
@@ -595,6 +626,17 @@ def test_write_csv_filenames() -> None:
         expected_filename.unlink()
     spec.write_csv()  # no filename provided, should use default
     assert expected_filename.exists(), "write_csv() should create default filename"
+    expected_filename.unlink()
+
+    # Test that a spectrum with no name will be written to spectrum.csv by default.
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name=None)
+    expected_filename = Path("spectrum.csv")
+    if expected_filename.exists():
+        expected_filename.unlink()
+    spec.write_csv()  # no filename provided, should use default
+    assert expected_filename.exists(), (
+        "write_csv() should create spectrum.csv for unnamed spectrum"
+    )
     expected_filename.unlink()
 
 

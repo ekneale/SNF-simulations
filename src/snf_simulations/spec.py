@@ -19,7 +19,7 @@ class Spectrum:
             edges of each bin.
         errors: Array of uncertainties for the flux values.
             Array length should be the same as flux.
-        name: Name of the spectrum.
+        name: An optional name for the spectrum.
 
     """
 
@@ -28,7 +28,7 @@ class Spectrum:
         energy: np.ndarray,
         flux: np.ndarray,
         errors: np.ndarray,
-        name: str = "Spectrum",
+        name: str | None = None,
     ) -> None:
         """Initialize the Spectrum object."""
         self.energy = energy
@@ -49,8 +49,11 @@ class Spectrum:
     def __repr__(self) -> str:
         """Return a string representation of the Spectrum object."""
         try:
-            repr_str = f'<Spectrum "{self.name}", '
-            repr_str += f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
+            name_str = f' "{self.name}"' if self.name is not None else ""
+            repr_str = (
+                f"<Spectrum{name_str}: "
+                f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
+            )
         except AttributeError:
             return "<Spectrum (uninitialized)>"
         else:
@@ -116,9 +119,9 @@ class Spectrum:
     ) -> "Spectrum":
         """Create a Spectrum object from a CSV file written using write_csv."""
         with open(filename) as f:
-            header = f.readline().strip()
-            # Name should have been saved in the header
-            name = "Spectrum" if not header.startswith("#") else header[1:].strip()
+            header = f.readline()
+            # If the first has text after the # it should be the name.
+            name = header[1:].strip() if len(header) > 1 else None
         # The data should have columns: energy_lower, energy_upper, flux, error
         data = np.loadtxt(filename, delimiter=",", skiprows=2)
         lower_edges = data[:, 0]
@@ -196,7 +199,10 @@ class Spectrum:
             raise ValueError(msg)
         new_flux = self.flux + other.flux
         new_errors = np.sqrt(self.errors**2 + other.errors**2)
-        new_name = self.name + " + " + other.name
+        if self.name is not None and other.name is not None:
+            new_name = self.name + " + " + other.name
+        else:
+            new_name = None
         return Spectrum(self.energy, new_flux, new_errors, name=new_name)
 
     def __mul__(self, factor: float) -> "Spectrum":
@@ -289,7 +295,10 @@ class Spectrum:
 
         """
         if not output_filename:
-            output_filename = self.name.replace(" ", "_") + ".csv"
+            if self.name is not None:
+                output_filename = self.name.replace(" ", "_") + ".csv"
+            else:
+                output_filename = "spectrum.csv"
         if isinstance(output_filename, str) and not output_filename.endswith(".csv"):
             output_filename += ".csv"
         elif isinstance(output_filename, Path) and output_filename.suffix != ".csv":
@@ -298,11 +307,13 @@ class Spectrum:
         lower_edges = self.energy[:-1]
         upper_edges = self.energy[1:]
         data = np.column_stack((lower_edges, upper_edges, self.flux, self.errors))
+        header = f"# {self.name}\n" if self.name else "#\n"
+        header += "energy_lower,energy_upper,flux,error"
         np.savetxt(
             output_filename,
             data,
             fmt=("%.1f", "%.1f", "%.6e", "%.6e"),
             delimiter=",",
-            header=f"# {self.name}\nenergy_lower,energy_upper,flux,error",
+            header=header,
             comments="",
         )

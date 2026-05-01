@@ -44,7 +44,7 @@ class Cask:
             This initial age will be subtracted from the requested cooling times when
             calculating the antineutrino spectrum, to account for decay during the time
             since removal.
-        name: The name of the cask.
+        name: An optional name for the cask.
 
     """
 
@@ -52,7 +52,7 @@ class Cask:
         self,
         isotope_masses: dict[str, float],
         initial_cooling_time: float = 0,
-        name: str = "Cask",
+        name: str | None = None,
     ) -> None:
         """Initialize the Cask object."""
         self.isotope_masses = isotope_masses
@@ -81,8 +81,9 @@ class Cask:
     def __repr__(self) -> str:
         """Return a string representation of the Cask object."""
         try:
+            name_str = f' "{self.name}"' if self.name is not None else ""
             repr_str = (
-                f'<Cask "{self.name}", '
+                f"<Cask{name_str}: "
                 f"{len(self.isotope_masses)} isotopes, "
                 f"cooling time={self.initial_cooling_time:.3e} years>"
             )
@@ -148,10 +149,10 @@ class Cask:
                 if isotope in selected_isotopes
             }
         if name is None:
-            if isinstance(filepath, str):
-                name = filepath.rsplit("/", maxsplit=1)[-1].split(".", maxsplit=1)[0]
-            else:
+            if isinstance(filepath, Path):
                 name = filepath.stem
+            elif filepath.endswith(".tbQ"):
+                name = filepath.rsplit("/", maxsplit=1)[-1].split(".", maxsplit=1)[0]
         return cls(
             isotope_masses=isotope_masses,
             initial_cooling_time=cooling_time,

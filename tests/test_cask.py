@@ -58,18 +58,30 @@ def test_repr() -> None:
     cask = Cask(isotope_masses, initial_cooling_time, name)
 
     expected_repr = (
-        f'<Cask "{name}", '
+        f'<Cask "{name}": '
         f"{len(isotope_masses)} isotopes, "
         f"cooling time={initial_cooling_time:.3e} years>"
     )
     assert repr(cask) == expected_repr, (
-        "Cask repr should include cask name and total mass"
+        "Cask repr should include cask name, total mass and cooling time"
     )
 
     # Create an instance without calling __init__ to exercise fallback repr path.
     uninitialized = Cask.__new__(Cask)
     assert repr(uninitialized) == "<Cask (uninitialized)>", (
         "Cask repr should handle uninitialized objects gracefully"
+    )
+
+    # Create an unnamed instance.
+    unnamed = Cask(isotope_masses, initial_cooling_time)
+    expected_repr = (
+        f"<Cask: "
+        f"{len(isotope_masses)} isotopes, "
+        f"cooling time={initial_cooling_time:.3e} years>"
+    )
+    assert repr(unnamed) == expected_repr, (
+        "Cask repr should include total mass and cooling time "
+        "even if name is not provided"
     )
 
 
