@@ -56,6 +56,36 @@ class Spectrum:
         else:
             return repr_str
 
+    def __eq__(self, other: object) -> bool:
+        """Check if two Spectrum objects are equal based on their attributes."""
+        if not isinstance(other, Spectrum):
+            raise NotImplementedError(
+                "Cannot compare Spectrum with non-Spectrum object"
+            )
+        return (
+            self.name == other.name
+            and np.array_equal(self.energy, other.energy)
+            and np.array_equal(self.flux, other.flux)
+            and np.array_equal(self.errors, other.errors)
+        )
+
+    def __hash__(self) -> int:
+        """Return a hash consistent with __eq__."""
+        return hash(
+            (
+                self.name,
+                self.energy.dtype.str,
+                self.energy.shape,
+                self.energy.tobytes(),
+                self.flux.dtype.str,
+                self.flux.shape,
+                self.flux.tobytes(),
+                self.errors.dtype.str,
+                self.errors.shape,
+                self.errors.tobytes(),
+            )
+        )
+
     @classmethod
     def from_isotope(
         cls,

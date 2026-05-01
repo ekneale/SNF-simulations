@@ -16,11 +16,11 @@ from snf_simulations.cask import Cask
 from snf_simulations.data import (
     get_antineutrino_spectrum,
     get_isotope_properties,
-    get_reactor_data,
 )
 from snf_simulations.physics import DecayChain, get_decay_mass, get_isotope_activity
 from snf_simulations.spec import Spectrum
 
+from .test_commandline import _load_proportions
 from .test_spec import _mock_data
 
 # Suppress assert warnings from ruff
@@ -30,7 +30,7 @@ ROOT.TH1.AddDirectory(False)  # Prevent ROOT from keeping histograms in memory
 
 
 # Use the isotopes from the Sizewell reactor data for testing
-_SIZEWELL_PROPORTIONS = get_reactor_data("sizewell")
+_SIZEWELL_PROPORTIONS = _load_proportions("sizewell")
 ISOTOPES = list(_SIZEWELL_PROPORTIONS.keys())
 ISOTOPE_SPECTRA = {isotope: get_antineutrino_spectrum(isotope) for isotope in ISOTOPES}
 
@@ -646,10 +646,11 @@ def test_cask(total_mass: float, cooling_time: float) -> None:
     isotope_proportions = {"Sr90": 0.5, "Cs137": 0.5}
 
     # Create the Cask and get the total spectra at the given cooling time
-    cask = Cask(
-        isotope_proportions=isotope_proportions,
-        total_mass=total_mass,
-    )
+    isotope_masses = {
+        isotope: proportion * total_mass
+        for isotope, proportion in isotope_proportions.items()
+    }
+    cask = Cask(isotope_masses)
     spec = cask.get_total_spectrum(cooling_time=cooling_time)
 
     # Do the same with the ROOT function
@@ -676,11 +677,16 @@ def test_cask(total_mass: float, cooling_time: float) -> None:
 def test_cask_real(reactor: str, total_mass: float, cooling_time: float) -> None:
     """Test that the Cask class from real data matches ROOT."""
     # Create the Cask and get the total spectra after the given cooling time
-    cask = Cask.from_reactor(reactor, total_mass=total_mass)
+    isotope_proportions = _load_proportions(reactor)
+    isotope_masses = {
+        isotope: proportion * total_mass
+        for isotope, proportion in isotope_proportions.items()
+    }
+    initial_cooling_time = 0  # 24 * _UNITS_TO_YEARS["HOURS"]
+    cask = Cask(isotope_masses, initial_cooling_time, name=f"{reactor}_cask")
     spec = cask.get_total_spectrum(cooling_time=cooling_time)
 
     # Do the same with the ROOT function
-    isotope_proportions = get_reactor_data(reactor)
     root_spec = _get_total_root_spec(
         cask_name="Test",
         isotope_proportions=isotope_proportions,

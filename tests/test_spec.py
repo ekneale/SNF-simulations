@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from snf_simulations.data import get_reactor_data
+from snf_simulations.cask import DEFAULT_ISOTOPES
 from snf_simulations.spec import Spectrum
 
 # Suppress assert warnings from ruff
@@ -13,8 +13,6 @@ from snf_simulations.spec import Spectrum
 # ruff: noqa: PLR2004  # magic numbers
 
 # Use the isotopes from the Sizewell reactor data for testing
-_SIZEWELL_PROPORTIONS = get_reactor_data("sizewell")
-ISOTOPES = list(_SIZEWELL_PROPORTIONS.keys())
 
 
 def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -103,7 +101,23 @@ def test_repr() -> None:
     )
 
 
-@pytest.mark.parametrize("isotope", ISOTOPES)
+def test_eq() -> None:
+    """Test equality comparison of Spectrum objects."""
+    energy, flux, errors = _mock_data()
+    spec1 = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="spec")
+    spec2 = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="spec")
+    spec3 = Spectrum(energy=energy, flux=flux[:-1] * 2, errors=errors[:-1], name="spec")
+
+    assert spec1 == spec2, "Identical spectra should be equal"
+    assert spec1 != spec3, "Spectra with different flux values should not be equal"
+    with pytest.raises(
+        NotImplementedError, match="Cannot compare Spectrum with non-Spectrum object"
+    ):
+        _ = spec1 == "not a spectrum"
+    assert hash(spec1) == hash(spec2)
+
+
+@pytest.mark.parametrize("isotope", DEFAULT_ISOTOPES)
 def test_from_isotope(isotope: str) -> None:
     """Test that Spectrum.from_isotope returns a valid spectrum object."""
     spec = Spectrum.from_isotope(isotope)
