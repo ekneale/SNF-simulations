@@ -16,11 +16,12 @@ _UNITS_TO_YEARS = {
 }
 
 
-def load_tabqfile(filepath: str | Path) -> dict[str, pd.DataFrame]:
+def load_tabqfile(filepath_or_contents: str | Path) -> dict[str, pd.DataFrame]:
     """Load in a FISPIN .tbQ output file and extract the data.
 
     Args:
-        filepath: Path to the file to load.
+        filepath_or_contents: Path to the file to load,
+        or the contents of the file as a string.
 
     Returns:
         Dictionary of pandas dataframes containing the isotope data,
@@ -29,8 +30,14 @@ def load_tabqfile(filepath: str | Path) -> dict[str, pd.DataFrame]:
         e.g. "6.000E+01 MINS" or "2.800E+01 DAYS".
 
     """
-    with open(filepath) as f:
-        lines = f.readlines()
+    try:
+        with open(filepath_or_contents) as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        if isinstance(filepath_or_contents, Path):
+            raise
+        # If the input is not a valid file path, treat it as the file contents.
+        lines = filepath_or_contents.splitlines(keepends=True)
 
     # The file can contain multiple sections for different time steps.
     # Header format is "*** TIME    2.347E+00 YEARS"
