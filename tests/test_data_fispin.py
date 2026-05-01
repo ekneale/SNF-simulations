@@ -6,7 +6,7 @@ import pytest
 
 from snf_simulations.data.fispin import (
     _convert_sim_time_to_years,
-    get_isotope_proportions,
+    get_isotope_masses,
     load_tabqfile,
 )
 
@@ -55,32 +55,32 @@ def test_load_tabqfile(tmp_path: Path) -> None:
     assert df["GRAMS"].tolist() == pytest.approx([2.0, 8.0])
 
 
-def test_get_isotope_proportions_default_time(tmp_path: Path) -> None:
+def test_get_isotope_masses_default_time(tmp_path: Path) -> None:
     """Test default behavior selects earliest simulation time in the file."""
     filepath = _write_tabqfile(tmp_path)
 
-    proportions, cooling_time = get_isotope_proportions(filepath)
+    masses, cooling_time = get_isotope_masses(filepath)
 
     assert cooling_time == pytest.approx(0.5 / 365.2425)
-    assert proportions["Sr90"] == pytest.approx(0.5)
-    assert proportions["Cs137"] == pytest.approx(0.5)
-    assert sum(proportions.values()) == pytest.approx(1.0)
+    assert masses["Sr90"] == pytest.approx(0.003)
+    assert masses["Cs137"] == pytest.approx(0.003)
+    assert sum(masses.values()) == pytest.approx(0.006)
 
 
-def test_get_isotope_proportions_selected_time(tmp_path: Path) -> None:
-    """Test requesting a specific time returns matching isotope proportions."""
+def test_get_isotope_masses_selected_time(tmp_path: Path) -> None:
+    """Test requesting a specific time returns matching isotope masses."""
     filepath = _write_tabqfile(tmp_path)
 
-    proportions, cooling_time = get_isotope_proportions(filepath, "2.000E+00 DAYS")
+    masses, cooling_time = get_isotope_masses(filepath, "2.000E+00 DAYS")
 
     assert cooling_time == pytest.approx(2.0 / 365.2425)
-    assert proportions["Sr90"] == pytest.approx(0.2)
-    assert proportions["Cs137"] == pytest.approx(0.8)
+    assert masses["Sr90"] == pytest.approx(0.002)
+    assert masses["Cs137"] == pytest.approx(0.008)
 
 
-def test_get_isotope_proportions_invalid_time(tmp_path: Path) -> None:
+def test_get_isotope_masses_invalid_time(tmp_path: Path) -> None:
     """Test requesting a missing simulation time raises ValueError."""
     filepath = _write_tabqfile(tmp_path)
 
     with pytest.raises(ValueError, match=r"Specified time string"):
-        get_isotope_proportions(filepath, "1.000E+01 YEARS")
+        get_isotope_masses(filepath, "1.000E+01 YEARS")

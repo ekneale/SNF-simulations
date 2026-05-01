@@ -5,7 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import cast
 
-from .data import get_isotope_properties, get_isotope_proportions
+from .data import get_isotope_masses, get_isotope_properties
 from .physics import DecayChain, get_decay_mass, get_isotope_activity
 from .spec import Spectrum
 
@@ -95,7 +95,7 @@ class Cask:
     def from_tabqfile(
         cls,
         filepath: str | Path,
-        total_mass: float,
+        total_mass: float | None = None,
         isotopes: Collection[str] | None | object = _DEFAULT_ISOTOPES,
         time_str: str | None = None,
         name: str | None = None,
@@ -104,13 +104,16 @@ class Cask:
 
         Args:
             filepath: Path to the file to load.
-            total_mass: The total mass of the cask (in kg).
+            total_mass: The total mass of the cask to simulate (in kg).
+                If None, the mass from the simulation file is used.
+                If given, the isotopes will be scaled in proportion to the
+                simulation mass.
             isotopes: Optional list of isotopes to include from the file.
                 Defaults to a list of selected isotopes (see DEFAULT_ISOTOPES).
                 If None, includes all isotopes in the file.
             time_str: Specific simulation time to extract data for.
                 If None, the smallest time in the file is used.
-                (see data.get_isotope_proportions for details)
+                (see data.get_isotope_masses for details)
             name: Optional name for the cask.
                 If None, a name is generated from the filename.
 
@@ -118,11 +121,16 @@ class Cask:
             A Cask object with the isotope masses loaded from the file.
 
         """
-        isotope_proportions, cooling_time = get_isotope_proportions(filepath, time_str)
-        isotope_masses = {
-            isotope: proportion * total_mass
-            for isotope, proportion in isotope_proportions.items()
-        }
+        isotope_masses, cooling_time = get_isotope_masses(filepath, time_str)
+
+        # If a specific mass is given, scale the isotopes proportionally.
+        if total_mass is not None:
+            scaling_factor = total_mass / sum(isotope_masses.values())
+            isotope_masses = {
+                isotope: mass * scaling_factor
+                for isotope, mass in isotope_masses.items()
+            }
+
         # Filter isotopes
         # We use a sentinel value for the default here to allow distinguishing between
         # the user explicitly passing None (to include all isotopes) and

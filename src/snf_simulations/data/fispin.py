@@ -77,10 +77,10 @@ def _convert_sim_time_to_years(time_str: str) -> float:
     return float(value) * _UNITS_TO_YEARS[unit]
 
 
-def get_isotope_proportions(
+def get_isotope_masses(
     filepath: str | Path, time_str: str | None = None
 ) -> tuple[dict[str, float], float]:
-    """Get the isotope proportions from a FISPIN .tbQ output file.
+    """Get the isotope masses from a FISPIN .tbQ output file.
 
     Args:
         filepath: Path to the file to load.
@@ -89,10 +89,10 @@ def get_isotope_proportions(
             Will raise an error if the specified string is not found in the file.
 
     Returns:
-        isotope_proportions: Dictionary of isotope proportions at the specified
-            time, where keys are isotope names and values are the proportion of the
-            total mass for each isotope, e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
-        cooling_time: The cooling time in years that the proportions correspond to,
+        isotope_masses: Dictionary of isotope masses at the specified
+            time, where keys are isotope names and values are the mass of each
+            isotope in kg, e.g. {"Sr90": 5.356e-4, "Y90": 1.3922e-7, ...}.
+        cooling_time: The cooling time in years that the masses correspond to,
             converted from the file time units.
 
     """
@@ -107,7 +107,7 @@ def get_isotope_proportions(
         df = time_dfs[time_str]
         cooling_time = _convert_sim_time_to_years(time_str)
     else:
-        # If no time string is specified, use the isotope proportions from the earliest
+        # If no time string is specified, take the isotope masses from the earliest
         # simulated cooling time.
         selected_time_str = ""
         cooling_time = np.inf
@@ -118,12 +118,11 @@ def get_isotope_proportions(
                 selected_time_str = inner_time_str
         df = time_dfs[selected_time_str]
 
-    # Calculate the proportions of each isotope of the total mass.
-    isotope_masses = pd.to_numeric(df["GRAMS"], errors="coerce")
-    total_mass = float(isotope_masses.sum())
-    isotope_names = df["ALL-NUC"].astype(str)
-    proportions: dict[str, float] = {}
-    for isotope, mass in zip(isotope_names, isotope_masses, strict=True):
-        proportions[str(isotope)] = float(mass) / total_mass
-
-    return proportions, cooling_time
+    # Return the masses of each isotope and the selected cooling time.
+    masses = pd.to_numeric(df["GRAMS"], errors="coerce")
+    names = df["ALL-NUC"].astype(str)
+    isotope_masses = {
+        name: mass * 1e-3  # convert from grams to kg
+        for name, mass in zip(names, masses, strict=True)
+    }
+    return isotope_masses, cooling_time
