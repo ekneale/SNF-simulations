@@ -29,7 +29,6 @@ DEFAULT_ISOTOPES = [
     "Rh106",
     "Ru106",
 ]
-_DEFAULT_ISOTOPES = object()  # Sentinel value (see Cask.from_tabqfile)
 
 
 class Cask:
@@ -97,7 +96,7 @@ class Cask:
         cls,
         filepath: str | Path,
         total_mass: float | None = None,
-        isotopes: Collection[str] | None | object = _DEFAULT_ISOTOPES,
+        isotopes: Collection[str] | str | None = None,
         time_str: str | None = None,
         name: str | None = None,
     ) -> "Cask":
@@ -110,8 +109,8 @@ class Cask:
                 If given, the isotopes will be scaled in proportion to the
                 simulation mass.
             isotopes: Optional list of isotopes to include from the file.
-                Defaults to a list of selected isotopes (see DEFAULT_ISOTOPES).
-                If None, includes all isotopes in the file.
+                If None, defaults to a list of selected isotopes (see DEFAULT_ISOTOPES).
+                isotopes="all" can be used to include all isotopes in the file.
             time_str: Specific simulation time to extract data for.
                 If None, the smallest time in the file is used.
                 (see data.get_isotope_masses for details)
@@ -133,13 +132,8 @@ class Cask:
             }
 
         # Filter isotopes
-        # We use a sentinel value for the default here to allow distinguishing between
-        # the user explicitly passing None (to include all isotopes) and
-        # not passing anything (to use the default list of selected isotopes).
-        # The cast is needed to satisfy type checking.
-        # Note PEP 661 proposes a builtin sentinel class which would be helpful here.
-        if isotopes is not None:
-            if isotopes is _DEFAULT_ISOTOPES:
+        if isotopes != "all":
+            if isotopes is None:
                 selected_isotopes = DEFAULT_ISOTOPES
             else:
                 selected_isotopes = cast(Collection[str], isotopes)

@@ -125,6 +125,35 @@ def test_from_tabqfile_selected_isotopes(tmp_path: Path) -> None:
     assert cask.isotope_masses == {"Sr90": 500.0}, "Incorrect isotope masses"
 
 
+def test_from_tabqfile_default_isotopes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that from_tabqfile will filter to the default list."""
+    monkeypatch.setattr(
+        "snf_simulations.cask.DEFAULT_ISOTOPES",
+        ["Sr90"],
+    )
+    filepath = _write_tabqfile(tmp_path)
+
+    # Pass isotopes=None to use the default list
+    cask = Cask.from_tabqfile(
+        filepath, total_mass=1000.0, name="test_cask", isotopes=None
+    )
+    assert cask.isotopes == ["Sr90"], "Cask should only include the default isotopes"
+    assert cask.isotope_masses == {"Sr90": 500.0}, "Incorrect isotope masses"
+
+    # Now test that explicitly passing isotopes="all" bypasses the default list
+    cask_all = Cask.from_tabqfile(
+        filepath, total_mass=1000.0, name="test_cask_all", isotopes="all"
+    )
+    assert cask_all.isotopes == ["Sr90", "Cs137"], (
+        "Cask should include all isotopes when isotopes='all'"
+    )
+    assert cask_all.isotope_masses == {"Sr90": 500.0, "Cs137": 500.0}, (
+        "Incorrect isotope masses when isotopes='all'"
+    )
+
+
 def test_get_total_spectrum() -> None:
     """Test that get_total_spectrum returns a Spectrum object."""
     isotope_masses = {"Sr90": 1000.0, "Cs137": 1000.0}  # kg
