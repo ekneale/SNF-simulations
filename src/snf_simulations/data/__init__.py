@@ -1,8 +1,8 @@
 """Data loading module for antineutrino spectra calculations."""
 
+from .fispin import get_isotope_proportions
 from .iaea import get_antineutrino_spectrum
 from .mendeleev import get_isotope_properties
-from .reactor import get_isotope_proportions
 
 __all__ = [
     "get_antineutrino_spectrum",

@@ -12,8 +12,6 @@ from snf_simulations.spec import Spectrum
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
 
-# Use the isotopes from the Sizewell reactor data for testing
-
 
 def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Return a standard mock spectrum dataset used across tests."""

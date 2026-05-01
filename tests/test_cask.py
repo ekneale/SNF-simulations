@@ -8,7 +8,7 @@ from snf_simulations.cask import Cask
 from snf_simulations.data import get_isotope_properties
 from snf_simulations.spec import Spectrum
 
-from .test_data_reactor import _write_tabqfile
+from .test_data_fispin import _write_tabqfile
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts

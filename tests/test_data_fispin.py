@@ -1,10 +1,10 @@
-"""Unit tests for reactor data functions."""
+"""Unit tests for FISPIN data functions."""
 
 from pathlib import Path
 
 import pytest
 
-from snf_simulations.data.reactor import (
+from snf_simulations.data.fispin import (
     _convert_sim_time_to_years,
     get_isotope_proportions,
     load_tabqfile,
