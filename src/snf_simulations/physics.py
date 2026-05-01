@@ -131,7 +131,7 @@ def calculate_event_rate(
     # we'll start with 1.2 m^3 detector volume
     # TODO: these are all currently hardcoded, ideally they should be input parameters
     # or read from a detector config file.
-    detector_volume = 0.6 * 2 * 2 # m^3
+    detector_volume = 0.6 * 2 # m^3
     detector_volume = detector_volume * 1e6  # convert to cm^3
     proton_density = 4.6e22  # number density of protons in cm^-3
     number_of_protons = detector_volume * proton_density
