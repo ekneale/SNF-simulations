@@ -202,3 +202,23 @@ def test_get_total_spectrum_daughter() -> None:
     assert "Sr90->Y90" in component_spec_names, (
         "Should have a spectrum for the Sr90 -> Y90 decay"
     )
+
+
+def test_get_component_spectra_defaults_to_initial_cooling_time() -> None:
+    """Test get_component_spectra uses initial cooling time when omitted."""
+    cask = Cask({"Sr90": 1000.0}, initial_cooling_time=5.0, name="test_cask")
+
+    spectra = cask.get_component_spectra()
+
+    assert len(spectra) == 1
+    assert spectra[0].name == "Sr90"
+
+
+def test_get_total_spectrum_defaults_to_initial_cooling_time() -> None:
+    """Test get_total_spectrum uses initial cooling time when omitted."""
+    cask = Cask({"Sr90": 1000.0}, initial_cooling_time=5.0, name="test_cask")
+
+    total = cask.get_total_spectrum()
+
+    assert isinstance(total, Spectrum)
+    assert total.name == "test_cask"
