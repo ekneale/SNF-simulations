@@ -192,7 +192,7 @@ def test_get_total_spectrum_daughter() -> None:
     name = "test_cask"
     cask = Cask(isotope_masses, initial_cooling_time, name=name)
 
-    component_spec = cask._get_component_spectra(cooling_time=20.0)
+    component_spec = cask.get_component_spectra(cooling_time=20.0)
     assert len(component_spec) == len(isotope_masses) + 1, (
         "Should have spectra for both input isotopes and the SR90->Y90 daughter"
     )

@@ -153,13 +153,16 @@ class Cask:
             name=name,
         )
 
-    def _get_component_spectra(self, cooling_time: float = 0) -> list[Spectrum]:
+    def get_component_spectra(
+        self, cooling_time: float | None = None
+    ) -> list[Spectrum]:
         """Get the individual antineutrino spectra for each isotope in the cask.
 
         Args:
             cooling_time: The time in years since the cask was removed from the reactor.
                 Note that this has to be greater than or equal to the
                 initial_cooling_time of the cask.
+                If None, the initial_cooling_time of the cask is used.
 
         Returns:
             A list of Spectrum objects, representing the antineutrino spectra for each
@@ -167,6 +170,8 @@ class Cask:
             removal from the reactor.
 
         """
+        if cooling_time is None:
+            cooling_time = self.initial_cooling_time
         if cooling_time < 0:
             msg = "cooling_time must be non-negative"
             raise ValueError(msg)
@@ -250,16 +255,19 @@ class Cask:
                 spectra.append(scaled_spec)
         return spectra
 
-    def get_total_spectrum(self, cooling_time: float = 0) -> Spectrum:
+    def get_total_spectrum(self, cooling_time: float | None = None) -> Spectrum:
         """Calculate the total antineutrino spectrum as a Spectrum object.
 
         Args:
             cooling_time: The time in years since the cask was removed from the reactor.
                 Note that this has to be greater than or equal to the
                 initial_cooling_time of the cask.
+                If None, the initial_cooling_time of the cask is used.
 
         """
-        spectra = self._get_component_spectra(cooling_time)
+        if cooling_time is None:
+            cooling_time = self.initial_cooling_time
+        spectra = self.get_component_spectra(cooling_time)
 
         # Equalise all the spectra to 1keV bins to allow combining,
         # going from 0 to the maximum energy across all spectra.
