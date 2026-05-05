@@ -125,13 +125,13 @@ def calculate_event_rate(
         Tuple of lower and upper event rates in s^-1.
 
     """
-    # Calculate the number of target protons in the detector
-    # The prototype detector is a plastic scintillator detector with a volume of ~0.6 m^3
-    # but we expect to use a minimum of 2 of these detectors to measure a SNF cask so
-    # we'll start with 1.2 m^3 detector volume
+    # Calculate the number of target protons in the detector.
+    # The prototype detector is a plastic scintillator detector with a volume of
+    # ~0.6 m^3, but we expect to use a minimum of 2 of these detectors to measure
+    # a SNF cask so we'll start with 1.2 m^3 detector volume.
     # TODO: these are all currently hardcoded, ideally they should be input parameters
     # or read from a detector config file.
-    detector_volume = 0.6 * 2 # m^3
+    detector_volume = 0.6 * 2  # m^3
     detector_volume = detector_volume * 1e6  # convert to cm^3
     proton_density = 4.6e22  # number density of protons in cm^-3
     number_of_protons = detector_volume * proton_density
