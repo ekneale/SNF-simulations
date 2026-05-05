@@ -1,8 +1,10 @@
 """Module for loading antineutrino spectrum data from the IAEA database."""
 
 import os
+import shutil
 import urllib.error
 import urllib.request
+from importlib import resources
 from io import StringIO
 from pathlib import Path
 
@@ -46,7 +48,28 @@ def _get_cache_file(isotope_name: str) -> Path:
         Path to the cache file for the isotope.
 
     """
-    return _get_cache_dir() / f"{isotope_name}.csv"
+    nuclide = _parse_nuclide(isotope_name)
+    return _get_cache_dir() / f"{nuclide}.csv"
+
+
+def _copy_packaged_spectrum_to_cache(isotope_name: str) -> bool:
+    """Copy an included spectrum file for a nuclide into the package cache.
+
+    Args:
+        isotope_name: Name of the isotope to get the cache file for.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
+
+    Returns:
+        True if a bundled file exists and was copied, otherwise False.
+
+    """
+    nuclide = _parse_nuclide(isotope_name)
+    resource = resources.files("snf_simulations.data.spec_data") / f"{nuclide}.csv"
+    if not resource.is_file():
+        return False
+    with resources.as_file(resource) as path:
+        shutil.copyfile(path, _get_cache_file(isotope_name))
+    return True
 
 
 def _parse_nuclide(isotope_name: str) -> str:
@@ -160,6 +183,7 @@ def get_antineutrino_spectrum(isotope_name: str) -> np.ndarray:
 
     """
     nuclide = _parse_nuclide(isotope_name)
-    if not _get_cache_file(nuclide).is_file():
+    cache_file = _get_cache_file(nuclide)
+    if not cache_file.is_file() and not _copy_packaged_spectrum_to_cache(isotope_name):
         _download_spectrum_data(nuclide)
     return _load_spectrum_file(nuclide)

@@ -1,11 +1,14 @@
 """Unit tests for IAEA antineutrino spectrum data functions."""
 
+import urllib.error
+from io import BytesIO
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from snf_simulations.data.iaea import (
+    _copy_packaged_spectrum_to_cache,
     _download_spectrum_data,
     _get_cache_dir,
     _load_spectrum_file,
@@ -42,6 +45,34 @@ def test_get_cache_dir_defaults_to_home(
 
     assert cache_dir == tmp_path / ".cache" / "snf_simulations" / "spec_data"
     assert cache_dir.is_dir()
+
+
+def test_copy_packaged_spectrum_to_cache_copies_existing_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test bundled spectrum files are copied into the writable cache."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+
+    copied = _copy_packaged_spectrum_to_cache("Sr90")
+
+    assert copied
+    copied_file = tmp_path / "90sr.csv"
+    assert copied_file.is_file()
+    header = copied_file.read_text(encoding="utf-8").splitlines()[0]
+    assert "bin_en" in header
+    assert "dn_de_nu" in header
+
+
+def test_copy_packaged_spectrum_to_cache_returns_false_when_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test helper returns False when there is no bundled file for isotope."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+
+    copied = _copy_packaged_spectrum_to_cache("Xe999")
+
+    assert not copied
+    assert not (tmp_path / "999xe.csv").exists()
 
 
 def test_download_spectrum_data_uses_cache(
@@ -144,6 +175,29 @@ def test_download_spectrum_data_wraps_network_errors(
         _download_spectrum_data("Ru106")
 
 
+def test_download_spectrum_data_reports_cloudflare_block(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test Cloudflare 403 responses are reported with a clear message."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+    cloudflare_html = b"<html><title>Just a moment...</title>cloudflare</html>"
+
+    def _raise_cloudflare(request: object, timeout: int = 5) -> object:
+        del request, timeout
+        raise urllib.error.HTTPError(
+            url="https://nds.iaea.org/relnsd/v1/data",
+            code=403,
+            msg="Forbidden",
+            hdrs=None,  # type: ignore
+            fp=BytesIO(cloudflare_html),
+        )
+
+    monkeypatch.setattr("urllib.request.urlopen", _raise_cloudflare)
+
+    with pytest.raises(RuntimeError, match=r"blocked by Cloudflare"):
+        _download_spectrum_data("Ru106")
+
+
 def test_load_spectrum_file_missing_cache_raises(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -228,6 +282,10 @@ def test_get_antineutrino_spectrum_downloads_when_cache_missing(
     monkeypatch.setattr(
         "snf_simulations.data.iaea._download_spectrum_data", _fake_download
     )
+    monkeypatch.setattr(
+        "snf_simulations.data.iaea._copy_packaged_spectrum_to_cache",
+        lambda _: False,
+    )
 
     spectrum = get_antineutrino_spectrum("Sr90")
 
@@ -255,3 +313,34 @@ def test_get_antineutrino_spectrum_uses_cached_file(
     spectrum = get_antineutrino_spectrum("Sr90")
 
     np.testing.assert_allclose(spectrum, np.array([[1.5, 2.5, 0.25]]))
+
+
+def test_get_antineutrino_spectrum_copies_packaged_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test that packaged data is copied to cache before any download attempt."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+
+    def _fake_copy_packaged(isotope_name: str) -> bool:
+        cache_file = tmp_path / "90sr.csv"
+        cache_file.write_text(
+            "p_z,p_n,p_symbol,p_energy,d_z,d_n,d_symbol,bin_en,dn_de,unc_dn_de,"
+            "dn_de_nu,unc_dn_de_nu,extraction_date\n"
+            "38,52,Sr,0,39,51,Y,3.0,0.1,0.01,4.0,0.4,2026-04-15\n",
+            encoding="utf-8",
+        )
+        return True
+
+    monkeypatch.setattr(
+        "snf_simulations.data.iaea._copy_packaged_spectrum_to_cache",
+        _fake_copy_packaged,
+    )
+    monkeypatch.setattr(
+        "snf_simulations.data.iaea._download_spectrum_data",
+        lambda isotope_name: pytest.fail(f"Unexpected download for {isotope_name}"),
+    )
+
+    spectrum = get_antineutrino_spectrum("Sr90")
+
+    np.testing.assert_allclose(spectrum, np.array([[3.0, 4.0, 0.4]]))
+    assert (tmp_path / "90sr.csv").is_file()

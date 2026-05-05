@@ -64,6 +64,9 @@ include-package-data = true
 namespaces = true
 where = ["src"]
 
+[tool.setuptools.package-data]
+"snf_simulations.data.spec_data" = ["*.csv"]
+
 [tool.setuptools_scm]
 version_file = "src/snf_simulations/_version.py"
 
