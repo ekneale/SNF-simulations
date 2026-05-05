@@ -1,6 +1,7 @@
 """Module for loading antineutrino spectrum data from the IAEA database."""
 
 import os
+import urllib.error
 import urllib.request
 from io import StringIO
 from pathlib import Path
@@ -84,10 +85,22 @@ def _download_spectrum_data(isotope_name: str) -> str:
     req = urllib.request.Request(url)  # noqa: S310
     req.add_header(
         "User-Agent",
-        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox77.0",
+        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0",
     )
     try:
         content = urllib.request.urlopen(req, timeout=5).read().decode("utf-8")  # noqa: S310
+    except urllib.error.HTTPError as err:
+        body = ""
+        if err.fp is not None:
+            body = err.fp.read().decode("utf-8", errors="ignore").lower()
+        if err.code == 403 and "cloudflare" in body:  # noqa: PLR2004
+            target_path = _get_cache_file(nuclide)
+            msg = (
+                f"IAEA request to url '{url}' was blocked by Cloudflare (HTTP 403).\n"
+                "Try downloading the data from a web browser, and saving it to "
+                f"the cache as '{target_path}'."
+            )
+            raise RuntimeError(msg) from err
     except Exception as err:
         msg = f"Error downloading spectrum data for {nuclide} from IAEA database: {err}"
         raise RuntimeError(msg) from err
