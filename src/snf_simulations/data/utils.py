@@ -1,6 +1,8 @@
 """Utility functions for loading and processing data."""
 
+import importlib.resources
 import re
+from pathlib import Path
 
 # mendeleev uses this conversion, see https://github.com/lmmentel/mendeleev/pull/160
 _SECONDS_PER_YEAR = 31_556_926.0
@@ -52,3 +54,10 @@ def _parse_isotope(isotope_name: str) -> tuple[str, int]:
         msg = f"Isotope format not recognized: {isotope_name}"
         msg += " Use 'ElementMass' or 'MassElement', e.g., 'Ru106' or '106Ru'."
         raise ValueError(msg)
+
+
+def get_example_tbq_path() -> Path:
+    """Return the path to the bundled example .tbQ file."""
+    return Path(
+        str(importlib.resources.files("snf_simulations.data").joinpath("example.tbQ"))
+    )
