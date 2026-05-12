@@ -106,10 +106,9 @@ def _download_spectrum_data(isotope_name: str) -> str:
         f"&nuclides={nuclide}&rad_types=bm"
     )
     req = urllib.request.Request(url)  # noqa: S310
-    req.add_header(
-        "User-Agent",
-        "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0",
-    )
+    # We use a custom user agent from the Livechart docs,
+    # which should bypass Cloudflare checks.
+    req.add_header("User-Agent", "Livechart/1.0")
     try:
         content = urllib.request.urlopen(req, timeout=5).read().decode("utf-8")  # noqa: S310
     except urllib.error.HTTPError as err:
