@@ -1,5 +1,7 @@
 """Interactive Shiny dashboard for SNF antineutrino spectrum visualization."""
 
+from collections.abc import Iterable
+from io import BytesIO
 from pathlib import Path
 from typing import TypedDict
 
@@ -29,17 +31,13 @@ class SimInputs(TypedDict):
 # The sidebar holds the simulation inputs, and the main page has tabs for different
 # output plots.
 app_ui = ui.page_fluid(
-    ui.busy_indicators.use(spinners=True, pulse=True, fade=True),
-    ui.busy_indicators.options(
-        spinner_delay="150ms",
-        spinner_type="ring",
-        spinner_size="2rem",
-    ),
+    # Page head content for title and custom CSS
     ui.head_content(
+        # Page title shown in the browser tab
         ui.tags.title("SNF Antineutrino Spectrum Dashboard"),
+        # Custom CSS to increase spacing in the sidebar and reduce clipping,
+        # and to style the header and footer.
         ui.tags.style(
-            # Custom CSS to increase spacing in the sidebar and reduce clipping,
-            # and to style the header and footer.
             """
             .bslib-sidebar-layout > button.collapse-toggle {
                 display: none !important;
@@ -100,30 +98,39 @@ app_ui = ui.page_fluid(
                 font-size: 0.8rem;
                 flex-shrink: 0;
             }
-
             """
         ),
+        # Font Awesome stylesheet for icons in the header and buttons
+        ui.tags.link(
+            rel="stylesheet",
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css",
+        ),
     ),
+    # Page header
     ui.tags.header(
         {"class": "snf-header"},
         ui.tags.h1("SNF Antineutrino Spectrum Dashboard"),
         ui.tags.div(
             {"class": "snf-header-links"},
             ui.tags.a(
-                "📚 Documentation",
+                ui.tags.i({"class": "fa-solid fa-book"}),
+                " Documentation",
                 href="https://ekneale.github.io/SNF-simulations",
                 target="_blank",
                 rel="noopener noreferrer",
             ),
             ui.tags.a(
-                "📦 GitHub",
+                ui.tags.i({"class": "fa-brands fa-github"}),
+                " GitHub",
                 href="https://github.com/ekneale/SNF-simulations",
                 target="_blank",
                 rel="noopener noreferrer",
             ),
         ),
     ),
+    # Main page layout with sidebar and tabs
     ui.layout_sidebar(
+        # Sidebar
         ui.sidebar(
             ui.h4("Input Settings"),
             ui.input_file(
@@ -156,7 +163,11 @@ app_ui = ui.page_fluid(
                 "Add cooling time (years):",
                 placeholder="e.g. 2.5",
             ),
-            ui.input_action_button("add_cooling_time", "Add Cooling Time"),
+            ui.input_action_button(
+                "add_cooling_time",
+                "Add",
+                icon=ui.tags.i({"class": "fa-solid fa-plus"}),
+            ),
             ui.input_slider(
                 "detector_distance",
                 "Detector distance (m):",
@@ -165,14 +176,30 @@ app_ui = ui.page_fluid(
                 value=40,
                 step=1,
             ),
-            ui.input_action_button("recalculate", "Recalculate", class_="btn-success"),
+            ui.input_action_button(
+                "recalculate",
+                "Recalculate",
+                icon=ui.tags.i({"class": "fa-solid fa-rotate-right"}),
+                class_="btn-success",
+            ),
             width="250px",
         ),
+        # Tabs
         ui.navset_tab(
             ui.nav_panel(
                 "Cask Simulations",
                 output_widget("plot_cask_simulations"),
+                ui.download_button(
+                    "download_cask_simulations",
+                    "  Download CSV",
+                    icon=ui.tags.i({"class": "fa-solid fa-download"}),
+                ),
                 ui.output_table("table_cask_rates"),
+                ui.download_button(
+                    "download_cask_rates",
+                    "  Download CSV",
+                    icon=ui.tags.i({"class": "fa-solid fa-download"}),
+                ),
             ),
             ui.nav_panel(
                 "Component Spectra",
@@ -183,6 +210,11 @@ app_ui = ui.page_fluid(
                     selected="0.5",
                 ),
                 output_widget("plot_component_spectra"),
+                ui.download_button(
+                    "download_component_spectra",
+                    "  Download CSV",
+                    icon=ui.tags.i({"class": "fa-solid fa-download"}),
+                ),
             ),
             ui.nav_panel(
                 "Spectrum Sampling",
@@ -201,12 +233,25 @@ app_ui = ui.page_fluid(
                     step=10000,
                 ),
                 output_widget("plot_sampling"),
+                ui.download_button(
+                    "download_sampling",
+                    "  Download CSV",
+                    icon=ui.tags.i({"class": "fa-solid fa-download"}),
+                ),
             ),
         ),
     ),
+    # Page footer
     ui.tags.footer(
         {"class": "snf-footer"},
         "\u00a9 Copyright 2026, E Kneale.",
+    ),
+    # Other UI options
+    ui.busy_indicators.use(spinners=True, pulse=True, fade=True),
+    ui.busy_indicators.options(
+        spinner_delay="150ms",
+        spinner_type="ring",
+        spinner_size="2rem",
     ),
 )
 
@@ -233,12 +278,13 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
         try:
             params = sim_inputs()
             filepath = params["filepath"]
-            cask = Cask.from_tabqfile(
-                filepath,
-                total_mass=float(params["cask_mass"]),
-                name=params["cask_name"],
-            )
+            total_mass = float(params["cask_mass"]) * int(params["n_casks"])
+            name = params["cask_name"]
+
+            # Create the Cask instance
+            cask = Cask.from_tabqfile(filepath, total_mass=total_mass, name=name)
             return cask
+
         except Exception as e:
             ui.notification_show(
                 f"Error loading .tbQ file: {e}",
@@ -392,6 +438,42 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
 
     # -----------------------------------------------------------------------
     # Cask Simulations tab
+    @reactive.calc
+    def cask_simulations_data() -> pd.DataFrame:
+        """Calculate the spectra for each cooling time."""
+        cask = cask_reactive()
+        if cask is None:
+            return pd.DataFrame()
+
+        params = sim_inputs()
+        cooling_times = list(params["cooling_times"])
+
+        # Get the spectrum for each cooling time
+        spectra = []
+        for cooling_time in cooling_times:
+            spec = cask.get_total_spectrum(cooling_time=float(cooling_time))
+            spec.equalise(width=1, min_energy=0, max_energy=6000)
+            spectra.append(spec)
+
+        # Get the flux for each spectrum and combine into a single dataframe
+        energy_bin_min = spectra[0].energy[:-1]
+        energy_bin_max = spectra[0].energy[1:]
+        fluxes = {
+            cooling_time: spec.flux
+            for cooling_time, spec in zip(cooling_times, spectra, strict=True)
+        }
+
+        # Create a single dataframe with all the spectra data
+        data = {
+            "energy_min": energy_bin_min,
+            "energy_max": energy_bin_max,
+            **{
+                f"flux_{cooling_time:.3g}": fluxes[cooling_time]
+                for cooling_time in fluxes
+            },
+        }
+        return pd.DataFrame(data)
+
     @output
     @render_widget
     def plot_cask_simulations() -> go.Figure | None:
@@ -403,7 +485,6 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
         params = sim_inputs()
         cask_mass = float(params["cask_mass"])
         n_casks = int(params["n_casks"])
-        cooling_times = list(params["cooling_times"])
 
         # Create Plotly figure
         figure = go.Figure()
@@ -423,23 +504,21 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             hovermode="x unified",
         )
 
-        for cooling_time in cooling_times:
-            # Get the spectrum for this cooling time,
-            # scale by the number of casks and equalise
-            spec = cask.get_total_spectrum(cooling_time=cooling_time)
-            spec = spec * n_casks
-            spec.equalise(width=1, min_energy=0, max_energy=6000)
-
-            # Add to the plot
+        # Plot each spectrum from the data frame
+        df = cask_simulations_data()
+        cooling_times = [col for col in df.columns if col.startswith("flux_")]
+        for col in cooling_times:
+            data = df[df[col].notnull()]
+            cooling_time = float(col.split("_")[1])
             figure.add_trace(
                 go.Scatter(
-                    x=spec.energy[:-1],
-                    y=spec.flux,
+                    x=data["energy_min"],
+                    y=data[col],
                     mode="lines",
                     line={"shape": "hv"},
-                    name=f"{cooling_time:.1f} years since removal",
+                    name=f"{cooling_time:.3g} years since removal",
                     hovertemplate=(
-                        f"Cooling time: {cooling_time:.1f} years<br>"
+                        f"Cooling time: {cooling_time:.3g} years<br>"
                         "Flux: %{y:.3e} keV⁻¹ s⁻¹"
                         "<extra></extra>"
                     ),
@@ -450,30 +529,55 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
 
         return figure
 
-    @output
-    @render.table
-    def table_cask_rates() -> pd.DataFrame:
-        """Table of flux and event rates for selected cask count and cooling times."""
+    @render.download(filename="cask_simulations.csv")
+    def download_cask_simulations() -> Iterable[bytes]:
+        """Download cask simulations plot data as CSV."""
+        with BytesIO() as buffer:
+            cask_simulations_data().to_csv(buffer, index=False)
+            yield buffer.getvalue().decode()
+
+    @reactive.calc
+    def cask_rates_data() -> pd.DataFrame:
+        """Calculate fluxes and event rates for each cooling time."""
         cask = cask_reactive()
         if cask is None:
             return pd.DataFrame()
 
         params = sim_inputs()
-        n_casks = int(params["n_casks"])
         cooling_times = list(params["cooling_times"])
         detector_distance = float(params["detector_distance"])
 
         rows = []
-
         for cooling_time in cooling_times:
             spec = cask.get_total_spectrum(cooling_time=float(cooling_time))
-            spec = spec * n_casks
             total_flux = spec.integrate(lower_energy=1806)
             flux_at_distance = calculate_flux_at_distance(
                 total_flux, distance=detector_distance
             )
             rate_lower, rate_upper = calculate_event_rate(flux_at_distance, 0.2, 0.4)
+            rows.append(
+                {
+                    "cooling_time_yrs": cooling_time,
+                    "flux_cm-2_s-1": flux_at_distance,
+                    "event_rate_lower_s-1": rate_lower,
+                    "event_rate_upper_s-1": rate_upper,
+                }
+            )
+        return pd.DataFrame(rows)
 
+    @output
+    @render.table
+    def table_cask_rates() -> pd.DataFrame:
+        """Table of flux and event rates for selected cask count and cooling times."""
+        df = cask_rates_data()
+
+        # Reformat the dataframe for display
+        rows = []
+        for row in df.iterrows():
+            cooling_time = row[1]["cooling_time_yrs"]
+            flux_at_distance = row[1]["flux_cm-2_s-1"]
+            rate_lower = row[1]["event_rate_lower_s-1"]
+            rate_upper = row[1]["event_rate_upper_s-1"]
             rows.append(
                 {
                     "Cooling Time (yrs)": cooling_time,
@@ -485,24 +589,50 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
                     "Event Rate Upper (day⁻¹)": f"{rate_upper * 86400:.2e}",
                 }
             )
-
         return pd.DataFrame(rows)
+
+    @render.download(filename="cask_rates.csv")
+    def download_cask_rates() -> Iterable[bytes]:
+        """Download cask simulation rates table as CSV."""
+        with BytesIO() as buffer:
+            cask_rates_data().to_csv(buffer, index=False)
+            yield buffer.getvalue().decode()
 
     # -----------------------------------------------------------------------
     # Component Spectra tab
+    @reactive.calc
+    def component_spectra_data() -> pd.DataFrame:
+        """Get component spectra data for the selected cooling time."""
+        cask = cask_reactive()
+        if cask is None:
+            return pd.DataFrame()
+
+        # Get the component spectra for the selected cooling time
+        cooling_time = float(input.component_cooling_time())
+        component_spectra = cask.get_component_spectra(cooling_time=cooling_time)
+        spectra = []
+        for spec in component_spectra:
+            spec.equalise(width=1, min_energy=0, max_energy=6000)
+            spectra.append(spec)
+
+        # Get the flux for each spectrum and combine into a single dataframe
+        energy_bin_min = spectra[0].energy[:-1]
+        energy_bin_max = spectra[0].energy[1:]
+        fluxes = {spec.name: spec.flux for spec in spectra}
+
+        # Create a single dataframe with all the spectra data
+        data = {
+            "energy_min": energy_bin_min,
+            "energy_max": energy_bin_max,
+            **{isotope: flux for isotope, flux in fluxes.items()},
+        }
+        return pd.DataFrame(data)
+
     @output
     @render_widget
     def plot_component_spectra() -> go.Figure | None:
         """Plot per-isotope component spectra."""
-        cask = cask_reactive()
-        if cask is None:
-            return None
-
-        # Inputs
-        cooling_time = float(input.component_cooling_time() or "0.5")
-
-        # Get component spectra for this cooling time
-        component_specs = cask.get_component_spectra(cooling_time=cooling_time)
+        df = component_spectra_data()
 
         # Create Plotly figure
         figure = go.Figure()
@@ -523,15 +653,15 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
         )
 
         # Plot each isotope spectrum
-        for spec in component_specs:
-            spec.equalise(width=1, min_energy=0, max_energy=6000)
+        isotopes = [col for col in df.columns if not col.startswith("energy_")]
+        for isotope in isotopes:
             figure.add_trace(
                 go.Scatter(
-                    x=spec.energy[:-1],
-                    y=spec.flux,
+                    x=df["energy_min"],
+                    y=df[isotope],
                     mode="lines",
                     line={"shape": "hv"},
-                    name=spec.name,
+                    name=isotope,
                     opacity=0.7,
                     hovertemplate=(
                         "Isotope: %{fullData.name}<br>"
@@ -543,18 +673,24 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             )
         return figure
 
+    @render.download(filename="component_spectra.csv")
+    def download_component_spectra() -> Iterable[bytes]:
+        """Download per-isotope component spectra as CSV."""
+        with BytesIO() as buffer:
+            component_spectra_data().to_csv(buffer, index=False)
+            yield buffer.getvalue().decode()
+
     # -----------------------------------------------------------------------
     # Spectrum Sampling tab
-    @output
-    @render_widget
-    def plot_sampling() -> go.Figure | None:
-        """Plot sampled spectrum vs original."""
+    @reactive.calc
+    def sampling_data() -> pd.DataFrame:
+        """Get sampled spectra data for the selected cooling time."""
         cask = cask_reactive()
         if cask is None:
-            return None
+            return pd.DataFrame()
 
         # Inputs
-        cooling_time = float(input.sampling_cooling_time() or "0.5")
+        cooling_time = float(input.sampling_cooling_time())
         n_samples = input.n_samples()
 
         # Get spectrum and sample
@@ -562,7 +698,30 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
         spec.equalise(width=1, min_energy=0, max_energy=6000)
         samples = spec.sample(n_samples=n_samples)
         counts, _ = np.histogram(samples, bins=spec.energy)
-        bin_centres = 0.5 * (spec.energy[:-1] + spec.energy[1:])
+
+        # Scale the original flux to match the total counts for comparison on the plot
+        scale_factor = max(counts.max(), 1) / max(spec.flux.max(), 1)
+        scaled_flux = spec.flux * scale_factor
+
+        # Combine into a single dataframe
+        energy_bin_min = spec.energy[:-1]
+        energy_bin_max = spec.energy[1:]
+        return pd.DataFrame(
+            {
+                "energy_min": energy_bin_min,
+                "energy_max": energy_bin_max,
+                "sampled_counts": counts,
+                "scaled_flux": scaled_flux,
+            }
+        )
+
+    @output
+    @render_widget
+    def plot_sampling() -> go.Figure | None:
+        """Plot sampled spectrum vs original."""
+        df = sampling_data()
+        if df.empty:
+            return None
 
         # Create Plotly figure
         figure = go.Figure()
@@ -583,8 +742,8 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
         # Plot sampled spectrum
         figure.add_trace(
             go.Scatter(
-                x=bin_centres,
-                y=np.maximum(counts, 1),
+                x=df["energy_min"],
+                y=np.maximum(df["sampled_counts"], 1),  # Avoid log(0) issues
                 mode="lines",
                 line={"shape": "hv"},
                 name="Sampled spectrum",
@@ -593,12 +752,10 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
         )
 
         # Plot original spectrum for comparison
-        scale_factor = max(counts.max(), 1) / max(spec.flux.max(), 1)
-        scaled_flux = np.maximum(spec.flux * scale_factor, 1)
         figure.add_trace(
             go.Scatter(
-                x=spec.energy[:-1],
-                y=scaled_flux,
+                x=df["energy_min"],
+                y=np.maximum(df["scaled_flux"], 1),  # Avoid log(0) issues
                 mode="lines",
                 line={"shape": "hv", "dash": "dash", "width": 2},
                 name="Original (scaled)",
@@ -607,6 +764,13 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
         )
 
         return figure
+
+    @render.download(filename="spectrum_sampling.csv")
+    def download_sampling() -> Iterable[bytes]:
+        """Download sampled spectrum as CSV."""
+        with BytesIO() as buffer:
+            sampling_data().to_csv(buffer, index=False)
+            yield buffer.getvalue().decode()
 
 
 app = App(app_ui, server)
