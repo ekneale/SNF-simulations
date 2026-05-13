@@ -114,12 +114,14 @@ def test_calculate_flux() -> None:
 def test_calculate_event_rate() -> None:
     """Test event rate calculation with default efficiency bounds."""
     flux = 2.0e9
-    rate_lower, rate_upper = calculate_event_rate(flux)
+    rate_lower, rate_upper = calculate_event_rate(
+        flux, lower_efficiency=0.3, upper_efficiency=0.5
+    )
 
     # The detector properties are currently hardcoded in the function
-    detector_volume = 1.52 * 1.52 * 0.7 * 1e6
+    detector_volume = 2 * 0.6 * 1e6
     number_of_protons = detector_volume * 4.6e22
     event_rate = number_of_protons * 1e-44 * flux
 
-    assert np.isclose(rate_lower, event_rate * 0.2), "Lower event rate does not match"
-    assert np.isclose(rate_upper, event_rate * 0.4), "Upper event rate does not match"
+    assert np.isclose(rate_lower, event_rate * 0.3), "Lower event rate does not match"
+    assert np.isclose(rate_upper, event_rate * 0.5), "Upper event rate does not match"

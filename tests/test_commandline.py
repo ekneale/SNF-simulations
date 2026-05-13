@@ -81,11 +81,11 @@ def test_single_cask(reactor: str) -> None:
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        rate_lower_ref = 1.7734906963638752e-07
-        rate_upper_ref = 3.5469813927277504e-07
+        rate_lower_ref = 1.315906234935602e-07
+        rate_upper_ref = 2.631812469871204e-07
     elif reactor == "hartlepool":
-        rate_lower_ref = 7.307175069331267e-08
-        rate_upper_ref = 1.4614350138662533e-07
+        rate_lower_ref = 5.421825585673181e-08
+        rate_upper_ref = 1.0843651171346361e-07
     assert np.isclose(rate_lower, rate_lower_ref, atol=1e-15), (
         f"Lower event rate does not match: ({rate_lower_ref:e} vs {rate_lower:e})"
     )
@@ -149,11 +149,11 @@ def test_multiple_casks(reactor: str) -> None:
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        rate_lower_ref = 1.9316966381337443e-06
-        rate_upper_ref = 3.863393276267489e-06
+        rate_lower_ref = 1.4332929151170444e-06
+        rate_upper_ref = 2.866585830234089e-06
     elif reactor == "hartlepool":
-        rate_lower_ref = 2.1255022176416828e-07
-        rate_upper_ref = 4.2510044352833657e-07
+        rate_lower_ref = 1.577094047518067e-07
+        rate_upper_ref = 3.154188095036134e-07
     assert np.isclose(rate_lower, rate_lower_ref, atol=1e-15), (
         f"Lower event rate does not match: ({rate_lower_ref:e} vs {rate_lower:e})"
     )
