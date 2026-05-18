@@ -97,11 +97,15 @@ class Spectrum:
         """Create a Spectrum object from an isotope name."""
         # The IAEA data files give equal arrays of energy, flux, and uncertainty.
         data = get_antineutrino_spectrum(name)
-        energy_points, flux_points, error_points = data[:, 0], data[:, 1], data[:, 2]
+        if len(data) == 0:
+            # The file has been downloaded, but it is empty.
+            msg = f"No antineutrino spectrum data found for isotope {name}"
+            raise ValueError(msg)
 
         # Histogram representation requires N+1 edges for N bins.
         # The last energy point is used as the upper edge of the final bin,
         # so the last flux/error value is discarded.
+        energy_points, flux_points, error_points = data[:, 0], data[:, 1], data[:, 2]
         energy = energy_points
         flux = flux_points[:-1]
         errors = error_points[:-1]
