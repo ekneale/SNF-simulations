@@ -88,12 +88,13 @@ def _parse_nuclide(isotope_name: str) -> str:
     return f"{mass_number}{element.lower()}"
 
 
-def _download_spectrum_data(isotope_name: str) -> str:
+def _download_spectrum_data(isotope_name: str, timeout: float = 20.0) -> str:
     """Download the antineutrino spectrum for a given nuclide from the IAEA database.
 
     Args:
         isotope_name: Name of the isotope to download data for.
             Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
+        timeout: Timeout for the HTTP request in seconds.
 
     Returns:
         Path to the downloaded spectrum data file in the cache.
@@ -110,7 +111,8 @@ def _download_spectrum_data(isotope_name: str) -> str:
     # which should bypass Cloudflare checks.
     req.add_header("User-Agent", "Livechart/1.0")
     try:
-        content = urllib.request.urlopen(req, timeout=5).read().decode("utf-8")  # noqa: S310
+        request = urllib.request.urlopen(req, timeout=timeout)  # noqa: S310
+        content = request.read().decode("utf-8")
     except urllib.error.HTTPError as err:
         body = ""
         if err.fp is not None:
@@ -188,5 +190,6 @@ def get_antineutrino_spectrum(isotope_name: str) -> np.ndarray:
     nuclide = _parse_nuclide(isotope_name)
     cache_file = _get_cache_file(nuclide)
     if not cache_file.is_file() and not _copy_packaged_spectrum_to_cache(isotope_name):
+        print(f"Downloading spectrum data for {nuclide} from IAEA database...")
         _download_spectrum_data(nuclide)
     return _load_spectrum_file(nuclide)
