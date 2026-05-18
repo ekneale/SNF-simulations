@@ -124,6 +124,7 @@ def test_get_isotope_properties_cache(
         mass = 90.0
         half_life = 100.0
         half_life_unit = "year"
+        decay_modes = [type("DecayMode", (), {"mode": "B-"})()]
 
     def _mock_isotope(*_: object) -> _MockIsotope:
         # By using a nonlocal variable we can check how many times this

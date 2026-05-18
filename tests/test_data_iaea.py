@@ -175,6 +175,28 @@ def test_download_spectrum_data_wraps_network_errors(
         _download_spectrum_data("Ru106")
 
 
+def test_download_spectrum_data_reports_http_errors(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Test Cloudflare 403 responses are reported with a clear message."""
+    monkeypatch.setenv("SNF_SIMULATIONS_CACHE_DIR", str(tmp_path))
+
+    def _raise_error(request: object, timeout: int = 5) -> object:
+        del request, timeout
+        raise urllib.error.HTTPError(
+            url="https://nds.iaea.org/relnsd/v1/data",
+            code=403,
+            msg="Forbidden",
+            hdrs=None,  # type: ignore
+            fp=BytesIO(),
+        )
+
+    monkeypatch.setattr("urllib.request.urlopen", _raise_error)
+
+    with pytest.raises(RuntimeError, match=r"HTTP error"):
+        _download_spectrum_data("Ru106")
+
+
 def test_download_spectrum_data_reports_cloudflare_block(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
