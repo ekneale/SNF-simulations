@@ -137,7 +137,9 @@ def _download_spectrum_data(isotope_name: str, timeout: float = 20.0) -> str:
 
     # Some nuclides (e.g. Ru106) have duplicate rows in the IAEA database.
     # These break creating histograms, so remove exact duplicates before caching.
-    data = data.drop_duplicates()
+    # Some (Ra228) even have duplicate energy lines but different (rounded) fluxes!
+    # So we specify based only on the energy column.
+    data = data.drop_duplicates(subset=["bin_en"], keep="first")
 
     filename = _get_cache_file(nuclide)
     if not filename.is_file():
