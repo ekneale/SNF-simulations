@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 from shiny import App, Inputs, Outputs, Session, reactive, render, ui
 from shinywidgets import output_widget, render_widget
 
-from snf_simulations.cask import Cask
+from snf_simulations.cask import DEFAULT_ISOTOPES, Cask
 from snf_simulations.data import get_example_tbq_path
 from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
 
@@ -24,6 +24,7 @@ class SimInputs(TypedDict):
     cask_mass: float
     n_casks: int
     cooling_times: list[float]
+    all_isotopes: bool
     detector_distance: float
 
 
@@ -55,6 +56,9 @@ app_ui = ui.page_fluid(
                 .form-group.shiny-input-container:first-of-type {
                 margin-top: -4px;
                 margin-bottom: -4px;
+            }
+            .form-group {
+                margin-bottom: 0 !important;
             }
             #tbq_file_progress {
                 height: auto;
@@ -137,6 +141,18 @@ app_ui = ui.page_fluid(
                 "tbq_file",
                 "Upload .tbQ file:",
                 accept=[".tbQ"],
+            ),
+            ui.tooltip(
+                ui.input_switch(
+                    "all_isotopes",
+                    "Include all isotopes",
+                    value=False,
+                ),
+                (
+                    f"By default only {len(DEFAULT_ISOTOPES)} isotopes are included. "
+                    "Only applicable if uploading a custom .tbQ file."
+                ),
+                placement="right",
             ),
             ui.input_numeric(
                 "cask_mass",
@@ -268,6 +284,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             "cask_mass": 10000.0,
             "n_casks": 1,
             "cooling_times": [0.5, 1.0, 5.0, 10.0],
+            "all_isotopes": False,
             "detector_distance": 40.0,
         }
     )
@@ -280,9 +297,19 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             filepath = params["filepath"]
             total_mass = float(params["cask_mass"]) * int(params["n_casks"])
             name = params["cask_name"]
+            if filepath == get_example_tbq_path():
+                # Example file only includes the default isotopes
+                isotopes = None
+            else:
+                isotopes = "all" if params["all_isotopes"] else None
 
             # Create the Cask instance
-            cask = Cask.from_tabqfile(filepath, total_mass=total_mass, name=name)
+            cask = Cask.from_tabqfile(
+                filepath,
+                total_mass=total_mass,
+                isotopes=isotopes,
+                name=name,
+            )
             return cask
 
         except Exception as e:
@@ -308,6 +335,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             cask_mass = float(input.cask_mass())
             n_casks = int(input.n_casks())
             cooling_times = [float(t) for t in input.cooling_times()]
+            all_isotopes = bool(input.all_isotopes())
             detector_distance = float(input.detector_distance())
 
             snapshot: SimInputs = {
@@ -317,6 +345,7 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
                 "n_casks": n_casks,
                 "cooling_times": cooling_times,
                 "detector_distance": detector_distance,
+                "all_isotopes": all_isotopes,
             }
             sim_inputs.set(snapshot)
         except Exception as e:
