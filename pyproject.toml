@@ -51,11 +51,19 @@ docs = [
 
 [project.scripts]
 snf-sim = "snf_simulations.scripts.command_line:main"
+snf-dashboard = "snf_simulations.scripts.dashboard:main"
 
 [project.urls]
 homepage = "https://github.com/ekneale/SNF-simulations"
 documentation = "https://ekneale.github.io/SNF-simulations"
 repository = "https://github.com/ekneale/SNF-simulations"
+
+[project.optional-dependencies]
+dashboard = [
+    "plotly>=6.7.0",
+    "shiny>=1.6.1",
+    "shinywidgets>=0.8.1",
+]
 
 [tool.setuptools]
 include-package-data = true
@@ -65,6 +73,7 @@ namespaces = true
 where = ["src"]
 
 [tool.setuptools.package-data]
+"snf_simulations.data" = ["*.tbQ"]
 "snf_simulations.data.spec_data" = ["*.csv"]
 
 [tool.setuptools_scm]

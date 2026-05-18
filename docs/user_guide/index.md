@@ -8,4 +8,5 @@ spectrum.ipynb
 cask.ipynb
 flux.ipynb
 multiple_casks.ipynb
+dashboard.md
 ```

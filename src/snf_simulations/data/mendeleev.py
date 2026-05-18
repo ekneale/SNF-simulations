@@ -1,22 +1,15 @@
 """Module for loading isotope data from the mendeleev package."""
 
+from functools import cache
+
 from mendeleev import isotope
 
 from .utils import _UNITS_TO_SECONDS, _parse_isotope
 
 
-def get_isotope_properties(isotope_name: str) -> dict[str, float]:
-    """Get the mass and half-life for the given isotope using the mendeleev package.
-
-    Args:
-        isotope_name: Name of the isotope.
-            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
-
-    Returns:
-        Dictionary containing the molar mass (in g/mol) and half-life (in years)
-        of the isotope.
-
-    """
+@cache
+def _get_isotope_properties_cached(isotope_name: str) -> tuple[float, float]:
+    """Return cached isotope properties loaded from mendeleev."""
     element, mass_number = _parse_isotope(isotope_name)
     mendeleev_isotope = isotope(element, mass_number)
 
@@ -31,4 +24,20 @@ def get_isotope_properties(isotope_name: str) -> dict[str, float]:
         raise ValueError(msg)
     half_life_years = half_life * seconds_per_unit / _UNITS_TO_SECONDS["year"]
 
+    return molar_mass, half_life_years
+
+
+def get_isotope_properties(isotope_name: str) -> dict[str, float]:
+    """Get the mass and half-life for the given isotope using the mendeleev package.
+
+    Args:
+        isotope_name: Name of the isotope.
+            Format should be 'ElementMass' (e.g. Ru106) or 'MassElement' (e.g. 106Ru).
+
+    Returns:
+        Dictionary containing the molar mass (in g/mol) and half-life (in years)
+        of the isotope.
+
+    """
+    molar_mass, half_life_years = _get_isotope_properties_cached(isotope_name)
     return {"molar_mass": molar_mass, "half_life": half_life_years}

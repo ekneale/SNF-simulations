@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from snf_simulations.cask import Cask
-from snf_simulations.data import get_isotope_properties
+from snf_simulations.data import get_example_tbq_path, get_isotope_properties
 from snf_simulations.spec import Spectrum
 
 from .test_data_fispin import _write_tabqfile
@@ -222,3 +222,11 @@ def test_get_total_spectrum_defaults_to_initial_cooling_time() -> None:
 
     assert isinstance(total, Spectrum)
     assert total.name == "test_cask"
+
+
+def test_cask_from_example_tbq() -> None:
+    """Test that Cask.from_tabqfile works with the example.tbQ file."""
+    example_path = get_example_tbq_path()
+    cask = Cask.from_tabqfile(example_path)
+    assert cask is not None
+    assert len(cask.isotopes) > 0

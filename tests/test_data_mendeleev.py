@@ -1,12 +1,25 @@
 """Unit tests for isotope data using the mendeleev package."""
 
+from collections.abc import Iterator
+
 import pytest
 
-from snf_simulations.data.mendeleev import get_isotope_properties
+from snf_simulations.data.mendeleev import (
+    _get_isotope_properties_cached,
+    get_isotope_properties,
+)
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
+
+
+@pytest.fixture(autouse=True)
+def _clear_isotope_properties_cache() -> Iterator[None]:
+    """Reset the mendeleev properties cache before and after each test."""
+    _get_isotope_properties_cached.cache_clear()
+    yield  # The test runs here
+    _get_isotope_properties_cached.cache_clear()
 
 
 def test_get_isotope_properties(
@@ -79,3 +92,47 @@ def test_get_isotope_properties_unsupported_unit(
 
     with pytest.raises(ValueError, match=r"Unsupported half-life unit"):
         get_isotope_properties("Y90")
+
+
+def test_get_isotope_properties_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test that repeated lookups should reuse results from the cache."""
+    call_count = 0
+
+    class _MockIsotope:
+        mass = 90.0
+        half_life = 100.0
+        half_life_unit = "year"
+
+    def _mock_isotope(*_: object) -> _MockIsotope:
+        # By using a nonlocal variable we can check how many times this
+        # function is called, which should be only once due to caching.
+        nonlocal call_count
+        call_count += 1
+        return _MockIsotope()
+
+    monkeypatch.setattr("snf_simulations.data.mendeleev.isotope", _mock_isotope)
+
+    # First try to get the properties for the same isotope twice
+    first = get_isotope_properties("Y90")
+    second = get_isotope_properties("Y90")
+    assert first == second
+    assert call_count == 1, (
+        "mendeleev.isotope should be called once for a cached isotope"
+    )
+
+    # Now try after cleaning the cache in between
+    _get_isotope_properties_cached.cache_clear()
+    third = get_isotope_properties("Y90")
+    assert third == first
+    assert call_count == 2, (
+        "mendeleev.isotope should be called again after cache is cleared"
+    )
+
+    # Finally, try again without clearing the cache to confirm it is still cached
+    fourth = get_isotope_properties("Y90")
+    assert fourth == first
+    assert call_count == 2, (
+        "mendeleev.isotope should not be called again for a cached isotope"
+    )

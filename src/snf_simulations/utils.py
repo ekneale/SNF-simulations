@@ -42,45 +42,57 @@ def linear_interpolate_with_errors(
     extrapolation_mask = lower_mask | upper_mask
     new_content[extrapolation_mask] = 0
 
-    # Propagate errors
+    # Propagate errors.
+    # This code has been vectorised for speed. Bins are split into three categories:
+    # - Interior bins, which have errors interpolated from the closest origional bins.
+    # - Extrapolated bins, which are set to zero error.
+    # - Overlapping bins, which might be partially inside the original range.
+    #   These are set to the error of the nearest edge bin.
     new_errors = np.zeros_like(new_centres)
-    for i, centre in enumerate(new_centres):
-        # Check for extrapolated bins - these should keep zero error
-        if extrapolation_mask[i]:
-            continue
+    valid_mask = ~extrapolation_mask
+    if np.any(valid_mask):
+        valid_indices = np.flatnonzero(valid_mask)
+        valid_centres = new_centres[valid_mask]
 
-        # Handle boundary centres explicitly to avoid out-of-range indexing.
-        # For bins that overlap the original edge range but whose centres fall outside
-        # the original centre range, keep the nearest edge-bin error constant.
-        # This avoids pseudo-bin (under/overflow) interpolation at the boundaries.
-        if centre <= original_centres[0] or np.isclose(centre, original_centres[0]):
-            new_errors[i] = original_errors[0]
-            continue
-        if centre >= original_centres[-1] or np.isclose(centre, original_centres[-1]):
-            new_errors[i] = original_errors[-1]
-            continue
-
-        # Find the two closest original bin centers.
-        # Using np.searchsorted finds the "insertion point" for the new centre,
-        # i.e. the index of where it would go to keep the array sorted.
-        # So if the original_centres are [1, 2, 3] and centre is 2.5, idx will be 2
-        # as it would fit between 2 (index 1) and 3 (index 2).
-        # Therefore the surrounding bins are at idx-1 and idx.
-        idx = int(np.searchsorted(original_centres, centre))
-        lower_idx = idx - 1
-        upper_idx = idx
-
-        # Calculate new error by propagating errors from the two surrounding bins,
-        # weighted by distance to the new centre.
-        c_lower = original_centres[lower_idx]
-        c_upper = original_centres[upper_idx]
-        err_lower = original_errors[lower_idx]
-        err_upper = original_errors[upper_idx]
-        weight_lower = (c_upper - centre) / (c_upper - c_lower)
-        weight_upper = (centre - c_lower) / (c_upper - c_lower)
-        new_errors[i] = np.sqrt(
-            weight_lower**2 * err_lower**2 + weight_upper**2 * err_upper**2,
+        # Handle overlapping bins near the original boundaries by keeping the
+        # nearest edge-bin error constant.
+        left_mask = (valid_centres <= original_centres[0]) | np.isclose(
+            valid_centres, original_centres[0]
         )
+        right_mask = (valid_centres >= original_centres[-1]) | np.isclose(
+            valid_centres, original_centres[-1]
+        )
+        new_errors[valid_indices[left_mask]] = original_errors[0]
+        new_errors[valid_indices[right_mask]] = original_errors[-1]
+
+        # For interior bins, use linear interpolation of errors from the adjacent
+        # original bins.
+        interior_mask = ~(left_mask | right_mask)
+        if np.any(interior_mask):
+            interior_indices = valid_indices[interior_mask]
+            interior_centres = valid_centres[interior_mask]
+
+            # Find the two closest original bin centers.
+            # Using np.searchsorted finds the "insertion point" for the new centre,
+            # i.e. the index of where it would go to keep the array sorted.
+            # So if the original_centres are [1, 2, 3] and centre is 2.5, idx will be 2
+            # as it would fit between 2 (index 1) and 3 (index 2).
+            # Therefore the surrounding bins are at idx-1 and idx.
+            upper_idx = np.searchsorted(original_centres, interior_centres, side="left")
+            lower_idx = upper_idx - 1
+
+            # Calculate new error by propagating errors from the two surrounding bins,
+            # weighted by distance to the new centre.
+            c_lower = original_centres[lower_idx]
+            c_upper = original_centres[upper_idx]
+            err_lower = original_errors[lower_idx]
+            err_upper = original_errors[upper_idx]
+
+            weight_upper = (interior_centres - c_lower) / (c_upper - c_lower)
+            weight_lower = 1.0 - weight_upper
+            new_errors[interior_indices] = np.sqrt(
+                weight_lower**2 * err_lower**2 + weight_upper**2 * err_upper**2
+            )
 
     return new_content, new_errors
 
