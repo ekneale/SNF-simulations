@@ -127,7 +127,7 @@ def test_sample_histogram_range() -> None:
     bin_edges = np.array([0.0, 1.0, 3.0])
     bin_contents = np.array([1.0, 2.0])
 
-    samples = sample_histogram(bin_edges, bin_contents, samples=500)
+    samples = sample_histogram(bin_edges, bin_contents, n_samples=500)
 
     assert np.all(samples >= bin_edges[0])
     assert np.all(samples <= bin_edges[-1])
@@ -138,8 +138,8 @@ def test_sample_histogram_reproducible() -> None:
     bin_edges = np.array([0.0, 1.0, 3.0])
     bin_contents = np.array([1.0, 2.0])
 
-    samples1 = sample_histogram(bin_edges, bin_contents, samples=500, seed=1234)
-    samples2 = sample_histogram(bin_edges, bin_contents, samples=500, seed=1234)
+    samples1 = sample_histogram(bin_edges, bin_contents, n_samples=500, seed=1234)
+    samples2 = sample_histogram(bin_edges, bin_contents, n_samples=500, seed=1234)
 
     assert np.array_equal(samples1, samples2)
 
@@ -152,7 +152,7 @@ def test_sample_histogram_zero_area() -> None:
     with pytest.raises(
         ValueError, match="Histogram has zero total area; cannot sample"
     ):
-        _ = sample_histogram(bin_edges, bin_contents, samples=10)
+        _ = sample_histogram(bin_edges, bin_contents, n_samples=10)
 
 
 def test_sample_histogram_invalid_inputs() -> None:
@@ -163,7 +163,7 @@ def test_sample_histogram_invalid_inputs() -> None:
         _ = sample_histogram(
             np.array([[0.0, 1.0], [2.0, 3.0]]),
             np.array([1.0, 2.0]),
-            samples=10,
+            n_samples=10,
         )
 
     with pytest.raises(
@@ -172,7 +172,7 @@ def test_sample_histogram_invalid_inputs() -> None:
         _ = sample_histogram(
             np.array([0.0, 1.0, 2.0]),
             np.array([[1.0, 2.0]]),
-            samples=10,
+            n_samples=10,
         )
 
     with pytest.raises(
@@ -182,19 +182,19 @@ def test_sample_histogram_invalid_inputs() -> None:
         _ = sample_histogram(
             np.array([0.0, 1.0]),
             np.array([1.0, 2.0]),
-            samples=10,
+            n_samples=10,
         )
 
     with pytest.raises(ValueError, match="bin_edges must be strictly increasing"):
         _ = sample_histogram(
             np.array([0.0, 0.0, 1.0]),
             np.array([1.0, 2.0]),
-            samples=10,
+            n_samples=10,
         )
 
     with pytest.raises(ValueError, match="bin_contents must be non-negative"):
         _ = sample_histogram(
             np.array([0.0, 1.0, 2.0]),
             np.array([1.0, -1.0]),
-            samples=10,
+            n_samples=10,
         )

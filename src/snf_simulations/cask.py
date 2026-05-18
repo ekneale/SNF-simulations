@@ -1,53 +1,78 @@
 """Calculate antineutrino spectra for spent nuclear fuel casks."""
 
+from collections.abc import Collection
 from copy import deepcopy
+from pathlib import Path
+from typing import cast
 
-from .data import load_isotope_data, load_reactor_data
+from .data import get_isotope_masses, get_isotope_properties
 from .physics import DecayChain, get_decay_mass, get_isotope_activity
 from .spec import Spectrum
+
+# Define a default list of isotopes to include in the cask spectrum if the user doesn't
+# specify their own list.
+DEFAULT_ISOTOPES = [
+    "Sr90",
+    "Y90",
+    "Pu241",
+    "Cs137",
+    "Am242",
+    "Cs135",
+    "I129",
+    "Np239",
+    "Tc99",
+    "Zr93",
+    "Ce144",
+    "Kr88",
+    "Pr144",
+    "Rb88",
+    "Rh106",
+    "Ru106",
+]
 
 
 class Cask:
     """Class representing a cask of spent nuclear fuel.
 
     Attributes:
-        isotope_proportions: The proportions of each isotope in the cask.
+        isotope_masses: The masses of each isotope in the cask.
             Should be a dictionary where keys are isotope names and values are the
-            proportion of the total mass that isotope represents (between 0 and 1).
-        total_mass: The total mass of the cask in kg.
-        name: The name of the cask.
+            mass of the isotope in the cask (in kg).
+        initial_cooling_time: The time since the cask was removed from the reactor,
+            in years, corresponding to the time that the isotope masses were calculated.
+            This initial age will be subtracted from the requested cooling times when
+            calculating the antineutrino spectrum, to account for decay during the time
+            since removal.
+        name: An optional name for the cask.
 
     """
 
     def __init__(
         self,
-        isotope_proportions: dict[str, float],
-        total_mass: float = 1000,
-        name: str = "Cask",
+        isotope_masses: dict[str, float],
+        initial_cooling_time: float = 0,
+        name: str | None = None,
     ) -> None:
         """Initialize the Cask object."""
+        self.isotope_masses = isotope_masses
+        self.initial_cooling_time = initial_cooling_time
         self.name = name
-        self.isotope_proportions = isotope_proportions
-        self.total_mass = total_mass
 
-        if not self.isotope_proportions:
-            msg = "isotope_proportions must not be empty"
+        if not self.isotope_masses:
+            msg = "isotope_masses must not be empty"
             raise ValueError(msg)
-        if any(proportion < 0 for proportion in self.isotope_proportions.values()):
-            msg = "isotope_proportions values must be non-negative"
+        if any(mass < 0 for mass in self.isotope_masses.values()):
+            msg = "isotope_masses values must be non-negative"
             raise ValueError(msg)
-        if self.total_mass <= 0:
-            msg = "total_mass must be positive"
+        if self.initial_cooling_time < 0:
+            msg = "initial_cooling_time must be non-negative"
             raise ValueError(msg)
 
         # Store all constant isotope data
-        self.isotopes = list(self.isotope_proportions.keys())
-        self.isotope_masses = {
-            isotope: proportion * self.total_mass
-            for isotope, proportion in self.isotope_proportions.items()
+        self.isotopes = list(self.isotope_masses.keys())
+        self.isotope_properties = {
+            isotope: get_isotope_properties(isotope) for isotope in self.isotopes
         }
-        # TODO: use medvedev package for molar masses and half-lives
-        self.molar_masses, self.half_lives = load_isotope_data(self.isotopes)
         self.isotope_spectra = {
             isotope: Spectrum.from_isotope(isotope) for isotope in self.isotopes
         }
@@ -55,24 +80,89 @@ class Cask:
     def __repr__(self) -> str:
         """Return a string representation of the Cask object."""
         try:
-            repr_str = f'<Cask "{self.name}", total_mass={self.total_mass} kg>'
+            name_str = f' "{self.name}"' if self.name is not None else ""
+            repr_str = (
+                f"<Cask{name_str}: "
+                f"{len(self.isotope_masses)} isotopes, "
+                f"cooling time={self.initial_cooling_time:.3e} years>"
+            )
         except AttributeError:
             return "<Cask (uninitialized)>"
         else:
             return repr_str
 
     @classmethod
-    def from_reactor(cls, reactor: str, total_mass: float) -> "Cask":
-        """Create a Cask object from reactor data."""
-        isotope_proportions = load_reactor_data(reactor)
+    def from_tabqfile(
+        cls,
+        filepath: str | Path,
+        total_mass: float | None = None,
+        isotopes: Collection[str] | str | None = None,
+        time_str: str | None = None,
+        name: str | None = None,
+    ) -> "Cask":
+        """Create a Cask object from a FISPIN .tbQ output file.
+
+        Args:
+            filepath: Path to the file to load.
+            total_mass: The total mass of the cask to simulate (in kg).
+                If None, the mass from the simulation file is used.
+                If given, the isotopes will be scaled in proportion to the
+                simulation mass.
+            isotopes: Optional list of isotopes to include from the file.
+                If None, defaults to a list of selected isotopes (see DEFAULT_ISOTOPES).
+                isotopes="all" can be used to include all isotopes in the file.
+            time_str: Specific simulation time to extract data for.
+                If None, the smallest time in the file is used.
+                (see data.get_isotope_masses for details)
+            name: Optional name for the cask.
+                If None, a name is generated from the filename.
+
+        Returns:
+            A Cask object with the isotope masses loaded from the file.
+
+        """
+        isotope_masses, cooling_time = get_isotope_masses(filepath, time_str)
+
+        # If a specific mass is given, scale the isotopes proportionally.
+        if total_mass is not None:
+            scaling_factor = total_mass / sum(isotope_masses.values())
+            isotope_masses = {
+                isotope: mass * scaling_factor
+                for isotope, mass in isotope_masses.items()
+            }
+
+        # Filter isotopes
+        if isotopes != "all":
+            if isotopes is None:
+                selected_isotopes = DEFAULT_ISOTOPES
+            else:
+                selected_isotopes = cast(Collection[str], isotopes)
+            isotope_masses = {
+                isotope: mass
+                for isotope, mass in isotope_masses.items()
+                if isotope in selected_isotopes
+            }
+        if name is None:
+            if isinstance(filepath, Path):
+                name = filepath.stem
+            elif filepath.endswith(".tbQ"):
+                name = filepath.rsplit("/", maxsplit=1)[-1].split(".", maxsplit=1)[0]
         return cls(
-            isotope_proportions=isotope_proportions,
-            total_mass=total_mass,
-            name=f"{reactor}_cask",
+            isotope_masses=isotope_masses,
+            initial_cooling_time=cooling_time,
+            name=name,
         )
 
-    def _get_component_spectra(self, removal_time: float = 0) -> list[Spectrum]:
+    def get_component_spectra(
+        self, cooling_time: float | None = None
+    ) -> list[Spectrum]:
         """Get the individual antineutrino spectra for each isotope in the cask.
+
+        Args:
+            cooling_time: The time in years since the cask was removed from the reactor.
+                Note that this has to be greater than or equal to the
+                initial_cooling_time of the cask.
+                If None, the initial_cooling_time of the cask is used.
 
         Returns:
             A list of Spectrum objects, representing the antineutrino spectra for each
@@ -80,28 +170,39 @@ class Cask:
             removal from the reactor.
 
         """
-        if removal_time < 0:
-            msg = "removal_time must be non-negative"
+        if cooling_time is None:
+            cooling_time = self.initial_cooling_time
+        if cooling_time < 0:
+            msg = "cooling_time must be non-negative"
             raise ValueError(msg)
+        if cooling_time < self.initial_cooling_time:
+            msg = f"cooling_time ({cooling_time:.3e}) cannot be less than "
+            msg += f"the initial cask cooling time ({self.initial_cooling_time:.3e})"
+            raise ValueError(msg)
+
+        # Take off the initial age of the cask, as the isotope masses should already
+        # account for some initial decay since removal from the core.
+        time_elapsed = cooling_time - self.initial_cooling_time
 
         # Get the antineutrino spectra for each isotope
         spectra = []
         for isotope in self.isotopes:
-            # Get the antineutrino spectrum
+            # Get the antineutrino spectrum for this isotope
             spec = self.isotope_spectra[isotope]
 
-            # Scale based on given removal time
+            # Scale based on the time since the initial removal
             activity = get_isotope_activity(
+                time_elapsed=time_elapsed,
                 mass=self.isotope_masses[isotope],
-                molar_mass=self.molar_masses[isotope],
-                half_life=self.half_lives[isotope],
-                removal_time=removal_time,
+                molar_mass=self.isotope_properties[isotope]["molar_mass"],
+                half_life=self.isotope_properties[isotope]["half_life"],
             )
-            scaled_spec = spec * activity
-            spectra.append(scaled_spec)
+            spec *= activity
+            spectra.append(spec)
 
-        # Add any extra newly-created isotopes from decays.
-        if removal_time != 0:
+        # Add any extra newly-created isotopes from decays since
+        # the initial cooling time.
+        if time_elapsed > 0:
             # All of these decay chains have a branching ratio of 1.
             # If any additional isotopes were to be added with decay chains
             # involving more beta emitting isotopes then they can be added here.
@@ -121,49 +222,52 @@ class Cask:
                     # No parent isotope in the cask, so skip this decay
                     continue
 
-                if chain.daughter not in self.isotopes:
+                if chain.daughter not in self.isotope_properties:
                     # We won't have the spectrum or hl/mm data cached
                     daughter_spec = Spectrum.from_isotope(chain.daughter)
-                    # TODO: load_isotope_data should take a single isotope name
-                    _molar_masses, _half_lives = load_isotope_data([chain.daughter])
-                    daughter_molar_mass = _molar_masses[chain.daughter]
-                    daughter_half_life = _half_lives[chain.daughter]
+                    daughter_properties = get_isotope_properties(chain.daughter)
                 else:
                     daughter_spec = deepcopy(self.isotope_spectra[chain.daughter])
-                    daughter_molar_mass = self.molar_masses[chain.daughter]
-                    daughter_half_life = self.half_lives[chain.daughter]
+                    daughter_properties = self.isotope_properties[chain.daughter]
+                daughter_molar_mass = daughter_properties["molar_mass"]
+                daughter_half_life = daughter_properties["half_life"]
                 daughter_spec.name = f"{chain.parent}->{chain.daughter}"
 
                 # Calculate the mass of the daughter isotope
                 daughter_mass = get_decay_mass(
-                    time_elapsed=removal_time,
+                    time_elapsed=time_elapsed,
                     parent_mass=self.isotope_masses[chain.parent],
-                    parent_half_life=self.half_lives[chain.parent],
+                    parent_half_life=self.isotope_properties[chain.parent]["half_life"],
                     daughter_half_life=daughter_half_life,
                     branching_ratio=chain.branching_ratio,
                 )
 
-                # Scale based on the daughter mass
-                # Note the removal time is set to 0 here, since the daughter mass
-                # already accounts for decay during the time since the cask was removed
+                # Scale the spectrum based on the daughter mass
+                # Note the time_elapsed is set to 0 here, since the daughter mass
+                # already accounts for any decay.
                 activity = get_isotope_activity(
+                    time_elapsed=0,
                     mass=daughter_mass,
                     molar_mass=daughter_molar_mass,
                     half_life=daughter_half_life,
-                    removal_time=0,
                 )
                 scaled_spec = daughter_spec * activity
                 spectra.append(scaled_spec)
         return spectra
 
-    def get_total_spectrum(self, removal_time: float = 0) -> Spectrum:
+    def get_total_spectrum(self, cooling_time: float | None = None) -> Spectrum:
         """Calculate the total antineutrino spectrum as a Spectrum object.
 
         Args:
-            removal_time: The time in years since the cask was removed from the reactor.
+            cooling_time: The time in years since the cask was removed from the reactor.
+                Note that this has to be greater than or equal to the
+                initial_cooling_time of the cask.
+                If None, the initial_cooling_time of the cask is used.
 
         """
-        spectra = self._get_component_spectra(removal_time)
+        if cooling_time is None:
+            cooling_time = self.initial_cooling_time
+        spectra = self.get_component_spectra(cooling_time)
 
         # Equalise all the spectra to 1keV bins to allow combining,
         # going from 0 to the maximum energy across all spectra.
@@ -175,5 +279,5 @@ class Cask:
         total_spec = spectra[0]
         for spec in spectra[1:]:
             total_spec = total_spec + spec
-        total_spec.name = f"{self.name} total spectrum"
+        total_spec.name = self.name
         return total_spec

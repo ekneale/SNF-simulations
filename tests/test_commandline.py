@@ -16,6 +16,20 @@ from . import data
 # ruff: noqa: PLR2004  # magic numbers
 
 
+def _load_proportions(reactor: str) -> dict[str, float]:
+    """Load in example reactor isotope proportions."""
+    with importlib.resources.path(
+        data, f"{reactor.capitalize()}_proportions.csv"
+    ) as filepath:
+        reactor_data = np.genfromtxt(
+            filepath,
+            delimiter=",",
+            skip_header=1,
+            dtype=str,
+        )
+    return {str(d[0]): float(d[1]) for d in reactor_data}
+
+
 def _load_output(filename: str) -> tuple[np.ndarray, np.ndarray]:
     """Load data from a CSV output file."""
     with importlib.resources.path(data, filename) as path:
@@ -32,46 +46,47 @@ def _load_output(filename: str) -> tuple[np.ndarray, np.ndarray]:
 @pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
 def test_single_cask(reactor: str) -> None:
     """Test single cask spectrum output."""
-    cask_mass = 10000  # 10 tonne casks
-    removal_times = [0, 0.5, 1, 5, 10, 20]
+    cask_mass = 10000  # 10 tonnes
 
-    # Create the Cask for the given reactor
-    cask = Cask.from_reactor(reactor, total_mass=cask_mass)
+    # Create the Cask for the given reactor.
+    # Note the proportions in the file assumed a 1 tonne cask mass,
+    # not the more accurate 1.135 tonne total.
+    # Also they're from the 24 hour simulation time, not the lowest.
+    # However we didn't take that into account when creating the reference data,
+    # so we still set the initial_cooling_time to zero.
+    isotope_proportions = _load_proportions(reactor)
+    isotope_masses = {
+        isotope: proportion * cask_mass
+        for isotope, proportion in isotope_proportions.items()
+    }
+    initial_cooling_time = 0  # 24 * _UNITS_TO_YEARS["HOURS"]
+    cask = Cask(isotope_masses, initial_cooling_time, name=f"{reactor}_cask")
 
-    # Create the Spectra for the given removal times
-    spectra = []
-    for removal_time in removal_times:
-        spec_05 = cask.get_total_spectrum(removal_time=removal_time)
-        spectra.append(spec_05)
+    # Get the Spectra for 6 months after removal from the core.
+    spec = cask.get_total_spectrum(cooling_time=0.5)
 
     # Compare to the reference data file
-    # The reference data we have (saved by command_line.py) is for the
-    # 0.5 year removal time only.
-    spec_05 = spectra[1]
     with importlib.resources.path(data, f"{reactor.capitalize()}_single.csv") as path:
         spec_ref = Spectrum.from_file(path)
 
-    assert len(spec_05.energy) == len(spec_ref.energy), (
-        f"Energy data has wrong length "
-        f"({len(spec_05.energy)} vs {len(spec_ref.energy)})"
+    assert len(spec.energy) == len(spec_ref.energy), (
+        f"Energy data has wrong length ({len(spec.energy)} vs {len(spec_ref.energy)})"
     )
-    assert len(spec_05.flux) == len(spec_ref.flux), (
-        f"Flux data has wrong length ({len(spec_05.flux)} vs {len(spec_ref.flux)})"
+    assert len(spec.flux) == len(spec_ref.flux), (
+        f"Flux data has wrong length ({len(spec.flux)} vs {len(spec_ref.flux)})"
     )
-    assert np.allclose(spec_05.energy, spec_ref.energy), (
-        "Reference energy does not match"
-    )
-    assert np.allclose(spec_05.flux, spec_ref.flux), "Reference flux does not match"
+    assert np.allclose(spec.energy, spec_ref.energy), "Reference energy does not match"
+    assert np.allclose(spec.flux, spec_ref.flux), "Reference flux does not match"
 
     # Calculate the single cask flux at 40m
     # Returns a single value of flux cm^-2 s^-1
-    total_flux = spec_05.integrate(1806, 6000)
+    total_flux = spec.integrate(1806, 6000)
     flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     assert isinstance(flux_at_40m, float), "Single flux is not a float"
     if reactor == "sizewell":
-        flux_ref = 1191944053.3836975
+        flux_ref = 1.191153e09
     elif reactor == "hartlepool":
-        flux_ref = 491107390.00662863
+        flux_ref = 4.909233e08
     assert np.isclose(flux_at_40m, flux_ref), (
         f"Single flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
@@ -81,11 +96,11 @@ def test_single_cask(reactor: str) -> None:
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        rate_lower_ref = 1.315906234935602e-07
-        rate_upper_ref = 2.631812469871204e-07
+        rate_lower_ref = 1.315033e-07
+        rate_upper_ref = 2.630066e-07
     elif reactor == "hartlepool":
-        rate_lower_ref = 5.421825585673181e-08
-        rate_upper_ref = 1.0843651171346361e-07
+        rate_lower_ref = 5.419793e-08
+        rate_upper_ref = 1.083959e-07
     assert np.isclose(rate_lower, rate_lower_ref, atol=1e-15), (
         f"Lower event rate does not match: ({rate_lower_ref:e} vs {rate_lower:e})"
     )
@@ -97,19 +112,29 @@ def test_single_cask(reactor: str) -> None:
 @pytest.mark.parametrize("reactor", ["sizewell", "hartlepool"])
 def test_multiple_casks(reactor: str) -> None:
     """Test multiple cask spectrum output."""
-    cask_mass = 10000  # 10 tonne casks
-    casks_per_removal = 10
+    cask_mass = 10000
+    n_casks = 10
     if reactor == "sizewell":
-        removal_times = [0.5, 5, 10, 20]
+        cooling_times = [0.5, 5, 10, 20]
     elif reactor == "hartlepool":
-        removal_times = [3, 7, 15, 19]
+        cooling_times = [3, 7, 15, 19]
 
-    # Create the spectra and combine them
-    cask = Cask.from_reactor(reactor, total_mass=cask_mass * casks_per_removal)
+    # Create a combined total Cask for the given reactor (see notes above).
+    isotope_proportions = _load_proportions(reactor)
+    isotope_masses = {
+        isotope: proportion * cask_mass * n_casks
+        for isotope, proportion in isotope_proportions.items()
+    }
+    initial_cooling_time = 0  # 24 * _UNITS_TO_YEARS["HOURS"]
+    cask = Cask(isotope_masses, initial_cooling_time, name=f"{reactor}_cask")
+
+    # Create the Spectra for each set of casks at the specified times.
     spectra = []
-    for removal_time in removal_times:
-        spec = cask.get_total_spectrum(removal_time=removal_time)
+    for cooling_time in cooling_times:
+        spec = cask.get_total_spectrum(cooling_time=cooling_time)
         spectra.append(spec)
+
+    # Combine the spectra from all casks to get the total spectrum for all 40 casks.
     spec_multiple = spectra[0]
     for spec in spectra[1:]:
         spec_multiple = spec_multiple + spec
@@ -137,9 +162,9 @@ def test_multiple_casks(reactor: str) -> None:
     flux_at_40m = calculate_flux_at_distance(total_flux, distance=40)
     assert isinstance(flux_at_40m, float), "Total flux is not a float"
     if reactor == "sizewell":
-        flux_ref = 12982725680.40801
+        flux_ref = 1.297917e10
     elif reactor == "hartlepool":
-        flux_ref = 1428527216.9547708
+        flux_ref = 1.431710e09
     assert np.isclose(flux_at_40m, flux_ref), (
         f"Total flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
@@ -149,11 +174,11 @@ def test_multiple_casks(reactor: str) -> None:
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
-        rate_lower_ref = 1.4332929151170444e-06
-        rate_upper_ref = 2.866585830234089e-06
+        rate_lower_ref = 1.432901e-06
+        rate_upper_ref = 2.865801e-06
     elif reactor == "hartlepool":
-        rate_lower_ref = 1.577094047518067e-07
-        rate_upper_ref = 3.154188095036134e-07
+        rate_lower_ref = 1.580608e-07
+        rate_upper_ref = 3.161216e-07
     assert np.isclose(rate_lower, rate_lower_ref, atol=1e-15), (
         f"Lower event rate does not match: ({rate_lower_ref:e} vs {rate_lower:e})"
     )

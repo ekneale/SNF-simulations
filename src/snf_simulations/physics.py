@@ -14,25 +14,22 @@ class DecayChain(NamedTuple):
 
 
 def get_isotope_activity(
+    time_elapsed: float,
     mass: float,
     molar_mass: float,
     half_life: float,
-    removal_time: float,
 ) -> float:
-    """Calculate the activity of an isotope after a given time since removal.
-
-    Calculates the current activity of an isotope given its initial mass and the
-    time elapsed since removal from the reactor, accounting for radioactive decay.
+    """Calculate the activity of an isotope after a given time.
 
     Args:
+        time_elapsed: Time elapsed in years.
         mass: Mass of the isotope in kg.
         molar_mass: Molar mass of the isotope in g/mol.
         half_life: Half-life of the isotope in years.
-        removal_time: Time since removal from reactor in years.
 
     Returns:
         Activity of the isotope in decays per second (Becquerels)
-        after the given removal time.
+        after the given time.
 
     """
     # Convert mass to number of atoms (kg to g, then to moles, then to atoms)
@@ -40,9 +37,9 @@ def get_isotope_activity(
     # Calculate initial activity (in decays per second aka Becquerels)
     lambda_ = np.log(2) / (half_life * 365 * 24 * 60 * 60)
     initial_activity = number_of_atoms * lambda_
-    # Calculate activity after removal time (still in decays per second)
+    # Calculate activity after time (still in decays per second)
     activity = initial_activity * np.exp(
-        -1 * lambda_ * removal_time * 365 * 24 * 60 * 60,
+        -1 * lambda_ * time_elapsed * 365 * 24 * 60 * 60,
     )
     return activity
 
@@ -60,10 +57,10 @@ def get_decay_mass(
     radioactive decay of its parent isotope using first-order decay equations.
 
     Args:
-        time_elapsed: Time elapsed since initial measurement (years).
-        parent_mass: Initial mass of parent isotope (kg).
-        parent_half_life: Half-life of parent isotope (years).
-        daughter_half_life: Half-life of daughter isotope (years).
+        time_elapsed: Time elapsed since initial measurement in years.
+        parent_mass: Initial mass of parent isotope in kg.
+        parent_half_life: Half-life of parent isotope in years.
+        daughter_half_life: Half-life of daughter isotope in years.
         branching_ratio: Branching ratio for this decay chain.
 
     Returns:

@@ -9,3 +9,14 @@ To use, clone the repository then use the package manager [pip](https://pip.pypa
 ```bash
 pip install snf-simulations
 ```
+
+### Dependencies
+
+SNF-simulations depends on the following packages:
+
+- `numpy`
+- `pandas`
+- `mendeleev` (for accessing periodic table data)
+- `matplotlib` (for plotting with the `snf-sim` demo script)
+
+All dependencies are automatically installed when you install SNF-simulations with pip.

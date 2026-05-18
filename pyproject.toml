@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "snf_simulations"
-# version = "" #  version is determined dynamically from git tags using setuptools_scm
+# version = ""  # version is determined dynamically from git tags using setuptools_scm
 dynamic = ["version"]
 description = "Simulate antineutrino spectra for different compositions of spent nuclear fuel."
 authors = [
@@ -29,7 +29,7 @@ readme = "README.md"
 license = "BSD-3-Clause"
 license-files = ["LICENSE.txt"]
 requires-python = ">=3.10"
-dependencies = ["numpy", "matplotlib"]
+dependencies = ["numpy", "matplotlib", "pandas>=2.3.3", "mendeleev>=1.1.0"]
 
 [dependency-groups]
 dev = [
@@ -50,7 +50,7 @@ docs = [
 ]
 
 [project.scripts]
-snf-sim = "snf_simulations.scripts.command_line:run"
+snf-sim = "snf_simulations.scripts.command_line:main"
 
 [project.urls]
 homepage = "https://github.com/ekneale/SNF-simulations"
@@ -65,9 +65,7 @@ namespaces = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"snf_simulations.data" = ["isotopes.csv"]
-"snf_simulations.data.reactor_data" = ["*.csv"]
-"snf_simulations.data.spec_data" = ["*.txt"]
+"snf_simulations.data.spec_data" = ["*.csv"]
 
 [tool.setuptools_scm]
 version_file = "src/snf_simulations/_version.py"

@@ -88,7 +88,7 @@ def linear_interpolate_with_errors(
 def sample_histogram(
     bin_edges: np.ndarray,
     bin_contents: np.ndarray,
-    samples: int = 100,
+    n_samples: int = 100,
     seed: int | None = None,
 ) -> np.ndarray:
     """Sample x values from histogram bins, similar to ROOT TH1::GetRandom.
@@ -96,7 +96,7 @@ def sample_histogram(
     Args:
         bin_edges: 1D array of bin edges with length N+1.
         bin_contents: 1D array of bin contents with length N.
-        samples: Number of samples to draw.
+        n_samples: Number of samples to draw.
         seed: Seed for reproducible random sampling.
 
     Returns:
@@ -129,7 +129,7 @@ def sample_histogram(
     # Use numpy's random choice to select X bins according to their probabilities,
     # for the requested number of samples.
     rng = np.random.default_rng(seed)
-    sampled_indices = rng.choice(len(bin_contents), size=samples, p=probabilities)
+    sampled_indices = rng.choice(len(bin_contents), size=n_samples, p=probabilities)
 
     # Finally, for each bin take a uniform sample between the upper and lower edges.
     # This gives a continuous distribution of sampled x values from within the bins.

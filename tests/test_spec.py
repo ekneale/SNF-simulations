@@ -5,15 +5,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from snf_simulations.data import load_antineutrino_data, load_isotope_data
+from snf_simulations.cask import DEFAULT_ISOTOPES
 from snf_simulations.spec import Spectrum
 
 # Suppress assert warnings from ruff
 # ruff: noqa: S101  # asserts
 # ruff: noqa: PLR2004  # magic numbers
-
-_MOLAR_MASSES, _ = load_isotope_data()
-ISOTOPES = list(_MOLAR_MASSES.keys())
 
 
 def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -35,48 +32,6 @@ def _mock_data() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     flux = data[:, 1]
     errors = data[:, 2]
     return energy, flux, errors
-
-
-def test_load_isotope_data() -> None:
-    """Test that isotope data is imported correctly."""
-    molar_masses, half_lives = load_isotope_data()
-    assert isinstance(molar_masses, dict), "Molar masses is not a dictionary"
-    assert isinstance(half_lives, dict), "Half lives is not a dictionary"
-    assert len(molar_masses) == 16, f"Loaded {len(molar_masses)} isotopes, expected 16"
-    assert len(molar_masses) == len(half_lives), (
-        "Molar masses and half lives have different number of isotopes",
-    )
-
-
-def test_load_antineutrino_data() -> None:
-    """Test that antineutrino spectra are imported correctly."""
-    molar_masses, _ = load_isotope_data()
-    isotopes = list(molar_masses.keys())
-    data = load_antineutrino_data(isotopes)
-    assert isinstance(data, dict), "Loaded data is not a dictionary"
-    assert len(data) == 16, f"Loaded {len(data)} isotopes, expected 16"
-
-    for isotope, isotope_data in data.items():
-        # Basic structure checks
-        assert isinstance(isotope_data, np.ndarray), (
-            f"Isotope {isotope} spectrum is not a numpy array"
-        )
-        assert isotope_data.shape[1] == 3, (
-            f"Isotope {isotope} spectrum has {isotope_data.shape[1]} columns,"
-            f" expected 3"
-        )
-        assert isotope_data.shape[0] > 0, f"Isotope {isotope} spectrum has no rows"
-
-        # Physical value checks
-        assert np.all(isotope_data[:, 0] >= 0), (
-            f"Isotope {isotope} has negative energies"
-        )
-        assert np.all(isotope_data[:, 1] >= 0), (
-            f"Isotope {isotope} has negative flux values"
-        )
-        assert np.all(isotope_data[:, 2] >= 0), (
-            f"Isotope {isotope} has negative uncertainties"
-        )
 
 
 def test_create_spec() -> None:
@@ -130,7 +85,7 @@ def test_repr() -> None:
     spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="mock")
 
     expected_repr = (
-        f'<Spectrum "{spec.name}", '
+        f'<Spectrum "{spec.name}": '
         f"energy_range=({spec.energy[0]:.1f}-{spec.energy[-1]:.1f} keV)>"
     )
     assert repr(spec) == expected_repr, (
@@ -143,8 +98,34 @@ def test_repr() -> None:
         "Spectrum repr should handle uninitialized objects gracefully"
     )
 
+    # Create an unnamed instance.
+    unnamed = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    expected_repr = (
+        f"<Spectrum: "
+        f"energy_range=({unnamed.energy[0]:.1f}-{unnamed.energy[-1]:.1f} keV)>"
+    )
+    assert repr(unnamed) == expected_repr, (
+        "Spectrum repr should include energy range even if name is not provided"
+    )
 
-@pytest.mark.parametrize("isotope", ISOTOPES)
+
+def test_eq() -> None:
+    """Test equality comparison of Spectrum objects."""
+    energy, flux, errors = _mock_data()
+    spec1 = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="spec")
+    spec2 = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name="spec")
+    spec3 = Spectrum(energy=energy, flux=flux[:-1] * 2, errors=errors[:-1], name="spec")
+
+    assert spec1 == spec2, "Identical spectra should be equal"
+    assert spec1 != spec3, "Spectra with different flux values should not be equal"
+    with pytest.raises(
+        NotImplementedError, match="Cannot compare Spectrum with non-Spectrum object"
+    ):
+        _ = spec1 == "not a spectrum"
+    assert hash(spec1) == hash(spec2)
+
+
+@pytest.mark.parametrize("isotope", DEFAULT_ISOTOPES)
 def test_from_isotope(isotope: str) -> None:
     """Test that Spectrum.from_isotope returns a valid spectrum object."""
     spec = Spectrum.from_isotope(isotope)
@@ -342,6 +323,9 @@ def test_add() -> None:
     assert len(combined_spec.energy) == len(spec1.energy), (
         "Combined spectrum has different number of energy bins"
     )
+    assert combined_spec.name is None, (
+        "Combined spectrum should have no name by default when adding unnamed spectra"
+    )
 
     # Test that each bin content and error has been added correctly
     expected_flux = spec1.flux + spec2.flux
@@ -351,6 +335,22 @@ def test_add() -> None:
     )
     assert np.all(np.isclose(combined_spec.errors, expected_errors)), (
         "Combined spectrum error values mismatch expected values"
+    )
+
+
+def test_add_names() -> None:
+    """Test adding two spectra with names."""
+    energy, flux, errors = _mock_data()
+    spec1 = Spectrum(
+        energy=energy, flux=flux[:-1], errors=errors[:-1], name="Spectrum 1"
+    )
+    spec2 = Spectrum(
+        energy=energy, flux=flux[:-1] * 2, errors=errors[:-1] * 2, name="Spectrum 2"
+    )
+
+    combined_spec = spec1 + spec2
+    assert combined_spec.name == "Spectrum 1 + Spectrum 2", (
+        "Combined spectrum name should be the sum of the input spectrum names"
     )
 
 
@@ -374,7 +374,7 @@ def test_sample_distribution() -> None:
     n_samples = 100000
 
     # Sample the spectrum
-    samples = spec.sample(samples=n_samples)
+    samples = spec.sample(n_samples)
     assert len(samples) == n_samples, "Wrong number of samples selected"
 
     # We can't compare the samples directly due to the random selection, but we can
@@ -412,7 +412,7 @@ def test_sample_with_seed() -> None:
 
     # Test sampling 5 values from the spectrum
     n_samples = 5
-    samples = spec.sample(samples=n_samples, seed=1234)  # Fix seed for reproducibility
+    samples = spec.sample(n_samples, seed=1234)  # Fix seed for reproducibility
 
     # Samples should be fixed given the seed
     samples_ref = [
@@ -437,8 +437,8 @@ def test_sample_reproducibility() -> None:
     # Test reproducibility with a random (but constant) seed
     rng = np.random.default_rng()
     seed = int(rng.integers(0, int(1e6)))
-    samples1 = spec.sample(samples=2000, seed=seed)
-    samples2 = spec.sample(samples=2000, seed=seed)
+    samples1 = spec.sample(2000, seed=seed)
+    samples2 = spec.sample(2000, seed=seed)
     assert np.array_equal(samples1, samples2), (
         "Sampling should be reproducible with constant seed"
     )
@@ -453,7 +453,7 @@ def test_sample_zero_flux() -> None:
         ValueError,
         match="Histogram has zero total area; cannot sample",
     ):
-        _ = spec.sample(samples=10)
+        _ = spec.sample(10)
 
 
 def test_integrate() -> None:
@@ -598,7 +598,9 @@ def test_write_csv() -> None:
 def test_write_csv_filenames() -> None:
     """Test that write_csv defaults to correct file names."""
     energy, flux, errors = _mock_data()
-    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1])
+    spec = Spectrum(
+        energy=energy, flux=flux[:-1], errors=errors[:-1], name="test_spectrum"
+    )
 
     # Test that file extension is added if not provided
     filename = Path("test_spectrum")
@@ -624,6 +626,17 @@ def test_write_csv_filenames() -> None:
         expected_filename.unlink()
     spec.write_csv()  # no filename provided, should use default
     assert expected_filename.exists(), "write_csv() should create default filename"
+    expected_filename.unlink()
+
+    # Test that a spectrum with no name will be written to spectrum.csv by default.
+    spec = Spectrum(energy=energy, flux=flux[:-1], errors=errors[:-1], name=None)
+    expected_filename = Path("spectrum.csv")
+    if expected_filename.exists():
+        expected_filename.unlink()
+    spec.write_csv()  # no filename provided, should use default
+    assert expected_filename.exists(), (
+        "write_csv() should create spectrum.csv for unnamed spectrum"
+    )
     expected_filename.unlink()
 
 

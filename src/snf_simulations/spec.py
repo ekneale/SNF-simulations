@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .data import load_spectrum
+from .data import get_antineutrino_spectrum
 from .utils import linear_interpolate_with_errors, sample_histogram
 
 
@@ -19,7 +19,7 @@ class Spectrum:
             edges of each bin.
         errors: Array of uncertainties for the flux values.
             Array length should be the same as flux.
-        name: Name of the spectrum.
+        name: An optional name for the spectrum.
 
     """
 
@@ -28,7 +28,7 @@ class Spectrum:
         energy: np.ndarray,
         flux: np.ndarray,
         errors: np.ndarray,
-        name: str = "Spectrum",
+        name: str | None = None,
     ) -> None:
         """Initialize the Spectrum object."""
         self.energy = energy
@@ -49,12 +49,45 @@ class Spectrum:
     def __repr__(self) -> str:
         """Return a string representation of the Spectrum object."""
         try:
-            repr_str = f'<Spectrum "{self.name}", '
-            repr_str += f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
+            name_str = f' "{self.name}"' if self.name is not None else ""
+            repr_str = (
+                f"<Spectrum{name_str}: "
+                f"energy_range=({self.energy[0]}-{self.energy[-1]} keV)>"
+            )
         except AttributeError:
             return "<Spectrum (uninitialized)>"
         else:
             return repr_str
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two Spectrum objects are equal based on their attributes."""
+        if not isinstance(other, Spectrum):
+            raise NotImplementedError(
+                "Cannot compare Spectrum with non-Spectrum object"
+            )
+        return (
+            self.name == other.name
+            and np.array_equal(self.energy, other.energy)
+            and np.array_equal(self.flux, other.flux)
+            and np.array_equal(self.errors, other.errors)
+        )
+
+    def __hash__(self) -> int:
+        """Return a hash consistent with __eq__."""
+        return hash(
+            (
+                self.name,
+                self.energy.dtype.str,
+                self.energy.shape,
+                self.energy.tobytes(),
+                self.flux.dtype.str,
+                self.flux.shape,
+                self.flux.tobytes(),
+                self.errors.dtype.str,
+                self.errors.shape,
+                self.errors.tobytes(),
+            )
+        )
 
     @classmethod
     def from_isotope(
@@ -63,7 +96,7 @@ class Spectrum:
     ) -> "Spectrum":
         """Create a Spectrum object from an isotope name."""
         # The IAEA data files give equal arrays of energy, flux, and uncertainty.
-        data = load_spectrum(name)
+        data = get_antineutrino_spectrum(name)
         energy_points, flux_points, error_points = data[:, 0], data[:, 1], data[:, 2]
 
         # Histogram representation requires N+1 edges for N bins.
@@ -86,9 +119,9 @@ class Spectrum:
     ) -> "Spectrum":
         """Create a Spectrum object from a CSV file written using write_csv."""
         with open(filename) as f:
-            header = f.readline().strip()
-            # Name should have been saved in the header
-            name = "Spectrum" if not header.startswith("#") else header[1:].strip()
+            header = f.readline()
+            # If the first has text after the # it should be the name.
+            name = header[1:].strip() if len(header) > 1 else None
         # The data should have columns: energy_lower, energy_upper, flux, error
         data = np.loadtxt(filename, delimiter=",", skiprows=2)
         lower_edges = data[:, 0]
@@ -166,7 +199,10 @@ class Spectrum:
             raise ValueError(msg)
         new_flux = self.flux + other.flux
         new_errors = np.sqrt(self.errors**2 + other.errors**2)
-        new_name = self.name + " + " + other.name
+        if self.name is not None and other.name is not None:
+            new_name = self.name + " + " + other.name
+        else:
+            new_name = None
         return Spectrum(self.energy, new_flux, new_errors, name=new_name)
 
     def __mul__(self, factor: float) -> "Spectrum":
@@ -183,19 +219,18 @@ class Spectrum:
         new_errors = self.errors * abs(factor)
         return Spectrum(self.energy, new_flux, new_errors, name=self.name)
 
-    def sample(self, samples: int = 100, seed: int | None = None) -> np.ndarray:
+    def sample(self, n_samples: int = 100, seed: int | None = None) -> np.ndarray:
         """Sample the spectrum to simulate what a detector could observe.
 
         Args:
-            samples: Number of samples to draw from the spectrum.
+            n_samples: Number of samples to draw from the spectrum.
             seed: Random seed for reproducibility.
-
 
         Returns:
             Array of sampled energies.
 
         """
-        return sample_histogram(self.energy, self.flux, samples, seed)
+        return sample_histogram(self.energy, self.flux, n_samples, seed)
 
     def integrate(
         self,
@@ -260,7 +295,10 @@ class Spectrum:
 
         """
         if not output_filename:
-            output_filename = self.name.replace(" ", "_") + ".csv"
+            if self.name is not None:
+                output_filename = self.name.replace(" ", "_") + ".csv"
+            else:
+                output_filename = "spectrum.csv"
         if isinstance(output_filename, str) and not output_filename.endswith(".csv"):
             output_filename += ".csv"
         elif isinstance(output_filename, Path) and output_filename.suffix != ".csv":
@@ -269,11 +307,13 @@ class Spectrum:
         lower_edges = self.energy[:-1]
         upper_edges = self.energy[1:]
         data = np.column_stack((lower_edges, upper_edges, self.flux, self.errors))
+        header = f"# {self.name}\n" if self.name else "#\n"
+        header += "energy_lower,energy_upper,flux,error"
         np.savetxt(
             output_filename,
             data,
             fmt=("%.1f", "%.1f", "%.6e", "%.6e"),
             delimiter=",",
-            header=f"# {self.name}\nenergy_lower,energy_upper,flux,error",
+            header=header,
             comments="",
         )
