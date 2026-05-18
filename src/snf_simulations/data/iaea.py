@@ -123,6 +123,10 @@ def _download_spectrum_data(isotope_name: str) -> str:
                 f"the cache as '{target_path}'."
             )
             raise RuntimeError(msg) from err
+        else:
+            msg = f"HTTP error {err.code} when downloading spectrum data for {nuclide}"
+            msg += f" from IAEA database: {err.reason}"
+            raise RuntimeError(msg) from err
     except Exception as err:
         msg = f"Error downloading spectrum data for {nuclide} from IAEA database: {err}"
         raise RuntimeError(msg) from err
