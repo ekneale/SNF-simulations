@@ -1,0 +1,21 @@
+# {py:mod}`snf_simulations.data`
+
+```{py:module} snf_simulations.data
+```
+
+```{autodoc2-docstring} snf_simulations.data
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+snf_simulations.data.fispin
+snf_simulations.data.iaea
+snf_simulations.data.mendeleev
+snf_simulations.data.utils
+```

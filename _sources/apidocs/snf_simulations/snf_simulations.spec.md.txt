@@ -1,0 +1,91 @@
+# {py:mod}`snf_simulations.spec`
+
+```{py:module} snf_simulations.spec
+```
+
+```{autodoc2-docstring} snf_simulations.spec
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Spectrum <snf_simulations.spec.Spectrum>`
+  - ```{autodoc2-docstring} snf_simulations.spec.Spectrum
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Spectrum(energy: numpy.ndarray, flux: numpy.ndarray, errors: numpy.ndarray, name: str | None = None)
+:canonical: snf_simulations.spec.Spectrum
+
+```{autodoc2-docstring} snf_simulations.spec.Spectrum
+:parser: autodoc2_docstrings_parser
+```
+
+````{py:method} equalise(width: float = 1, min_energy: float | None = None, max_energy: float | None = None) -> None
+:canonical: snf_simulations.spec.Spectrum.equalise
+
+```{autodoc2-docstring} snf_simulations.spec.Spectrum.equalise
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:method} from_file(filename: pathlib.Path | str) -> snf_simulations.spec.Spectrum
+:canonical: snf_simulations.spec.Spectrum.from_file
+:classmethod:
+
+```{autodoc2-docstring} snf_simulations.spec.Spectrum.from_file
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:method} from_isotope(name: str) -> snf_simulations.spec.Spectrum
+:canonical: snf_simulations.spec.Spectrum.from_isotope
+:classmethod:
+
+```{autodoc2-docstring} snf_simulations.spec.Spectrum.from_isotope
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:method} integrate(lower_energy: float | None = None, upper_energy: float | None = None) -> float
+:canonical: snf_simulations.spec.Spectrum.integrate
+
+```{autodoc2-docstring} snf_simulations.spec.Spectrum.integrate
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:method} sample(n_samples: int = 100, seed: int | None = None) -> numpy.ndarray
+:canonical: snf_simulations.spec.Spectrum.sample
+
+```{autodoc2-docstring} snf_simulations.spec.Spectrum.sample
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:method} write_csv(output_filename: pathlib.Path | str = '') -> None
+:canonical: snf_simulations.spec.Spectrum.write_csv
+
+```{autodoc2-docstring} snf_simulations.spec.Spectrum.write_csv
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+`````

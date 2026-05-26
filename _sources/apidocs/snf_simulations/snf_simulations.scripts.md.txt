@@ -1,0 +1,19 @@
+# {py:mod}`snf_simulations.scripts`
+
+```{py:module} snf_simulations.scripts
+```
+
+```{autodoc2-docstring} snf_simulations.scripts
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+snf_simulations.scripts.command_line
+snf_simulations.scripts.dashboard
+```

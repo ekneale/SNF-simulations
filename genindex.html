@@ -1,0 +1,831 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; SNF-simulations 1.0.3 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="_static/documentation_options.js?v=baaebd52"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">SNF-simulations 1.0.3 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing/index.html">
+    Contributing and Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="apidocs/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing/index.html">
+    Contributing and Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="apidocs/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#_"><strong>_</strong></a>
+ | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ 
+</div>
+<h2 id="_">_</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea._CACHE_DIR_ENV_VAR">_CACHE_DIR_ENV_VAR (in module snf_simulations.data.iaea)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.fispin.html#snf_simulations.data.fispin._convert_sim_time_to_years">_convert_sim_time_to_years() (in module snf_simulations.data.fispin)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea._copy_packaged_spectrum_to_cache">_copy_packaged_spectrum_to_cache() (in module snf_simulations.data.iaea)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea._download_spectrum_data">_download_spectrum_data() (in module snf_simulations.data.iaea)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask._filter_isotopes">_filter_isotopes() (in module snf_simulations.cask)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea._get_cache_dir">_get_cache_dir() (in module snf_simulations.data.iaea)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea._get_cache_file">_get_cache_file() (in module snf_simulations.data.iaea)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#snf_simulations.data.mendeleev._get_isotope_properties_cached">_get_isotope_properties_cached() (in module snf_simulations.data.mendeleev)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea._load_spectrum_file">_load_spectrum_file() (in module snf_simulations.data.iaea)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.utils.html#snf_simulations.data.utils._parse_isotope">_parse_isotope() (in module snf_simulations.data.utils)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea._parse_nuclide">_parse_nuclide() (in module snf_simulations.data.iaea)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.utils.html#snf_simulations.data.utils._SECONDS_PER_YEAR">_SECONDS_PER_YEAR (in module snf_simulations.data.utils)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.utils.html#snf_simulations.data.utils._UNITS_TO_SECONDS">_UNITS_TO_SECONDS (in module snf_simulations.data.utils)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.fispin.html#snf_simulations.data.fispin._UNITS_TO_YEARS">_UNITS_TO_YEARS (in module snf_simulations.data.fispin)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs.all_isotopes">all_isotopes (snf_simulations.dashboard.SimInputs attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.app">app (in module snf_simulations.dashboard)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.app_ui">app_ui (in module snf_simulations.dashboard)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.DecayChain.branching_ratio">branching_ratio (snf_simulations.physics.DecayChain attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.calculate_event_rate">calculate_event_rate() (in module snf_simulations.physics)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.calculate_flux_at_distance">calculate_flux_at_distance() (in module snf_simulations.physics)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask">Cask (class in snf_simulations.cask)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs.cask_mass">cask_mass (snf_simulations.dashboard.SimInputs attribute)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs.cask_name">cask_name (snf_simulations.dashboard.SimInputs attribute)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations._version.html#snf_simulations._version.commit_id">commit_id (in module snf_simulations._version)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs.cooling_times">cooling_times (snf_simulations.dashboard.SimInputs attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.DecayChain.daughter">daughter (snf_simulations.physics.DecayChain attribute)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#snf_simulations.data.mendeleev.IsotopeProperties.decay_modes">decay_modes (snf_simulations.data.mendeleev.IsotopeProperties attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.DecayChain">DecayChain (class in snf_simulations.physics)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.DEFAULT_ISOTOPES">DEFAULT_ISOTOPES (in module snf_simulations.cask)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs.detector_distance">detector_distance (snf_simulations.dashboard.SimInputs attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum.equalise">equalise() (snf_simulations.spec.Spectrum method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs.filepath">filepath (snf_simulations.dashboard.SimInputs attribute)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum.from_file">from_file() (snf_simulations.spec.Spectrum class method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum.from_isotope">from_isotope() (snf_simulations.spec.Spectrum class method)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask.from_tabqfile">from_tabqfile() (snf_simulations.cask.Cask class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#snf_simulations.data.iaea.get_antineutrino_spectrum">get_antineutrino_spectrum() (in module snf_simulations.data.iaea)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask.get_component_spectra">get_component_spectra() (snf_simulations.cask.Cask method)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.get_decay_mass">get_decay_mass() (in module snf_simulations.physics)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.utils.html#snf_simulations.data.utils.get_example_tbq_path">get_example_tbq_path() (in module snf_simulations.data.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.get_isotope_activity">get_isotope_activity() (in module snf_simulations.physics)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.fispin.html#snf_simulations.data.fispin.get_isotope_masses">get_isotope_masses() (in module snf_simulations.data.fispin)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#snf_simulations.data.mendeleev.get_isotope_properties">get_isotope_properties() (in module snf_simulations.data.mendeleev)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask.get_total_spectrum">get_total_spectrum() (snf_simulations.cask.Cask method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#snf_simulations.data.mendeleev.IsotopeProperties.half_life">half_life (snf_simulations.data.mendeleev.IsotopeProperties attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum.integrate">integrate() (snf_simulations.spec.Spectrum method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#snf_simulations.data.mendeleev.IsotopeProperties">IsotopeProperties (class in snf_simulations.data.mendeleev)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.utils.html#snf_simulations.utils.linear_interpolate_with_errors">linear_interpolate_with_errors() (in module snf_simulations.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.fispin.html#snf_simulations.data.fispin.load_tabqfile">load_tabqfile() (in module snf_simulations.data.fispin)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.main">main() (in module snf_simulations.scripts.command_line)</a>
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.scripts.dashboard.html#snf_simulations.scripts.dashboard.main">(in module snf_simulations.scripts.dashboard)</a>
+</li>
+      </ul></li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.html#module-snf_simulations">snf_simulations</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations._version.html#module-snf_simulations._version">snf_simulations._version</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#module-snf_simulations.cask">snf_simulations.cask</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#module-snf_simulations.dashboard">snf_simulations.dashboard</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.html#module-snf_simulations.data">snf_simulations.data</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.fispin.html#module-snf_simulations.data.fispin">snf_simulations.data.fispin</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#module-snf_simulations.data.iaea">snf_simulations.data.iaea</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#module-snf_simulations.data.mendeleev">snf_simulations.data.mendeleev</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.utils.html#module-snf_simulations.data.utils">snf_simulations.data.utils</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#module-snf_simulations.physics">snf_simulations.physics</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.scripts.html#module-snf_simulations.scripts">snf_simulations.scripts</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#module-snf_simulations.scripts.command_line">snf_simulations.scripts.command_line</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.scripts.dashboard.html#module-snf_simulations.scripts.dashboard">snf_simulations.scripts.dashboard</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#module-snf_simulations.spec">snf_simulations.spec</a>
+</li>
+        <li><a href="apidocs/snf_simulations/snf_simulations.utils.html#module-snf_simulations.utils">snf_simulations.utils</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#snf_simulations.data.mendeleev.IsotopeProperties.molar_mass">molar_mass (snf_simulations.data.mendeleev.IsotopeProperties attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs.n_casks">n_casks (snf_simulations.dashboard.SimInputs attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#snf_simulations.physics.DecayChain.parent">parent (snf_simulations.physics.DecayChain attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.print_detector_rates">print_detector_rates() (in module snf_simulations.scripts.command_line)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run">run() (in module snf_simulations.scripts.command_line)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_compare">run_compare() (in module snf_simulations.scripts.command_line)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_multiple">run_multiple() (in module snf_simulations.scripts.command_line)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_multiple_full">run_multiple_full() (in module snf_simulations.scripts.command_line)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_sample">run_sample() (in module snf_simulations.scripts.command_line)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_single">run_single() (in module snf_simulations.scripts.command_line)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum.sample">sample() (snf_simulations.spec.Spectrum method)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.utils.html#snf_simulations.utils.sample_histogram">sample_histogram() (in module snf_simulations.utils)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.server">server() (in module snf_simulations.dashboard)</a>
+</li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#snf_simulations.dashboard.SimInputs">SimInputs (class in snf_simulations.dashboard)</a>
+</li>
+      <li>
+    snf_simulations
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.html#module-snf_simulations">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations._version
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations._version.html#module-snf_simulations._version">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.cask
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.cask.html#module-snf_simulations.cask">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.dashboard
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.dashboard.html#module-snf_simulations.dashboard">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.data
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.html#module-snf_simulations.data">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.data.fispin
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.fispin.html#module-snf_simulations.data.fispin">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.data.iaea
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.iaea.html#module-snf_simulations.data.iaea">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    snf_simulations.data.mendeleev
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.mendeleev.html#module-snf_simulations.data.mendeleev">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.data.utils
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.data.utils.html#module-snf_simulations.data.utils">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.physics
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.physics.html#module-snf_simulations.physics">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.scripts
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.scripts.html#module-snf_simulations.scripts">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.scripts.command_line
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.scripts.command_line.html#module-snf_simulations.scripts.command_line">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.scripts.dashboard
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.scripts.dashboard.html#module-snf_simulations.scripts.dashboard">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.spec
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#module-snf_simulations.spec">module</a>
+</li>
+      </ul></li>
+      <li>
+    snf_simulations.utils
+
+      <ul>
+        <li><a href="apidocs/snf_simulations/snf_simulations.utils.html#module-snf_simulations.utils">module</a>
+</li>
+      </ul></li>
+      <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum">Spectrum (class in snf_simulations.spec)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations._version.html#snf_simulations._version.version">version (in module snf_simulations._version)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations._version.html#snf_simulations._version.version_tuple">version_tuple (in module snf_simulations._version)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum.write_csv">write_csv() (snf_simulations.spec.Spectrum method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, E Kneale.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,136 @@
+# {py:mod}`snf_simulations.data.iaea`
+
+```{py:module} snf_simulations.data.iaea
+```
+
+```{autodoc2-docstring} snf_simulations.data.iaea
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`_copy_packaged_spectrum_to_cache <snf_simulations.data.iaea._copy_packaged_spectrum_to_cache>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea._copy_packaged_spectrum_to_cache
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`_download_spectrum_data <snf_simulations.data.iaea._download_spectrum_data>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea._download_spectrum_data
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`_get_cache_dir <snf_simulations.data.iaea._get_cache_dir>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea._get_cache_dir
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`_get_cache_file <snf_simulations.data.iaea._get_cache_file>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea._get_cache_file
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`_load_spectrum_file <snf_simulations.data.iaea._load_spectrum_file>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea._load_spectrum_file
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`_parse_nuclide <snf_simulations.data.iaea._parse_nuclide>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea._parse_nuclide
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`get_antineutrino_spectrum <snf_simulations.data.iaea.get_antineutrino_spectrum>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea.get_antineutrino_spectrum
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`_CACHE_DIR_ENV_VAR <snf_simulations.data.iaea._CACHE_DIR_ENV_VAR>`
+  - ```{autodoc2-docstring} snf_simulations.data.iaea._CACHE_DIR_ENV_VAR
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} _CACHE_DIR_ENV_VAR
+:canonical: snf_simulations.data.iaea._CACHE_DIR_ENV_VAR
+:value: >
+   'SNF_SIMULATIONS_CACHE_DIR'
+
+```{autodoc2-docstring} snf_simulations.data.iaea._CACHE_DIR_ENV_VAR
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:function} _copy_packaged_spectrum_to_cache(isotope_name: str) -> bool
+:canonical: snf_simulations.data.iaea._copy_packaged_spectrum_to_cache
+
+```{autodoc2-docstring} snf_simulations.data.iaea._copy_packaged_spectrum_to_cache
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} _download_spectrum_data(isotope_name: str, timeout: float = 20.0) -> str
+:canonical: snf_simulations.data.iaea._download_spectrum_data
+
+```{autodoc2-docstring} snf_simulations.data.iaea._download_spectrum_data
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} _get_cache_dir() -> pathlib.Path
+:canonical: snf_simulations.data.iaea._get_cache_dir
+
+```{autodoc2-docstring} snf_simulations.data.iaea._get_cache_dir
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} _get_cache_file(isotope_name: str) -> pathlib.Path
+:canonical: snf_simulations.data.iaea._get_cache_file
+
+```{autodoc2-docstring} snf_simulations.data.iaea._get_cache_file
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} _load_spectrum_file(isotope_name: str) -> numpy.ndarray
+:canonical: snf_simulations.data.iaea._load_spectrum_file
+
+```{autodoc2-docstring} snf_simulations.data.iaea._load_spectrum_file
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} _parse_nuclide(isotope_name: str) -> str
+:canonical: snf_simulations.data.iaea._parse_nuclide
+
+```{autodoc2-docstring} snf_simulations.data.iaea._parse_nuclide
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} get_antineutrino_spectrum(isotope_name: str) -> numpy.ndarray
+:canonical: snf_simulations.data.iaea.get_antineutrino_spectrum
+
+```{autodoc2-docstring} snf_simulations.data.iaea.get_antineutrino_spectrum
+:parser: autodoc2_docstrings_parser
+```
+````

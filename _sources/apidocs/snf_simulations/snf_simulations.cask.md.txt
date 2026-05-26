@@ -1,0 +1,108 @@
+# {py:mod}`snf_simulations.cask`
+
+```{py:module} snf_simulations.cask
+```
+
+```{autodoc2-docstring} snf_simulations.cask
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Cask <snf_simulations.cask.Cask>`
+  - ```{autodoc2-docstring} snf_simulations.cask.Cask
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`_filter_isotopes <snf_simulations.cask._filter_isotopes>`
+  - ```{autodoc2-docstring} snf_simulations.cask._filter_isotopes
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DEFAULT_ISOTOPES <snf_simulations.cask.DEFAULT_ISOTOPES>`
+  - ```{autodoc2-docstring} snf_simulations.cask.DEFAULT_ISOTOPES
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Cask(isotope_masses: dict[str, float], initial_cooling_time: float = 0, name: str | None = None)
+:canonical: snf_simulations.cask.Cask
+
+```{autodoc2-docstring} snf_simulations.cask.Cask
+:parser: autodoc2_docstrings_parser
+```
+
+````{py:method} from_tabqfile(filepath: str | pathlib.Path, total_mass: float | None = None, isotopes: collections.abc.Collection[str] | str | None = None, time_str: str | None = None, name: str | None = None) -> snf_simulations.cask.Cask
+:canonical: snf_simulations.cask.Cask.from_tabqfile
+:classmethod:
+
+```{autodoc2-docstring} snf_simulations.cask.Cask.from_tabqfile
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:method} get_component_spectra(cooling_time: float | None = None) -> list[snf_simulations.spec.Spectrum]
+:canonical: snf_simulations.cask.Cask.get_component_spectra
+
+```{autodoc2-docstring} snf_simulations.cask.Cask.get_component_spectra
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:method} get_total_spectrum(cooling_time: float | None = None) -> snf_simulations.spec.Spectrum
+:canonical: snf_simulations.cask.Cask.get_total_spectrum
+
+```{autodoc2-docstring} snf_simulations.cask.Cask.get_total_spectrum
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+`````
+
+````{py:data} DEFAULT_ISOTOPES
+:canonical: snf_simulations.cask.DEFAULT_ISOTOPES
+:value: >
+   ['Sr90', 'Y90', 'Pu241', 'Cs137', 'Am242', 'Cs135', 'I129', 'Np239', 'Tc99', 'Zr93', 'Ce144', 'Kr88'...
+
+```{autodoc2-docstring} snf_simulations.cask.DEFAULT_ISOTOPES
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:function} _filter_isotopes(isotopes: list[str], verbose: bool = False) -> list[str]
+:canonical: snf_simulations.cask._filter_isotopes
+
+```{autodoc2-docstring} snf_simulations.cask._filter_isotopes
+:parser: autodoc2_docstrings_parser
+```
+````

@@ -1,0 +1,947 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The Cask Class &#8212; SNF-simulations 1.0.3 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=0790524f97105ba85085" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=0790524f97105ba85085"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085" />
+
+    <script src="../_static/documentation_options.js?v=baaebd52"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/cask';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Simulating flux from casks" href="flux.html" />
+    <link rel="prev" title="The Spectrum Class" href="spectrum.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">SNF-simulations 1.0.3 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing/index.html">
+    Contributing and Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../apidocs/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing/index.html">
+    Contributing and Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../apidocs/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar"><svg class="pst-icon svg-inline--fa" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="spectrum.html">The <code class="docutils literal notranslate"><span class="pre">Spectrum</span></code> Class</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">The <code class="docutils literal notranslate"><span class="pre">Cask</span></code> Class</a></li>
+<li class="toctree-l1"><a class="reference internal" href="flux.html">Simulating flux from casks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiple_casks.html">Simulating multiple casks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dashboard.html">The SNF dashboard</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">User Guide</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">The <code class="docutils literal notranslate"><span class="pre">Cask</span></code> Class</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="the-cask-class">
+<h1>The <code class="docutils literal notranslate"><span class="pre">Cask</span></code> Class<a class="headerlink" href="#the-cask-class" title="Link to this heading">#</a></h1>
+<p>The <a class="reference internal" href="../apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask" title="snf_simulations.cask.Cask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Cask</span></code></a> class, defined in the <a class="reference internal" href="../apidocs/snf_simulations/snf_simulations.cask.html#module-snf_simulations.cask" title="snf_simulations.cask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">snf_simulations.cask</span></code></a> module, is the primary interface for simulating spent nuclear fuel (SNF) casks.</p>
+<p>A single <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object represents a single SNF cask, and is built around a <a class="reference internal" href="../apidocs/snf_simulations/snf_simulations.spec.html#snf_simulations.spec.Spectrum" title="snf_simulations.spec.Spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Spectrum</span></code></a> object that represents the combined antineutrino spectrum from all isotopes in the cask.</p>
+<section id="creating-a-cask">
+<h2>Creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code><a class="headerlink" href="#creating-a-cask" title="Link to this heading">#</a></h2>
+<p>In order to simulate a cask of SNF, the key input we need is the mass of each isotope in the cask that contributes to the antineutrino spectrum. This is typically obtained from a reactor simulation using FISPIN, which provides the mass of each isotope in the SNF as a function of the cooling time after being removed from the reactor core.</p>
+<section id="creating-a-cask-directly">
+<h3>Creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> directly<a class="headerlink" href="#creating-a-cask-directly" title="Link to this heading">#</a></h3>
+<p>The first way to create a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object is to initialise it by providing a dictionary of isotope masses, where the keys are the isotope names and the values are the masses in kg. For example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.cask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cask</span>
+
+<span class="n">isotope_masses</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># in kg</span>
+    <span class="s2">&quot;Sr90&quot;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
+    <span class="s2">&quot;Cs137&quot;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="p">(</span><span class="n">isotope_masses</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Example Cask&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask &quot;Example Cask&quot;: 2 isotopes, cooling time=0.000e+00 years&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note the cooling time given in the class representation. This is an important consideration when initially defining a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object, as the provided isotrope masses will usually have been simulated for a specific cooling time. Later, when calculating the antineutrino spectrum for specific cooling times, this initial input will be accounted for.</p>
+<p>For example, if we create a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object with isotope masses that were simulated for a cooling time of 1 year, and then want to simulate the antineutrino spectrum for a cooling time of 10 years, the function will calculate the additional 9 years of decay from the initial state.</p>
+<p>This means it is important to provide the correct cooling time when creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object, as this will affect the accuracy of the calculated antineutrino spectrum at later times. In this case, you simply pass the <code class="docutils literal notranslate"><span class="pre">initial_cooling_time</span></code> argument when creating the <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object, which is in units of years. For example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="p">(</span><span class="n">isotope_masses</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Example Cask&quot;</span><span class="p">,</span> <span class="n">initial_cooling_time</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask &quot;Example Cask&quot;: 2 isotopes, cooling time=1.000e+00 years&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="creating-a-cask-from-a-fispin-simulation-file">
+<h3>Creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> from a FISPIN simulation file<a class="headerlink" href="#creating-a-cask-from-a-fispin-simulation-file" title="Link to this heading">#</a></h3>
+<p>As a more user-friendly alternative to creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object from a dictionary of isotope masses, the library also provides a function to create a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object directly from a FISPIN .tbQ output file. This is done using the <a class="reference internal" href="../apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask.from_tabqfile" title="snf_simulations.cask.Cask.from_tabqfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Cask.from_from_tabqfile</span></code></a> class method, which takes the path to the FISPIN output file as input (or the contents of a file as a string) and returns a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object. For example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Here we provide a basic example of the contents of a .tbQ file</span>
+<span class="c1"># In reality the file would contain hundreds of isotopes and many more columns,</span>
+<span class="c1"># but only the &quot;GRAMS&quot; column is required for the simulation.</span>
+<span class="n">file_content</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;*** TIME    1.200E+01 HOURS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;ALL-NUC      GRAMS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;SR90         3.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;CS137        3.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;TOTAL        6.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;*** TIME    2.000E+00 DAYS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;ALL-NUC      GRAMS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;SR90         2.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;CS137        8.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;TOTAL        10.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Example Cask from .tbQ file&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask &quot;Example Cask from .tbQ file&quot;: 2 isotopes, cooling time=1.369e-03 years&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note the example data contained two different time sections (12 hours and 2 days). By default the <code class="docutils literal notranslate"><span class="pre">Cask.from_tabqfile</span></code> method will use the earliest simulation time in the file (in this case, 12 hours) to read for the isotope masses when creating the <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object (12 hours has been converted to ~0.0014 years).</p>
+<p>However, you can also specify a different time section to use by providing the <code class="docutils literal notranslate"><span class="pre">time_str</span></code> argument, which should be a string matching the time format used in the .tbQ file (e.g. “6.000E+01 MINS” or “2.800E+01 DAYS”). For example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">,</span> <span class="n">time_str</span><span class="o">=</span><span class="s2">&quot;2.000E+00 DAYS&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask: 2 isotopes, cooling time=5.476e-03 years&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Cask.from_tabqfile</span></code> method will by default only select a limited number of isotopes from the .tbQ file, which have been picked as the most important contributors to the antineutrino spectrum. The default list of isotopes is defined in the <code class="docutils literal notranslate"><span class="pre">DEFAULT_ISOTOPES</span></code> variable in the <code class="docutils literal notranslate"><span class="pre">cask</span></code> module:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.cask</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_ISOTOPES</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">DEFAULT_ISOTOPES</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;Sr90&#39;, &#39;Y90&#39;, &#39;Pu241&#39;, &#39;Cs137&#39;, &#39;Am242&#39;, &#39;Cs135&#39;, &#39;I129&#39;, &#39;Np239&#39;, &#39;Tc99&#39;, &#39;Zr93&#39;, &#39;Ce144&#39;, &#39;Kr88&#39;, &#39;Pr144&#39;, &#39;Rb88&#39;, &#39;Rh106&#39;, &#39;Ru106&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+<p>If you want to select specific isotopes only, you can use the <code class="docutils literal notranslate"><span class="pre">isotopes</span></code> argument in <code class="docutils literal notranslate"><span class="pre">Cask.from_tabqfile</span></code>, for example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">,</span> <span class="n">isotopes</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Sr90&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="o">.</span><span class="n">isotopes</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask: 1 isotopes, cooling time=1.369e-03 years&gt;
+[&#39;Sr90&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+<p>By default any other isotopes in the .tbQ file that are not in the default list will be ignored. If you want to include all isotopes in the file, set <code class="docutils literal notranslate"><span class="pre">isotopes=&quot;all&quot;</span></code>:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">file_content</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;*** TIME    1.200E+01 HOURS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;ALL-NUC      GRAMS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;SR89         3.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;SR90         3.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;CS137        3.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;TOTAL        9.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+
+<span class="n">cask_default</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask_default</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask_default</span><span class="o">.</span><span class="n">isotopes</span><span class="p">,</span> <span class="s2">&quot;&lt; Sr90 and Cs137 are included by default, but Sr89 is not&quot;</span><span class="p">)</span>
+
+<span class="n">cask_all</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">,</span> <span class="n">isotopes</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask_all</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask_all</span><span class="o">.</span><span class="n">isotopes</span><span class="p">,</span> <span class="s2">&quot;&lt; all isotopes are included&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask: 2 isotopes, cooling time=1.369e-03 years&gt;
+[&#39;Sr90&#39;, &#39;Cs137&#39;] &lt; Sr90 and Cs137 are included by default, but Sr89 is not
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Downloading spectrum data for 89sr from IAEA database...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask: 3 isotopes, cooling time=1.369e-03 years&gt;
+[&#39;Sr89&#39;, &#39;Sr90&#39;, &#39;Cs137&#39;] &lt; all isotopes are included
+</pre></div>
+</div>
+</div>
+</div>
+<p>The final important value is the total mass of the cask to simulate. By default the mass from the .tbQ file will be used, but you can also specify a different mass by providing the <code class="docutils literal notranslate"><span class="pre">total_mass</span></code> argument and the isotope masses from the file will be scaled in proportion. For example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">file_content</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;*** TIME    1.200E+01 HOURS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;ALL-NUC      GRAMS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;SR90         10.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;CS137        20.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;TOTAL        30.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+
+<span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="o">.</span><span class="n">isotope_masses</span><span class="p">)</span>
+
+<span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">,</span> <span class="n">total_mass</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="o">.</span><span class="n">isotope_masses</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;Sr90&#39;: 0.01, &#39;Cs137&#39;: 0.02}
+{&#39;Sr90&#39;: 333.33333333333337, &#39;Cs137&#39;: 666.6666666666667}
+</pre></div>
+</div>
+</div>
+</div>
+<p>In this case the 1:2 ratio between isotopes is retained, but the total mass is scaled to 1 tonne.</p>
+</section>
+</section>
+<section id="simulating-the-snf-antineutrino-spectrum">
+<h2>Simulating the SNF antineutrino spectrum<a class="headerlink" href="#simulating-the-snf-antineutrino-spectrum" title="Link to this heading">#</a></h2>
+<section id="getting-the-total-spectrum">
+<h3>Getting the total spectrum<a class="headerlink" href="#getting-the-total-spectrum" title="Link to this heading">#</a></h3>
+<p>The main function of the <code class="docutils literal notranslate"><span class="pre">Cask</span></code> class is to calculate the combined antineutrino spectrum from all isotopes in the cask, which is done using the <a class="reference internal" href="../apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask.get_total_spectrum" title="snf_simulations.cask.Cask.get_total_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_total_spectrum</span></code></a> method. This method uses the proportions of isotopes in the cask, and the corresponding spectra for each isotope, to calculate the total spectrum for the cask. For this example we’ll use an included example .tbQ file that contains multiple isotope masses:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_example_tbq_path</span>
+<span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">get_example_tbq_path</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="p">)</span>
+
+<span class="n">total_spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">total_spec</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask &quot;example&quot;: 16 isotopes, cooling time=2.738e-03 years&gt;
+&lt;Spectrum &quot;example&quot;: energy_range=(0.0-5313.0 keV)&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now we can plot the total spectrum for the cask:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="c1"># Plot the spectrum</span>
+<span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+    <span class="n">x</span><span class="o">=</span><span class="n">total_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">height</span><span class="o">=</span><span class="n">total_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">total_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6000</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e17</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative Flux [keV^-1 s^-1]&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total antineutrino spectrum of SNF cask&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/9ce99c1b2ed3ca02182bdaee6ab2ec3850804a974cebb2dc7917070bee032927.png" src="../_images/9ce99c1b2ed3ca02182bdaee6ab2ec3850804a974cebb2dc7917070bee032927.png" />
+</div>
+</div>
+</section>
+<section id="getting-the-spectrum-for-individual-isotopes">
+<h3>Getting the spectrum for individual isotopes<a class="headerlink" href="#getting-the-spectrum-for-individual-isotopes" title="Link to this heading">#</a></h3>
+<p>If you want to get the individual spectra for each isotope in the cask, you can use the <a class="reference internal" href="../apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask.get_component_spectra" title="snf_simulations.cask.Cask.get_component_spectra"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_component_spectra</span></code></a> method, which returns a list of <code class="docutils literal notranslate"><span class="pre">Spectrum</span></code> objects representing the antineutrino spectra for each isotope in the cask. For example:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">get_example_tbq_path</span><span class="p">())</span>
+<span class="n">total_spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">()</span>
+<span class="n">all_spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_component_spectra</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">isotope_spec</span> <span class="ow">in</span> <span class="n">all_spec</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">isotope_spec</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Spectrum &quot;Kr88&quot;: energy_range=(0.0-2918.0 keV)&gt;
+&lt;Spectrum &quot;Rb88&quot;: energy_range=(0.0-5312.4 keV)&gt;
+&lt;Spectrum &quot;Sr90&quot;: energy_range=(0.0-545.9 keV)&gt;
+&lt;Spectrum &quot;Y90&quot;: energy_range=(0.0-2278.5 keV)&gt;
+&lt;Spectrum &quot;Zr93&quot;: energy_range=(0.0-90.8 keV)&gt;
+&lt;Spectrum &quot;Tc99&quot;: energy_range=(0.0-297.5 keV)&gt;
+&lt;Spectrum &quot;Ru106&quot;: energy_range=(0.0-39.4 keV)&gt;
+&lt;Spectrum &quot;Rh106&quot;: energy_range=(0.0-3541.0 keV)&gt;
+&lt;Spectrum &quot;I129&quot;: energy_range=(0.0-149.4 keV)&gt;
+&lt;Spectrum &quot;Cs135&quot;: energy_range=(0.0-268.7 keV)&gt;
+&lt;Spectrum &quot;Cs137&quot;: energy_range=(0.0-1175.63 keV)&gt;
+&lt;Spectrum &quot;Ce144&quot;: energy_range=(0.0-318.7 keV)&gt;
+&lt;Spectrum &quot;Pr144&quot;: energy_range=(0.0-2997.5 keV)&gt;
+&lt;Spectrum &quot;Np239&quot;: energy_range=(0.0-714.6 keV)&gt;
+&lt;Spectrum &quot;Pu241&quot;: energy_range=(0.0-20.78 keV)&gt;
+&lt;Spectrum &quot;Am242&quot;: energy_range=(0.0-664.3 keV)&gt;
+</pre></div>
+</div>
+</div>
+</div>
+<p>We can also plot these to see how they contribute to the total spectrum:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patheffects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">path_effects</span>
+
+<span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">total_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="n">total_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+    <span class="n">c</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Total Spectrum&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;rainbow&quot;</span><span class="p">)(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_spec</span><span class="p">)))</span>
+<span class="n">bar_bottom</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="k">for</span> <span class="n">isotope_spec</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_spec</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="c1"># Create a stacked bar plot for each isotope&#39;s contribution to the total spectrum</span>
+    <span class="n">isotope_spec</span><span class="o">.</span><span class="n">equalise</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">min_energy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">max_energy</span><span class="o">=</span><span class="mi">6000</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">bar_bottom</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">bar_bottom</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span>
+        <span class="n">x</span><span class="o">=</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">),</span>
+        <span class="n">label</span><span class="o">=</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">bottom</span><span class="o">=</span><span class="n">bar_bottom</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Add labels at the peak of each isotope&#39;s contribution</span>
+    <span class="n">peak_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">flux</span><span class="o">-</span><span class="n">bar_bottom</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">isotope_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">[</span><span class="n">peak_index</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[</span><span class="n">peak_index</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="p">(</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">flux</span><span class="o">+</span><span class="n">bar_bottom</span><span class="p">)[</span><span class="n">peak_index</span><span class="p">],</span>
+            <span class="n">s</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">isotope_spec</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+            <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">set_path_effects</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">path_effects</span><span class="o">.</span><span class="n">Stroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">),</span>
+                <span class="n">path_effects</span><span class="o">.</span><span class="n">Normal</span><span class="p">(),</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="n">bar_bottom</span> <span class="o">+=</span> <span class="n">isotope_spec</span><span class="o">.</span><span class="n">flux</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6000</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e17</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative Flux [keV^-1 s^-1]&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total antineutrino spectrum of SNF cask&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/ffd3b27dfe40c42a6e5424b377d1c375fbd41567771aa976d011c974e31533ac.png" src="../_images/ffd3b27dfe40c42a6e5424b377d1c375fbd41567771aa976d011c974e31533ac.png" />
+</div>
+</div>
+</section>
+<section id="simulating-the-spectrum-at-different-cooling-times">
+<h3>Simulating the spectrum at different cooling times<a class="headerlink" href="#simulating-the-spectrum-at-different-cooling-times" title="Link to this heading">#</a></h3>
+<p>We can also simulate the antineutrino spectrum after any given cooling time, which includes modeling the activity levels and decay chains.</p>
+<p>The <a class="reference internal" href="../apidocs/snf_simulations/snf_simulations.cask.html#snf_simulations.cask.Cask.get_total_spectrum" title="snf_simulations.cask.Cask.get_total_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_total_spectrum</span></code></a> method takes an optional <code class="docutils literal notranslate"><span class="pre">cooling_time</span></code> parameter, which specifies the time since the SNF was removed from the reactor, in years.</p>
+<p>For example we can plot the total spectrum for our cask after multiple different cooling times:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">initial_spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">()</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+        <span class="n">initial_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">initial_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+        <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;0.0 years since removal from core&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="n">cooling_times</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">cooling_time</span> <span class="ow">in</span> <span class="n">cooling_times</span><span class="p">:</span>
+    <span class="n">total_spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">(</span><span class="n">cooling_time</span><span class="o">=</span><span class="n">cooling_time</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+        <span class="n">total_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">total_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+        <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cooling_time</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> years since removal from core&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6000</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e17</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative Flux [keV^-1 s^-1]&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total spectrum of of SNF cask over time&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/f8e5544b74e6bcde008852adceae89bba72f45dc38b8614bf7fa70c65b0b3581.png" src="../_images/f8e5544b74e6bcde008852adceae89bba72f45dc38b8614bf7fa70c65b0b3581.png" />
+</div>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>You cannot simulate the spectrum for cooling times that are earlier than the initial cooling time specified when creating the <code class="docutils literal notranslate"><span class="pre">Cask</span></code> object.</p>
+</div>
+<p>For example, here we specify the intial masses were simulated at 10 years after removal, so we cannot simulate the spectrum for cooling times less than 10 years:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">file_content</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;*** TIME    1.000E+01 YEARS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;ALL-NUC      GRAMS</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;SR90         10.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;CS137        20.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;TOTAL        30.0</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="p">)</span>
+
+<span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">file_content</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">cask</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">cooling_time</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">]:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">(</span><span class="n">cooling_time</span><span class="o">=</span><span class="n">cooling_time</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Spectrum successfully simulated&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  ValueError: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;Cask: 2 isotopes, cooling time=1.000e+01 years&gt;
+  ValueError: cooling_time (1.000e+00) cannot be less than the initial cask cooling time (1.000e+01)
+  ValueError: cooling_time (5.000e+00) cannot be less than the initial cask cooling time (1.000e+01)
+  Spectrum successfully simulated
+  Spectrum successfully simulated
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="spectrum.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">The <code class="docutils literal notranslate"><span class="pre">Spectrum</span></code> Class</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="flux.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Simulating flux from casks</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-a-cask">Creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-a-cask-directly">Creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> directly</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#creating-a-cask-from-a-fispin-simulation-file">Creating a <code class="docutils literal notranslate"><span class="pre">Cask</span></code> from a FISPIN simulation file</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#simulating-the-snf-antineutrino-spectrum">Simulating the SNF antineutrino spectrum</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-the-total-spectrum">Getting the total spectrum</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#getting-the-spectrum-for-individual-isotopes">Getting the spectrum for individual isotopes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#simulating-the-spectrum-at-different-cooling-times">Simulating the spectrum at different cooling times</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/user_guide/cask.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=0790524f97105ba85085"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=0790524f97105ba85085"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, E Kneale.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.18.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

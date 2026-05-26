@@ -1,0 +1,107 @@
+# {py:mod}`snf_simulations.data.mendeleev`
+
+```{py:module} snf_simulations.data.mendeleev
+```
+
+```{autodoc2-docstring} snf_simulations.data.mendeleev
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`IsotopeProperties <snf_simulations.data.mendeleev.IsotopeProperties>`
+  - ```{autodoc2-docstring} snf_simulations.data.mendeleev.IsotopeProperties
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`_get_isotope_properties_cached <snf_simulations.data.mendeleev._get_isotope_properties_cached>`
+  - ```{autodoc2-docstring} snf_simulations.data.mendeleev._get_isotope_properties_cached
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`get_isotope_properties <snf_simulations.data.mendeleev.get_isotope_properties>`
+  - ```{autodoc2-docstring} snf_simulations.data.mendeleev.get_isotope_properties
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} IsotopeProperties()
+:canonical: snf_simulations.data.mendeleev.IsotopeProperties
+
+Bases: {py:obj}`typing.TypedDict`
+
+```{autodoc2-docstring} snf_simulations.data.mendeleev.IsotopeProperties
+:parser: autodoc2_docstrings_parser
+```
+
+````{py:attribute} decay_modes
+:canonical: snf_simulations.data.mendeleev.IsotopeProperties.decay_modes
+:type: list[str]
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.data.mendeleev.IsotopeProperties.decay_modes
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} half_life
+:canonical: snf_simulations.data.mendeleev.IsotopeProperties.half_life
+:type: float
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.data.mendeleev.IsotopeProperties.half_life
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} molar_mass
+:canonical: snf_simulations.data.mendeleev.IsotopeProperties.molar_mass
+:type: float
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.data.mendeleev.IsotopeProperties.molar_mass
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+`````
+
+````{py:function} _get_isotope_properties_cached(isotope_name: str) -> snf_simulations.data.mendeleev.IsotopeProperties
+:canonical: snf_simulations.data.mendeleev._get_isotope_properties_cached
+
+```{autodoc2-docstring} snf_simulations.data.mendeleev._get_isotope_properties_cached
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} get_isotope_properties(isotope_name: str) -> snf_simulations.data.mendeleev.IsotopeProperties
+:canonical: snf_simulations.data.mendeleev.get_isotope_properties
+
+```{autodoc2-docstring} snf_simulations.data.mendeleev.get_isotope_properties
+:parser: autodoc2_docstrings_parser
+```
+````
