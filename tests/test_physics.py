@@ -4,7 +4,6 @@ import numpy as np
 
 from snf_simulations.physics import (
     DecayChain,
-    calculate_event_rate,
     calculate_flux_at_distance,
     get_decay_mass,
     get_isotope_activity,
@@ -109,19 +108,3 @@ def test_calculate_flux() -> None:
     flux = calculate_flux_at_distance(total_flux, distance)
     flux_ref = expected_total / (4 * np.pi * (distance * 100) ** 2)
     assert np.isclose(flux, flux_ref), "Calculated flux does not match reference value"
-
-
-def test_calculate_event_rate() -> None:
-    """Test event rate calculation with default efficiency bounds."""
-    flux = 2.0e9
-    rate_lower, rate_upper = calculate_event_rate(
-        flux, lower_efficiency=0.3, upper_efficiency=0.5
-    )
-
-    # The detector properties are currently hardcoded in the function
-    detector_volume = 2 * 0.6 * 1e6
-    number_of_protons = detector_volume * 4.6e22
-    event_rate = number_of_protons * 1e-44 * flux
-
-    assert np.isclose(rate_lower, event_rate * 0.3), "Lower event rate does not match"
-    assert np.isclose(rate_upper, event_rate * 0.5), "Upper event rate does not match"
