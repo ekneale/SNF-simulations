@@ -7,7 +7,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from snf_simulations.cask import Cask
-from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
+from snf_simulations.data import get_example_tbq_path
+from snf_simulations.detector import Detector
+from snf_simulations.physics import calculate_flux_at_distance
 from snf_simulations.spec import Spectrum
 
 
@@ -18,13 +20,26 @@ def print_detector_rates(spec: Spectrum, distance: float) -> None:
     # energy to get the total flux of antineutrinos that can be detected.
     total_flux = spec.integrate(lower_energy=1806)
     flux_at_distance = calculate_flux_at_distance(total_flux, distance=distance)
-    print(" Antineutrino flux:")
+    print(f" Antineutrino flux at {distance} m:")
     print(f"  {flux_at_distance:.3e} per cm2 per second")
     print(f"  {flux_at_distance * 60 * 60 * 24:.3e} per cm2 per day")
 
-    # TODO: Allow more customisable detectors.
-    rate_lower, rate_upper = calculate_event_rate(flux_at_distance, 0.2, 0.4)
-    print(" Event rate in VIDARR detector:")
+    # The prototype detector is a plastic scintillator detector with a volume of
+    # ~0.6 m^3, but we expect to use a minimum of 2 of these detectors to measure
+    # a SNF cask so we'll start with 1.2 m^3 detector volume.
+    volume = 0.6 * 2  # m^3
+    proton_density = 4.6e22  # number density of protons in cm^-3
+    detector = Detector(
+        volume=volume,
+        proton_density=proton_density,
+        name="Baseline prototype",
+    )
+
+    # Get the expected event rate in the detector for this flux,
+    # for lower and upper efficiencies.
+    rate_lower = detector.calculate_event_rate(spec, distance, efficiency=0.3)
+    rate_upper = detector.calculate_event_rate(spec, distance, efficiency=0.5)
+    print(f" Event rate in {detector.name} detector:")
     print(f"  {rate_lower:.4e} to {rate_upper:.4e} per second")
     print(
         f"  {rate_lower * 60 * 60 * 24:.3f} to {rate_upper * 60**2 * 24:.3f} per day",
@@ -32,7 +47,7 @@ def print_detector_rates(spec: Spectrum, distance: float) -> None:
 
 
 def run_single(
-    filepath: str | Path,
+    filepath: Path,
     cask_mass: float,
     simulation_times: Sequence[float],
     detector_distance: float = 40,
@@ -53,7 +68,7 @@ def run_single(
     print("Generating single cask spectra after different cooling times...")
 
     # Create a single Cask of the given mass.
-    cask = Cask.from_tabqfile(filepath, total_mass=cask_mass)
+    cask = Cask.from_tabqfile(filepath, total_mass=cask_mass, name=filepath.stem)
 
     # Get the Spectra for the given times after removal from the core.
     spectra: dict[float, Spectrum] = {}
@@ -71,7 +86,7 @@ def run_single(
 
     # Save the first spectrum to CSV.
     print("Writing single cask spectrum data to CSV...")
-    filename = f"{cask.name.capitalize()}_single.csv"
+    filename = f"{cask.name}_single.csv"
     spectra[simulation_times[0]].write_csv(output_filename=filename)
     print(f"Saved to {filename}")
 
@@ -106,7 +121,7 @@ def run_single(
 
 
 def run_multiple(
-    filepath: str | Path,
+    filepath: Path,
     cask_mass: float,
     n_casks: int,
     cooling_times: Sequence[float],
@@ -131,7 +146,9 @@ def run_multiple(
     # Because each Cask has the same composition, and we have the same number per set,
     # we can multiply the total mass by the number of casks and just create
     # a single Cask object.
-    cask = Cask.from_tabqfile(filepath, total_mass=cask_mass * n_casks)
+    cask = Cask.from_tabqfile(
+        filepath, total_mass=cask_mass * n_casks, name=filepath.stem
+    )
 
     # Create the Spectra for each set of casks at the specified times.
     spectra = []
@@ -201,7 +218,7 @@ def run_compare(
 
 
 def run_multiple_full(
-    filepath: str | Path,
+    filepath: Path,
     cask_mass: float,
     cask_cooling_times: Mapping[int, int] | Mapping[float, int],
     simulation_times: Sequence[float],
@@ -216,7 +233,7 @@ def run_multiple_full(
     casks = {}
     for cooling_time, n_casks in cask_cooling_times.items():
         casks[cooling_time] = Cask.from_tabqfile(
-            filepath, total_mass=cask_mass * n_casks
+            filepath, total_mass=cask_mass * n_casks, name=filepath.stem
         )
 
     # Now get the spectra for all the sets of casks at each of the simulation times.
@@ -320,7 +337,7 @@ def run_sample(spec: Spectrum, n_samples: int = 1000000) -> None:
     print(f"Saved to {filename}")
 
 
-def run(filepath: str | Path) -> None:
+def run(filepath: Path) -> None:
     """Run SNF simulations and calculate antineutrino fluxes and event rates.
 
     Performs calculations for single and multiple dry casks of spent nuclear fuel
@@ -379,8 +396,10 @@ def main() -> None:
     )
     parser.add_argument(
         "filepath",
-        type=str,
+        type=Path,
+        nargs="?",
         help="Path to the input file",
+        default=get_example_tbq_path(),
     )
     args = parser.parse_args()
     run(filepath=args.filepath)

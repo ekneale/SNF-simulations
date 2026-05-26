@@ -13,7 +13,8 @@ from shinywidgets import output_widget, render_widget
 
 from snf_simulations.cask import DEFAULT_ISOTOPES, Cask
 from snf_simulations.data import get_example_tbq_path
-from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
+from snf_simulations.detector import Detector
+from snf_simulations.physics import calculate_flux_at_distance
 
 
 class SimInputs(TypedDict):
@@ -25,7 +26,6 @@ class SimInputs(TypedDict):
     n_casks: int
     cooling_times: list[float]
     all_isotopes: bool
-    detector_distance: float
 
 
 # Here we define the UI layout of the dashboard using Shiny's components.
@@ -184,14 +184,6 @@ app_ui = ui.page_fluid(
                 "Add",
                 icon=ui.tags.i({"class": "fa-solid fa-plus"}),
             ),
-            ui.input_slider(
-                "detector_distance",
-                "Detector distance (m):",
-                min=1,
-                max=200,
-                value=40,
-                step=1,
-            ),
             ui.input_action_button(
                 "recalculate",
                 "Recalculate",
@@ -202,6 +194,7 @@ app_ui = ui.page_fluid(
         ),
         # Tabs
         ui.navset_tab(
+            # Tab 1
             ui.nav_panel(
                 "Cask Simulations",
                 output_widget("plot_cask_simulations"),
@@ -210,13 +203,41 @@ app_ui = ui.page_fluid(
                     "  Download CSV",
                     icon=ui.tags.i({"class": "fa-solid fa-download"}),
                 ),
-                ui.output_table("table_cask_rates"),
+            ),
+            # Tab 2
+            ui.nav_panel(
+                "Detector Simulations",
+                ui.input_numeric(
+                    "detector_volume",
+                    "Detector volume (m³):",
+                    value=1.2,
+                    min=0.1,
+                    step=0.1,
+                ),
+                ui.input_slider(
+                    "detector_distance",
+                    "Distance from casks (m):",
+                    min=1,
+                    max=200,
+                    value=40,
+                    step=1,
+                ),
+                ui.input_slider(
+                    "detector_efficiency",
+                    "Efficiency range (%):",
+                    min=0,
+                    max=100,
+                    value=(20, 40),
+                    step=1,
+                ),
+                ui.output_table("table_detector_simulations"),
                 ui.download_button(
-                    "download_cask_rates",
+                    "download_detector_simulations",
                     "  Download CSV",
                     icon=ui.tags.i({"class": "fa-solid fa-download"}),
                 ),
             ),
+            # Tab 3
             ui.nav_panel(
                 "Component Spectra",
                 ui.input_select(
@@ -232,6 +253,7 @@ app_ui = ui.page_fluid(
                     icon=ui.tags.i({"class": "fa-solid fa-download"}),
                 ),
             ),
+            # Tab 4
             ui.nav_panel(
                 "Spectrum Sampling",
                 ui.input_select(
@@ -285,7 +307,6 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             "n_casks": 1,
             "cooling_times": [0.5, 1.0, 5.0, 10.0],
             "all_isotopes": False,
-            "detector_distance": 40.0,
         }
     )
 
@@ -336,7 +357,6 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             n_casks = int(input.n_casks())
             cooling_times = [float(t) for t in input.cooling_times()]
             all_isotopes = bool(input.all_isotopes())
-            detector_distance = float(input.detector_distance())
 
             snapshot: SimInputs = {
                 "filepath": filepath,
@@ -344,7 +364,6 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
                 "cask_mass": cask_mass,
                 "n_casks": n_casks,
                 "cooling_times": cooling_times,
-                "detector_distance": detector_distance,
                 "all_isotopes": all_isotopes,
             }
             sim_inputs.set(snapshot)
@@ -565,8 +584,10 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             cask_simulations_data().to_csv(buffer, index=False)
             yield buffer.getvalue().decode()
 
+    # -----------------------------------------------------------------------
+    # Detector Simulations tab
     @reactive.calc
-    def cask_rates_data() -> pd.DataFrame:
+    def detector_simulations_data() -> pd.DataFrame:
         """Calculate fluxes and event rates for each cooling time."""
         cask = cask_reactive()
         if cask is None:
@@ -574,7 +595,12 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
 
         params = sim_inputs()
         cooling_times = list(params["cooling_times"])
-        detector_distance = float(params["detector_distance"])
+        detector_volume = float(input.detector_volume())
+        detector_distance = float(input.detector_distance())
+        lower_efficiency, upper_efficiency = input.detector_efficiency()
+        lower_efficiency = float(lower_efficiency) / 100
+        upper_efficiency = float(upper_efficiency) / 100
+        detector = Detector(volume=detector_volume, proton_density=4.6e22)
 
         rows = []
         for cooling_time in cooling_times:
@@ -583,7 +609,16 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             flux_at_distance = calculate_flux_at_distance(
                 total_flux, distance=detector_distance
             )
-            rate_lower, rate_upper = calculate_event_rate(flux_at_distance, 0.2, 0.4)
+            rate_lower = detector.calculate_event_rate(
+                spec=spec,
+                distance=detector_distance,
+                efficiency=lower_efficiency,
+            )
+            rate_upper = detector.calculate_event_rate(
+                spec=spec,
+                distance=detector_distance,
+                efficiency=upper_efficiency,
+            )
             rows.append(
                 {
                     "cooling_time_yrs": cooling_time,
@@ -596,9 +631,9 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
 
     @output
     @render.table
-    def table_cask_rates() -> pd.DataFrame:
-        """Table of flux and event rates for selected cask count and cooling times."""
-        df = cask_rates_data()
+    def table_detector_simulations() -> pd.DataFrame:
+        """Table of flux and event rates for selected detector parameters."""
+        df = detector_simulations_data()
 
         # Reformat the dataframe for display
         rows = []
@@ -620,11 +655,11 @@ def server(input: Inputs, output: Outputs, session: Session) -> None:  # noqa: P
             )
         return pd.DataFrame(rows)
 
-    @render.download(filename="cask_rates.csv")
-    def download_cask_rates() -> Iterable[bytes]:
-        """Download cask simulation rates table as CSV."""
+    @render.download(filename="detector_simulations.csv")
+    def download_detector_simulations() -> Iterable[bytes]:
+        """Download detector simulation data as CSV."""
         with BytesIO() as buffer:
-            cask_rates_data().to_csv(buffer, index=False)
+            detector_simulations_data().to_csv(buffer, index=False)
             yield buffer.getvalue().decode()
 
     # -----------------------------------------------------------------------

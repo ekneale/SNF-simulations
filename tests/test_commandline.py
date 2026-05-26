@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 
 from snf_simulations.cask import Cask
-from snf_simulations.physics import calculate_event_rate, calculate_flux_at_distance
+from snf_simulations.detector import Detector
+from snf_simulations.physics import calculate_flux_at_distance
 from snf_simulations.spec import Spectrum
 
 from . import data
@@ -91,8 +92,10 @@ def test_single_cask(reactor: str) -> None:
         f"Single flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
 
-    # Calculate event rates in a detector at 40m using the flux spectrum
-    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
+    # Calculate event rates in a detector at 40m
+    detector = Detector(volume=1.2, proton_density=4.6e22)
+    rate_lower = detector.calculate_event_rate(spec, distance=40, efficiency=0.2)
+    rate_upper = detector.calculate_event_rate(spec, distance=40, efficiency=0.4)
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
@@ -169,8 +172,14 @@ def test_multiple_casks(reactor: str) -> None:
         f"Total flux value does not match: ({flux_ref:e} vs {flux_at_40m:e})"
     )
 
-    # Calculate event rates in a detector at 40m using the flux spectrum
-    rate_lower, rate_upper = calculate_event_rate(flux_at_40m, 0.2, 0.4)
+    # Calculate event rates in a detector at 40m
+    detector = Detector(volume=1.2, proton_density=4.6e22)
+    rate_lower = detector.calculate_event_rate(
+        spec_multiple, distance=40, efficiency=0.2
+    )
+    rate_upper = detector.calculate_event_rate(
+        spec_multiple, distance=40, efficiency=0.4
+    )
     assert isinstance(rate_lower, float), "Lower event rate is not a float"
     assert isinstance(rate_upper, float), "Upper event rate is not a float"
     if reactor == "sizewell":
