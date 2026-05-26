@@ -2,6 +2,7 @@
 
 from collections.abc import Iterator
 
+import numpy as np
 import pytest
 
 from snf_simulations.data.mendeleev import (
@@ -31,6 +32,7 @@ def test_get_isotope_properties(
         mass = 90.0
         half_life = 100.0
         half_life_unit = "year"
+        decay_modes = [type("DecayMode", (), {"mode": "B-"})()]
 
     monkeypatch.setattr(
         "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
@@ -39,6 +41,7 @@ def test_get_isotope_properties(
     isotope_properties = get_isotope_properties("Y90")
     assert isotope_properties["molar_mass"] == 90.0, "Molar mass should be 90 g/mol"
     assert isotope_properties["half_life"] == 100.0, "Half life should be 100 years"
+    assert isotope_properties["decay_modes"] == ["B-"], "Decay modes should be ['B-']"
 
 
 def test_get_isotope_properties_real() -> None:
@@ -52,6 +55,21 @@ def test_get_isotope_properties_real() -> None:
     assert isotope_properties["half_life"] == pytest.approx(0.0073, rel=1e-3), (
         "Half life of Y90 should be approximately 0.0073 years"
     )
+    assert isotope_properties["decay_modes"] == ["B-"], (
+        "Decay modes of Y90 should be ['B-']"
+    )
+
+    # Also test an isotope with a stable half-life to check that np.inf is returned
+    isotope_properties = get_isotope_properties("H1")
+    assert isotope_properties["molar_mass"] == pytest.approx(1.00784, rel=1e-3), (
+        "Molar mass of H1 should be approximately 1.00784 g/mol"
+    )
+    assert isotope_properties["half_life"] == np.inf, (
+        "Half life of stable isotope should be np.inf"
+    )
+    assert isotope_properties["decay_modes"] == [], (
+        "Decay modes of stable isotope should be empty"
+    )
 
 
 def test_get_isotope_properties_converts_to_years(
@@ -63,6 +81,7 @@ def test_get_isotope_properties_converts_to_years(
         mass = 90.0
         half_life = 24.0
         half_life_unit = "hour"
+        decay_modes = [type("DecayMode", (), {"mode": "B-"})()]
 
     monkeypatch.setattr(
         "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
@@ -85,6 +104,7 @@ def test_get_isotope_properties_unsupported_unit(
         mass = 1.0
         half_life = 1.0
         half_life_unit = "fortnight"
+        decay_modes = [type("DecayMode", (), {"mode": "B-"})()]
 
     monkeypatch.setattr(
         "snf_simulations.data.mendeleev.isotope", lambda *_: _MockIsotope()
@@ -104,6 +124,7 @@ def test_get_isotope_properties_cache(
         mass = 90.0
         half_life = 100.0
         half_life_unit = "year"
+        decay_modes = [type("DecayMode", (), {"mode": "B-"})()]
 
     def _mock_isotope(*_: object) -> _MockIsotope:
         # By using a nonlocal variable we can check how many times this

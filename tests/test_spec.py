@@ -137,6 +137,20 @@ def test_from_isotope(isotope: str) -> None:
     )
 
 
+def test_from_isotope_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that Spectrum.from_isotope raises with empty spectrum data."""
+    mock_data = np.array([])
+    monkeypatch.setattr(
+        "snf_simulations.spec.get_antineutrino_spectrum",
+        lambda *_: mock_data,
+    )
+
+    with pytest.raises(
+        ValueError, match="No antineutrino spectrum data found for isotope Sr90"
+    ):
+        Spectrum.from_isotope("Sr90")
+
+
 @pytest.mark.parametrize("width", [0.1, 1.0, 2.0])
 def test_equalise(width: float) -> None:
     """Test Spectrum equalisation over the energy range for given bin width."""

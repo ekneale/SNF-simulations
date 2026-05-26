@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from snf_simulations.cask import Cask
+from snf_simulations.cask import Cask, _filter_isotopes
 from snf_simulations.data import get_example_tbq_path, get_isotope_properties
 from snf_simulations.spec import Spectrum
 
@@ -230,3 +230,49 @@ def test_cask_from_example_tbq() -> None:
     cask = Cask.from_tabqfile(example_path)
     assert cask is not None
     assert len(cask.isotopes) > 0
+
+
+def test_filter_isotopes(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+) -> None:
+    """Test _filter_isotopes logic for all filter cases."""
+    props = {
+        "Sr90": {"decay_modes": ["B-"]},
+        "Cs137": {"decay_modes": ["B-"]},
+        "Y90m": {"decay_modes": ["B-"]},  # Metastable
+        "Am242": {"decay_modes": ["EC"]},  # No B-
+        "Xe135": {"decay_modes": ["B-"]},  # No spectrum
+    }
+
+    def fake_get_isotope_properties(isotope: str) -> dict:
+        return props[isotope]
+
+    monkeypatch.setattr(
+        "snf_simulations.cask.get_isotope_properties", fake_get_isotope_properties
+    )
+
+    def fake_from_isotope(isotope: str) -> str:
+        if isotope == "Xe135":
+            raise ValueError("No antineutrino spectrum data found for isotope Xe135")
+        return f"Spectrum({isotope})"
+
+    monkeypatch.setattr(
+        "snf_simulations.cask.Spectrum.from_isotope", staticmethod(fake_from_isotope)
+    )
+
+    isotopes = ["Sr90", "Cs137", "Am242", "Y90m", "Xe135"]
+    filtered = _filter_isotopes(isotopes)
+    assert set(filtered) == {"Sr90", "Cs137"}
+
+    # Check that the expected verbose messages were printed
+    _filter_isotopes(isotopes, verbose=True)
+    out = capsys.readouterr().out
+    assert "Excluding metastable isotope: Y90m" in out, (
+        "Should print message about excluding metastable isotope"
+    )
+    assert "Excluding isotope without B- decay: Am242" in out, (
+        "Should print message about excluding isotope with no B- decay"
+    )
+    assert "Excluding isotope with empty spectrum data: Xe135" in out, (
+        "Should print message about excluding isotope with empty spectrum data"
+    )

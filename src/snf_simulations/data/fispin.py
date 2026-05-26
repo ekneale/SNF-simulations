@@ -59,12 +59,19 @@ def load_tabqfile(filepath_or_contents: str | Path) -> dict[str, pd.DataFrame]:
         for data_line in lines[i + 2 :]:
             if data_line.startswith("TOTAL"):
                 break
+
             # Complication: the first few characters are the isotope,
             # which can contain spaces (e.g. "U 235").
             # We'll remove spaces from the first 12 characters before splitting.
+            # The FISPIN format also uses "A" as the atomic symbol
+            # for argon, not "Ar", so we replace that here.
             # We also format the isotope to be capitalised (e.g. "Sr90"),
             # by default the file has them in uppercase (e.g. "SR90").
-            isotope = data_line[0:12].capitalize().replace(" ", "")
+            isotope = data_line[0:12].capitalize()
+            if isotope[:2] == "A ":
+                isotope = "Ar" + isotope[2:]
+            isotope = isotope.replace(" ", "")
+
             data_line_new = f"{isotope:>12}{data_line[12:]}"
             data = data_line_new.strip().split()
             isotope_data.append(data)

@@ -31,6 +31,41 @@ DEFAULT_ISOTOPES = [
 ]
 
 
+def _filter_isotopes(isotopes: list[str], verbose: bool = False) -> list[str]:
+    """Filter a list of isotopes to only include relevant antineutrino spectra."""
+    filtered_isotopes = []
+    for isotope in isotopes:
+        # Isotopes that end in "m" or "n" are metastable states,
+        # which we'll just ignore for now.
+        if isotope.endswith("m") or isotope.endswith("n"):
+            if verbose:
+                print(f"Excluding metastable isotope: {isotope}")
+            continue
+
+        # Only select isotopes that have a B- decay mode,
+        # as these are the ones that will contribute to the antineutrino spectrum.
+        properties = get_isotope_properties(isotope)
+        if "B-" not in properties["decay_modes"]:
+            if verbose:
+                print(f"Excluding isotope without B- decay: {isotope}")
+            continue
+
+        # We also want to exclude isotopes that don't have any antineutrino spectrum
+        # data in the IAEA database.
+        try:
+            Spectrum.from_isotope(isotope)
+        except ValueError as err:
+            if "No antineutrino spectrum data found for isotope" in str(err):
+                if verbose:
+                    msg = f"Excluding isotope with empty spectrum data: {isotope}"
+                    print(msg)
+                continue
+
+        filtered_isotopes.append(isotope)
+
+    return filtered_isotopes
+
+
 class Cask:
     """Class representing a cask of spent nuclear fuel.
 
@@ -137,16 +172,25 @@ class Cask:
                 selected_isotopes = DEFAULT_ISOTOPES
             else:
                 selected_isotopes = cast(Collection[str], isotopes)
-            isotope_masses = {
-                isotope: mass
-                for isotope, mass in isotope_masses.items()
-                if isotope in selected_isotopes
-            }
+        else:
+            selected_isotopes = isotope_masses.keys()
+        selected_isotopes = _filter_isotopes(
+            list(selected_isotopes),
+            verbose=isotopes != "all",  # Only print if given a list
+        )
+        isotope_masses = {
+            isotope: mass
+            for isotope, mass in isotope_masses.items()
+            if isotope in selected_isotopes
+        }
+
+        # Extract filename if no name is given
         if name is None:
             if isinstance(filepath, Path):
                 name = filepath.stem
             elif filepath.endswith(".tbQ"):
                 name = filepath.rsplit("/", maxsplit=1)[-1].split(".", maxsplit=1)[0]
+
         return cls(
             isotope_masses=isotope_masses,
             initial_cooling_time=cooling_time,

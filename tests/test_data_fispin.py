@@ -69,6 +69,20 @@ def test_load_tabqfile_from_string() -> None:
     assert df["GRAMS"].tolist() == pytest.approx([3.0, 3.0])
 
 
+def test_load_tabqfile_argon() -> None:
+    """Test loading .tbQ file that uses A for argon."""
+    content = (
+        "*** TIME    1.200E+01 HOURS\n"
+        "ALL-NUC      GRAMS\n"
+        "A  38        3.0\n"
+        "TOTAL        3.0\n"
+    )
+    time_dfs = load_tabqfile(content)
+
+    df = time_dfs["1.200E+01 HOURS"]
+    assert df["ALL-NUC"].tolist() == ["Ar38"]
+
+
 def test_load_tabqfile_invalid_path() -> None:
     """Test that loading from an invalid file path raises FileNotFoundError."""
     with pytest.raises(FileNotFoundError):
