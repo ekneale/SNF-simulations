@@ -1,0 +1,49 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: SNF-simulations
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Liz
+    family-names: Kneale
+    email: e.kneale@sheffield.ac.uk
+    affiliation: University of Sheffield
+    orcid: 'https://orcid.org/0000-0002-4087-1244'
+  - given-names: Martin
+    family-names: Dyer
+    email: m.dyer@sheffield.ac.uk
+    affiliation: University of Sheffield
+    orcid: 'https://orcid.org/0000-0003-3665-5482'
+  - given-names: Abi
+    family-names: Power
+    email: apower3@sheffield.ac.uk
+    affiliation: University of Sheffield
+  - given-names: Zuzanna
+    family-names: Leliwa
+    email: z.leliwa1@sheffield.ac.uk
+    affiliation: University of Sheffield
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.20713684
+    description: Zenodo repository
+repository-code: 'https://github.com/ekneale/SNF-simulations'
+url: 'https://ekneale.github.io/SNF-simulations/index.html'
+repository: 'https://pypi.org/project/snf-simulations/'
+abstract: >-
+  SNF-simulations generates antineutrino spectra that can be
+  used to simulate the antineutrino emission from spent
+  nuclear fuel (SNF).
+keywords:
+  - neutrino
+  - antineutrino
+  - spent nuclear fuel
+  - IBD
+  - inverse beta decay
+  - reactor
+license: BSD-3-Clause
+version: 2.0.0
+date-released: '2026-06-16'
