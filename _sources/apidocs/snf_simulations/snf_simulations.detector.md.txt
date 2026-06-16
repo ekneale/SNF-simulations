@@ -1,0 +1,44 @@
+# {py:mod}`snf_simulations.detector`
+
+```{py:module} snf_simulations.detector
+```
+
+```{autodoc2-docstring} snf_simulations.detector
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Detector <snf_simulations.detector.Detector>`
+  - ```{autodoc2-docstring} snf_simulations.detector.Detector
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Detector(volume: float, proton_density: float, name: str | None = None)
+:canonical: snf_simulations.detector.Detector
+
+```{autodoc2-docstring} snf_simulations.detector.Detector
+:parser: autodoc2_docstrings_parser
+```
+
+````{py:method} calculate_event_rate(spec: snf_simulations.spec.Spectrum, distance: float, efficiency: float = 1) -> float
+:canonical: snf_simulations.detector.Detector.calculate_event_rate
+
+```{autodoc2-docstring} snf_simulations.detector.Detector.calculate_event_rate
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+`````

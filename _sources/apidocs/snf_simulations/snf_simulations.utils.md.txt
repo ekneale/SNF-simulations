@@ -1,0 +1,47 @@
+# {py:mod}`snf_simulations.utils`
+
+```{py:module} snf_simulations.utils
+```
+
+```{autodoc2-docstring} snf_simulations.utils
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`linear_interpolate_with_errors <snf_simulations.utils.linear_interpolate_with_errors>`
+  - ```{autodoc2-docstring} snf_simulations.utils.linear_interpolate_with_errors
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`sample_histogram <snf_simulations.utils.sample_histogram>`
+  - ```{autodoc2-docstring} snf_simulations.utils.sample_histogram
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} linear_interpolate_with_errors(original_bins: numpy.ndarray, original_content: numpy.ndarray, original_errors: numpy.ndarray, new_bins: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]
+:canonical: snf_simulations.utils.linear_interpolate_with_errors
+
+```{autodoc2-docstring} snf_simulations.utils.linear_interpolate_with_errors
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} sample_histogram(bin_edges: numpy.ndarray, bin_contents: numpy.ndarray, n_samples: int = 100, seed: int | None = None) -> numpy.ndarray
+:canonical: snf_simulations.utils.sample_histogram
+
+```{autodoc2-docstring} snf_simulations.utils.sample_histogram
+:parser: autodoc2_docstrings_parser
+```
+````

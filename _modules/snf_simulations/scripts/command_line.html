@@ -1,0 +1,856 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>snf_simulations.scripts.command_line &#8212; SNF-simulations 2.0.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=a95f357e85573c9b56d5" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=a95f357e85573c9b56d5"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5" />
+
+    <script src="../../../_static/documentation_options.js?v=f5cff4aa"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/snf_simulations/scripts/command_line';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="author" title="About these documents" href="../../../about.html" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">SNF-simulations 2.0.1 documentation</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing/index.html">
+    Contributing and Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../apidocs/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../about.html">
+    About
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../user_guide/index.html">
+    User Guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing/index.html">
+    Contributing and Development
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../apidocs/index.html">
+    API Reference
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">snf_simulations.scripts.command_line</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for snf_simulations.scripts.command_line</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Command line script to run SNF simulations and generate plots.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.cask</span><span class="w"> </span><span class="kn">import</span> <span class="n">Cask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_example_tbq_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">Detector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.physics</span><span class="w"> </span><span class="kn">import</span> <span class="n">calculate_flux_at_distance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">snf_simulations.spec</span><span class="w"> </span><span class="kn">import</span> <span class="n">Spectrum</span>
+
+
+<div class="viewcode-block" id="print_detector_rates">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.print_detector_rates">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">print_detector_rates</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spectrum</span><span class="p">,</span> <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the antineutrino flux and expected event rates at a given distance.&quot;&quot;&quot;</span>
+    <span class="c1"># The total flux is the integral of the spectrum over the energy range of interest.</span>
+    <span class="c1"># For inverse beta decay the threshold is 1.806 MeV, so we integrate above this</span>
+    <span class="c1"># energy to get the total flux of antineutrinos that can be detected.</span>
+    <span class="n">total_flux</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">lower_energy</span><span class="o">=</span><span class="mi">1806</span><span class="p">)</span>
+    <span class="n">flux_at_distance</span> <span class="o">=</span> <span class="n">calculate_flux_at_distance</span><span class="p">(</span><span class="n">total_flux</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">distance</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Antineutrino flux at </span><span class="si">{</span><span class="n">distance</span><span class="si">}</span><span class="s2"> m:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">flux_at_distance</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> per cm2 per second&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">flux_at_distance</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">24</span><span class="si">:</span><span class="s2">.3e</span><span class="si">}</span><span class="s2"> per cm2 per day&quot;</span><span class="p">)</span>
+
+    <span class="c1"># The prototype detector is a plastic scintillator detector with a volume of</span>
+    <span class="c1"># ~0.6 m^3, but we expect to use a minimum of 2 of these detectors to measure</span>
+    <span class="c1"># a SNF cask so we&#39;ll start with 1.2 m^3 detector volume.</span>
+    <span class="n">volume</span> <span class="o">=</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="mi">2</span>  <span class="c1"># m^3</span>
+    <span class="n">proton_density</span> <span class="o">=</span> <span class="mf">4.6e22</span>  <span class="c1"># number density of protons in cm^-3</span>
+    <span class="n">detector</span> <span class="o">=</span> <span class="n">Detector</span><span class="p">(</span>
+        <span class="n">volume</span><span class="o">=</span><span class="n">volume</span><span class="p">,</span>
+        <span class="n">proton_density</span><span class="o">=</span><span class="n">proton_density</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Baseline prototype&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Get the expected event rate in the detector for this flux,</span>
+    <span class="c1"># for lower and upper efficiencies.</span>
+    <span class="n">rate_lower</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">calculate_event_rate</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+    <span class="n">rate_upper</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">calculate_event_rate</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; Event rate in </span><span class="si">{</span><span class="n">detector</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> detector:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">rate_lower</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">rate_upper</span><span class="si">:</span><span class="s2">.4e</span><span class="si">}</span><span class="s2"> per second&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">rate_lower</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">24</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">rate_upper</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">60</span><span class="o">**</span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">24</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> per day&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_single">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_single">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_single</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">cask_mass</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">simulation_times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">detector_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Spectrum</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot the spectrum for a single dry cask of fuel after different cooling times.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath: Path to the input file.</span>
+<span class="sd">        cask_mass: Total mass of the cask in kg.</span>
+<span class="sd">        simulation_times: List of times to simulate the cask at, in years.</span>
+<span class="sd">        detector_distance: Distance from the cask to the detector in meters.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary mapping simulation times to Spectra for the single cask</span>
+<span class="sd">            at each simulation time.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating single cask spectra after different cooling times...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create a single Cask of the given mass.</span>
+    <span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">total_mass</span><span class="o">=</span><span class="n">cask_mass</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">filepath</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
+
+    <span class="c1"># Get the Spectra for the given times after removal from the core.</span>
+    <span class="n">spectra</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Spectrum</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">simulation_time</span> <span class="ow">in</span> <span class="n">simulation_times</span><span class="p">:</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">(</span><span class="n">cooling_time</span><span class="o">=</span><span class="n">simulation_time</span><span class="p">)</span>
+        <span class="n">spectra</span><span class="p">[</span><span class="n">simulation_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec</span>
+
+    <span class="c1"># Calculate and print flux and event rates for each simulation time.</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Single </span><span class="si">{</span><span class="n">cask_mass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">-tonne </span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> cask at </span><span class="si">{</span><span class="n">detector_distance</span><span class="si">}</span><span class="s2">m.&quot;</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_time</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spectra</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After </span><span class="si">{</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2"> years:&quot;</span><span class="p">)</span>
+        <span class="n">print_detector_rates</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">detector_distance</span><span class="p">)</span>
+
+    <span class="c1"># Save the first spectrum to CSV.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing single cask spectrum data to CSV...&quot;</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_single.csv&quot;</span>
+    <span class="n">spectra</span><span class="p">[</span><span class="n">simulation_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">write_csv</span><span class="p">(</span><span class="n">output_filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot the cask spectra for each time.</span>
+    <span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_time</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spectra</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">equalise</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_energy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_energy</span><span class="o">=</span><span class="mi">6000</span><span class="p">)</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+            <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation_time</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> years since removal from core&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6000</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e18</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative Flux [keV^-1 s^-1]&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Single </span><span class="si">{</span><span class="n">cask_mass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">-tonne </span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> cask spectrum&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Displaying plot...&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1"># Save the plot as a PDF.</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_single.pdf&quot;</span>
+    <span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">spectra</span></div>
+
+
+
+<div class="viewcode-block" id="run_multiple">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_multiple">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_multiple</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">cask_mass</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">n_casks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">cooling_times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">detector_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Spectrum</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate total spectra for multiple casks.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath: Path to the input file.</span>
+<span class="sd">        cask_mass: Total mass of each cask in kg.</span>
+<span class="sd">        n_casks: Number of casks to simulate.</span>
+<span class="sd">        cooling_times: List of times the casks have been cooling, in years.</span>
+<span class="sd">        detector_distance: Distance from the casks to the detector in meters.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The total Spectrum for all the casks combined at the first cooling time.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating multiple cask spectra...&quot;</span><span class="p">)</span>
+    <span class="c1"># Now we have multiple casks that have been cooling for different times,</span>
+    <span class="c1"># and want to find the combined antineutrino flux from all of them.</span>
+    <span class="c1"># Because each Cask has the same composition, and we have the same number per set,</span>
+    <span class="c1"># we can multiply the total mass by the number of casks and just create</span>
+    <span class="c1"># a single Cask object.</span>
+    <span class="n">cask</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span>
+        <span class="n">filepath</span><span class="p">,</span> <span class="n">total_mass</span><span class="o">=</span><span class="n">cask_mass</span> <span class="o">*</span> <span class="n">n_casks</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">filepath</span><span class="o">.</span><span class="n">stem</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create the Spectra for each set of casks at the specified times.</span>
+    <span class="n">spectra</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cooling_time</span> <span class="ow">in</span> <span class="n">cooling_times</span><span class="p">:</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">(</span><span class="n">cooling_time</span><span class="o">=</span><span class="n">cooling_time</span><span class="p">)</span>
+        <span class="n">spectra</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+
+    <span class="c1"># Combine the spectra from all casks to get the total spectrum for all 40 casks.</span>
+    <span class="n">spec_multiple</span> <span class="o">=</span> <span class="n">spectra</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">spec_multiple</span> <span class="o">=</span> <span class="n">spec_multiple</span> <span class="o">+</span> <span class="n">spec</span>
+    <span class="n">spec_multiple</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="c1"># Save to CSV.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing multiple cask spectrum data to CSV...&quot;</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_multiple.csv&quot;</span>
+    <span class="n">spec_multiple</span><span class="o">.</span><span class="n">write_csv</span><span class="p">(</span><span class="n">output_filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Calculate and print flux and event rates for the combined spectrum.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Multiple </span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> casks at </span><span class="si">{</span><span class="n">detector_distance</span><span class="si">}</span><span class="s2">m:&quot;</span><span class="p">)</span>
+    <span class="n">print_detector_rates</span><span class="p">(</span><span class="n">spec_multiple</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">detector_distance</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">spec_multiple</span></div>
+
+
+
+<div class="viewcode-block" id="run_compare">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_compare">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_compare</span><span class="p">(</span>
+    <span class="n">spec_single</span><span class="p">:</span> <span class="n">Spectrum</span><span class="p">,</span>
+    <span class="n">spec_multiple</span><span class="p">:</span> <span class="n">Spectrum</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot both single and multiple flux spectra on one graph.&quot;&quot;&quot;</span>
+    <span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">spec_single</span><span class="o">.</span><span class="n">equalise</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_energy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_energy</span><span class="o">=</span><span class="mi">6000</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+        <span class="n">spec_single</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">spec_single</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+        <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spec_single</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, single cask (0.5 yrs)&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">spec_multiple</span><span class="o">.</span><span class="n">equalise</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_energy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_energy</span><span class="o">=</span><span class="mi">6000</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+        <span class="n">spec_multiple</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">spec_multiple</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+        <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spec_multiple</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, multiple casks&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6000</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e18</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative Flux [keV^-1 s^-1]&quot;</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Comparison of single and multiple cask spectra for </span><span class="si">{</span><span class="n">spec_single</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Displaying plot...&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1"># Save the plot as a PDF.</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spec_single</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_single.pdf&quot;</span>
+    <span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_multiple_full">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_multiple_full">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_multiple_full</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">cask_mass</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">cask_cooling_times</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">simulation_times</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+    <span class="n">detector_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">40</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Plot multiple flux spectra for different cooling times.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating multiple cask spectra for different cooling times...&quot;</span><span class="p">)</span>
+    <span class="c1"># Now we do a full simulation of multiple sets of casks removed at different times,</span>
+    <span class="c1"># and simulate their spectra into the future.</span>
+    <span class="c1"># We don&#39;t have a set number of casks per set now, so we have to create</span>
+    <span class="c1"># a Cask object for each set with the overall mass.</span>
+    <span class="n">casks</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">cooling_time</span><span class="p">,</span> <span class="n">n_casks</span> <span class="ow">in</span> <span class="n">cask_cooling_times</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">casks</span><span class="p">[</span><span class="n">cooling_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">Cask</span><span class="o">.</span><span class="n">from_tabqfile</span><span class="p">(</span>
+            <span class="n">filepath</span><span class="p">,</span> <span class="n">total_mass</span><span class="o">=</span><span class="n">cask_mass</span> <span class="o">*</span> <span class="n">n_casks</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">filepath</span><span class="o">.</span><span class="n">stem</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Now get the spectra for all the sets of casks at each of the simulation times.</span>
+    <span class="n">spectra</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Spectrum</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">simulation_time</span> <span class="ow">in</span> <span class="n">simulation_times</span><span class="p">:</span>
+        <span class="c1"># We need to get the total spectrum for each set at this time,</span>
+        <span class="c1"># and then combine them.</span>
+        <span class="n">time_spectra</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">cooling_time</span><span class="p">,</span> <span class="n">cask</span> <span class="ow">in</span> <span class="n">casks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">new_cooling_time</span> <span class="o">=</span> <span class="n">cooling_time</span> <span class="o">+</span> <span class="n">simulation_time</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="n">cask</span><span class="o">.</span><span class="n">get_total_spectrum</span><span class="p">(</span><span class="n">cooling_time</span><span class="o">=</span><span class="n">new_cooling_time</span><span class="p">)</span>
+            <span class="n">time_spectra</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="n">total_spec</span> <span class="o">=</span> <span class="n">time_spectra</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">time_spectra</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">total_spec</span> <span class="o">=</span> <span class="n">total_spec</span> <span class="o">+</span> <span class="n">spec</span>
+        <span class="n">total_spec</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Total spectrum for all casks after </span><span class="si">{</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2"> years&quot;</span>
+        <span class="n">spectra</span><span class="p">[</span><span class="n">simulation_time</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_spec</span>
+
+    <span class="c1"># Calculate and print flux and event rates for each simulation time.</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Multiple </span><span class="si">{</span><span class="n">cask_mass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">-tonne </span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> casks &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;at </span><span class="si">{</span><span class="n">detector_distance</span><span class="si">}</span><span class="s2">m.&quot;</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_time</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spectra</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;After </span><span class="si">{</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2"> years:&quot;</span><span class="p">)</span>
+        <span class="n">print_detector_rates</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="n">detector_distance</span><span class="p">)</span>
+
+    <span class="c1"># Plot the total spectra for each simulation time.</span>
+    <span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">simulation_time</span><span class="p">,</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spectra</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">equalise</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_energy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_energy</span><span class="o">=</span><span class="mi">6000</span><span class="p">)</span>
+        <span class="n">axes</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+            <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Spectrum after </span><span class="si">{</span><span class="n">simulation_time</span><span class="si">}</span><span class="s2"> years&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6000</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mf">1e10</span><span class="p">,</span> <span class="mf">1e18</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative Flux [keV^-1 s^-1]&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Multiple </span><span class="si">{</span><span class="n">cask_mass</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">-tonne </span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> cask spectra &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;at different simulation times&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Displaying plot...&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1"># Save the plot as a PDF.</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cask</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_multiple.pdf&quot;</span>
+    <span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_sample">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run_sample">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_sample</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Spectrum</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample the cask spectrum to simulate detector observations.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sampling cask spectrum...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Take 1 million samples from the cask spectrum.</span>
+    <span class="n">spec</span><span class="o">.</span><span class="n">equalise</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">min_energy</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_energy</span><span class="o">=</span><span class="mi">6000</span><span class="p">)</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
+
+    <span class="c1"># Plot the sampled spectra along with the original for comparison.</span>
+    <span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">samples_hist</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span>
+        <span class="n">samples</span><span class="p">,</span>
+        <span class="n">bins</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Sampled spectrum (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span><span class="si">}</span><span class="s2"> samples)&quot;</span><span class="p">,</span>
+        <span class="n">histtype</span><span class="o">=</span><span class="s2">&quot;step&quot;</span><span class="p">,</span>
+        <span class="n">align</span><span class="o">=</span><span class="s2">&quot;mid&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">scaled_spec</span> <span class="o">=</span> <span class="n">spec</span> <span class="o">*</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">samples_hist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">flux</span><span class="p">))</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+        <span class="n">scaled_spec</span><span class="o">.</span><span class="n">energy</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">scaled_spec</span><span class="o">.</span><span class="n">flux</span><span class="p">,</span>
+        <span class="n">where</span><span class="o">=</span><span class="s2">&quot;post&quot;</span><span class="p">,</span>
+        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Original spectrum (scaled)&quot;</span><span class="p">,</span>
+        <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;dashed&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6000</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Energy [keV]&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Relative Flux [keV^-1 s^-1]&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Comparison of original and sampled spectra for </span><span class="si">{</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Displaying plot...&quot;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="c1"># Save the plot as a PDF.</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_sampled.pdf&quot;</span>
+    <span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Saved to </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.run">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run SNF simulations and calculate antineutrino fluxes and event rates.</span>
+
+<span class="sd">    Performs calculations for single and multiple dry casks of spent nuclear fuel</span>
+<span class="sd">    at various cooling times, calculating antineutrino flux and expected detector</span>
+<span class="sd">    event rates at 40 meters distance.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath: Path to the input file.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Run each of the test cases:</span>
+    <span class="c1"># First, just a single cask at a set of different times after removal.</span>
+    <span class="n">cask_mass</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="n">simulation_times</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">]</span>
+    <span class="n">spec_single</span> <span class="o">=</span> <span class="n">run_single</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">cask_mass</span><span class="p">,</span> <span class="n">simulation_times</span><span class="p">)</span>
+
+    <span class="c1"># Then, multiple casks at the same removal times.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&quot;</span><span class="p">)</span>
+    <span class="n">n_casks</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">spec_multiple</span> <span class="o">=</span> <span class="n">run_multiple</span><span class="p">(</span>
+        <span class="n">filepath</span><span class="p">,</span>
+        <span class="n">cask_mass</span><span class="p">,</span>
+        <span class="n">n_casks</span><span class="p">,</span>
+        <span class="n">simulation_times</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Compare the two cases.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&quot;</span><span class="p">)</span>
+    <span class="n">run_compare</span><span class="p">(</span><span class="n">spec_single</span><span class="p">[</span><span class="n">simulation_times</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">spec_multiple</span><span class="p">)</span>
+
+    <span class="c1"># Now do the full multiple cask case with sets of existing casks</span>
+    <span class="c1"># hat have already been cooling for diferent times.</span>
+    <span class="c1"># Here we have 10 casks that have just been removed (cooling_time=0),</span>
+    <span class="c1"># 10 that have been cooling for 1 year, etc.</span>
+    <span class="c1"># Then we simulate the total spectra for these casks</span>
+    <span class="c1"># at each of the simulation times.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&quot;</span><span class="p">)</span>
+    <span class="n">cask_cooling_times</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="mi">0</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="mi">5</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="mi">10</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="mi">20</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">run_multiple_full</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">cask_mass</span><span class="p">,</span> <span class="n">cask_cooling_times</span><span class="p">,</span> <span class="n">simulation_times</span><span class="p">)</span>
+
+    <span class="c1"># Finally, sample the spectrum to simulate detector observations.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~&quot;</span><span class="p">)</span>
+    <span class="n">run_sample</span><span class="p">(</span><span class="n">spec_multiple</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../apidocs/snf_simulations/snf_simulations.scripts.command_line.html#snf_simulations.scripts.command_line.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse command line arguments and run the simulation.&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Run SNF simulations and generate plots&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;filepath&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;?&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the input file&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">get_example_tbq_path</span><span class="p">(),</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">run</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=a95f357e85573c9b56d5"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=a95f357e85573c9b56d5"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, E Kneale.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.19.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

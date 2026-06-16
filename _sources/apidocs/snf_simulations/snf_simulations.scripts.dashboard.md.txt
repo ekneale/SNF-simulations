@@ -1,0 +1,34 @@
+# {py:mod}`snf_simulations.scripts.dashboard`
+
+```{py:module} snf_simulations.scripts.dashboard
+```
+
+```{autodoc2-docstring} snf_simulations.scripts.dashboard
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`main <snf_simulations.scripts.dashboard.main>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.dashboard.main
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} main() -> None
+:canonical: snf_simulations.scripts.dashboard.main
+
+```{autodoc2-docstring} snf_simulations.scripts.dashboard.main
+:parser: autodoc2_docstrings_parser
+```
+````

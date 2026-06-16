@@ -1,0 +1,120 @@
+# {py:mod}`snf_simulations.physics`
+
+```{py:module} snf_simulations.physics
+```
+
+```{autodoc2-docstring} snf_simulations.physics
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DecayChain <snf_simulations.physics.DecayChain>`
+  - ```{autodoc2-docstring} snf_simulations.physics.DecayChain
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`calculate_flux_at_distance <snf_simulations.physics.calculate_flux_at_distance>`
+  - ```{autodoc2-docstring} snf_simulations.physics.calculate_flux_at_distance
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`get_decay_mass <snf_simulations.physics.get_decay_mass>`
+  - ```{autodoc2-docstring} snf_simulations.physics.get_decay_mass
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`get_isotope_activity <snf_simulations.physics.get_isotope_activity>`
+  - ```{autodoc2-docstring} snf_simulations.physics.get_isotope_activity
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} DecayChain
+:canonical: snf_simulations.physics.DecayChain
+
+Bases: {py:obj}`typing.NamedTuple`
+
+```{autodoc2-docstring} snf_simulations.physics.DecayChain
+:parser: autodoc2_docstrings_parser
+```
+
+````{py:attribute} branching_ratio
+:canonical: snf_simulations.physics.DecayChain.branching_ratio
+:type: float
+:value: >
+   1.0
+
+```{autodoc2-docstring} snf_simulations.physics.DecayChain.branching_ratio
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} daughter
+:canonical: snf_simulations.physics.DecayChain.daughter
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.physics.DecayChain.daughter
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} parent
+:canonical: snf_simulations.physics.DecayChain.parent
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.physics.DecayChain.parent
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+`````
+
+````{py:function} calculate_flux_at_distance(total_flux: float, distance: float) -> float
+:canonical: snf_simulations.physics.calculate_flux_at_distance
+
+```{autodoc2-docstring} snf_simulations.physics.calculate_flux_at_distance
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} get_decay_mass(time_elapsed: float, parent_mass: float, parent_half_life: float, daughter_half_life: float, branching_ratio: float = 1) -> float
+:canonical: snf_simulations.physics.get_decay_mass
+
+```{autodoc2-docstring} snf_simulations.physics.get_decay_mass
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} get_isotope_activity(time_elapsed: float, mass: float, molar_mass: float, half_life: float) -> float
+:canonical: snf_simulations.physics.get_isotope_activity
+
+```{autodoc2-docstring} snf_simulations.physics.get_isotope_activity
+:parser: autodoc2_docstrings_parser
+```
+````

@@ -1,0 +1,125 @@
+# {py:mod}`snf_simulations.scripts.command_line`
+
+```{py:module} snf_simulations.scripts.command_line
+```
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`main <snf_simulations.scripts.command_line.main>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.main
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`print_detector_rates <snf_simulations.scripts.command_line.print_detector_rates>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.print_detector_rates
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`run <snf_simulations.scripts.command_line.run>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.run
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`run_compare <snf_simulations.scripts.command_line.run_compare>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.run_compare
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`run_multiple <snf_simulations.scripts.command_line.run_multiple>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.run_multiple
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`run_multiple_full <snf_simulations.scripts.command_line.run_multiple_full>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.run_multiple_full
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`run_sample <snf_simulations.scripts.command_line.run_sample>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.run_sample
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`run_single <snf_simulations.scripts.command_line.run_single>`
+  - ```{autodoc2-docstring} snf_simulations.scripts.command_line.run_single
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} main() -> None
+:canonical: snf_simulations.scripts.command_line.main
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.main
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} print_detector_rates(spec: snf_simulations.spec.Spectrum, distance: float) -> None
+:canonical: snf_simulations.scripts.command_line.print_detector_rates
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.print_detector_rates
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} run(filepath: pathlib.Path) -> None
+:canonical: snf_simulations.scripts.command_line.run
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.run
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} run_compare(spec_single: snf_simulations.spec.Spectrum, spec_multiple: snf_simulations.spec.Spectrum) -> None
+:canonical: snf_simulations.scripts.command_line.run_compare
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.run_compare
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} run_multiple(filepath: pathlib.Path, cask_mass: float, n_casks: int, cooling_times: collections.abc.Sequence[float], detector_distance: float = 40) -> snf_simulations.spec.Spectrum
+:canonical: snf_simulations.scripts.command_line.run_multiple
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.run_multiple
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} run_multiple_full(filepath: pathlib.Path, cask_mass: float, cask_cooling_times: collections.abc.Mapping[int, int] | collections.abc.Mapping[float, int], simulation_times: collections.abc.Sequence[float], detector_distance: float = 40) -> None
+:canonical: snf_simulations.scripts.command_line.run_multiple_full
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.run_multiple_full
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} run_sample(spec: snf_simulations.spec.Spectrum, n_samples: int = 1000000) -> None
+:canonical: snf_simulations.scripts.command_line.run_sample
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.run_sample
+:parser: autodoc2_docstrings_parser
+```
+````
+
+````{py:function} run_single(filepath: pathlib.Path, cask_mass: float, simulation_times: collections.abc.Sequence[float], detector_distance: float = 40) -> dict[float, snf_simulations.spec.Spectrum]
+:canonical: snf_simulations.scripts.command_line.run_single
+
+```{autodoc2-docstring} snf_simulations.scripts.command_line.run_single
+:parser: autodoc2_docstrings_parser
+```
+````

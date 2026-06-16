@@ -1,0 +1,170 @@
+# {py:mod}`snf_simulations.dashboard`
+
+```{py:module} snf_simulations.dashboard
+```
+
+```{autodoc2-docstring} snf_simulations.dashboard
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SimInputs <snf_simulations.dashboard.SimInputs>`
+  - ```{autodoc2-docstring} snf_simulations.dashboard.SimInputs
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`server <snf_simulations.dashboard.server>`
+  - ```{autodoc2-docstring} snf_simulations.dashboard.server
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`app <snf_simulations.dashboard.app>`
+  - ```{autodoc2-docstring} snf_simulations.dashboard.app
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`app_ui <snf_simulations.dashboard.app_ui>`
+  - ```{autodoc2-docstring} snf_simulations.dashboard.app_ui
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} SimInputs()
+:canonical: snf_simulations.dashboard.SimInputs
+
+Bases: {py:obj}`typing.TypedDict`
+
+```{autodoc2-docstring} snf_simulations.dashboard.SimInputs
+:parser: autodoc2_docstrings_parser
+```
+
+````{py:attribute} all_isotopes
+:canonical: snf_simulations.dashboard.SimInputs.all_isotopes
+:type: bool
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.dashboard.SimInputs.all_isotopes
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} cask_mass
+:canonical: snf_simulations.dashboard.SimInputs.cask_mass
+:type: float
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.dashboard.SimInputs.cask_mass
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} cask_name
+:canonical: snf_simulations.dashboard.SimInputs.cask_name
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.dashboard.SimInputs.cask_name
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} cooling_times
+:canonical: snf_simulations.dashboard.SimInputs.cooling_times
+:type: list[float]
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.dashboard.SimInputs.cooling_times
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} filepath
+:canonical: snf_simulations.dashboard.SimInputs.filepath
+:type: pathlib.Path
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.dashboard.SimInputs.filepath
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:attribute} n_casks
+:canonical: snf_simulations.dashboard.SimInputs.n_casks
+:type: int
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations.dashboard.SimInputs.n_casks
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+`````
+
+````{py:data} app
+:canonical: snf_simulations.dashboard.app
+:value: >
+   'App(...)'
+
+```{autodoc2-docstring} snf_simulations.dashboard.app
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:data} app_ui
+:canonical: snf_simulations.dashboard.app_ui
+:value: >
+   'page_fluid(...)'
+
+```{autodoc2-docstring} snf_simulations.dashboard.app_ui
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:function} server(input: shiny.Inputs, output: shiny.Outputs, session: shiny.Session) -> None
+:canonical: snf_simulations.dashboard.server
+
+```{autodoc2-docstring} snf_simulations.dashboard.server
+:parser: autodoc2_docstrings_parser
+```
+````

@@ -1,0 +1,72 @@
+# {py:mod}`snf_simulations._version`
+
+```{py:module} snf_simulations._version
+```
+
+```{autodoc2-docstring} snf_simulations._version
+:parser: autodoc2_docstrings_parser
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`commit_id <snf_simulations._version.commit_id>`
+  - ```{autodoc2-docstring} snf_simulations._version.commit_id
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`version <snf_simulations._version.version>`
+  - ```{autodoc2-docstring} snf_simulations._version.version
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+* - {py:obj}`version_tuple <snf_simulations._version.version_tuple>`
+  - ```{autodoc2-docstring} snf_simulations._version.version_tuple
+    :parser: autodoc2_docstrings_parser
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} commit_id
+:canonical: snf_simulations._version.commit_id
+:type: str | None
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations._version.commit_id
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:data} version
+:canonical: snf_simulations._version.version
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations._version.version
+:parser: autodoc2_docstrings_parser
+```
+
+````
+
+````{py:data} version_tuple
+:canonical: snf_simulations._version.version_tuple
+:type: tuple[int | str, ...]
+:value: >
+   None
+
+```{autodoc2-docstring} snf_simulations._version.version_tuple
+:parser: autodoc2_docstrings_parser
+```
+
+````
